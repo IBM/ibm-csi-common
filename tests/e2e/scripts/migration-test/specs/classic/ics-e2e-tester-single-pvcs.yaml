@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    run: ics-e2e-tester
+    billingType: "hourly"
+  name: ics-e2e-tester-01
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 11Gi
+  storageClassName: ibmc-block-bronze
