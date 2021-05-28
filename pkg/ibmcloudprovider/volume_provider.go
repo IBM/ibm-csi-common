@@ -19,15 +19,16 @@ package ibmcloudprovider
 
 import (
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
 	"github.com/IBM/ibmcloud-volume-vpc/common/registry"
-	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
@@ -72,10 +73,12 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 			logger.Fatal("Unable to create API key getter", local.ZapError(err))
 			return nil, err
 		}
-		err = apiKeyImp.UpdateIAMKeys(conf)
-		if err != nil {
-			logger.Fatal("Unable to get API key", local.ZapError(err))
-			return nil, err
+		if os.Getenv("IKS_ENABLED") == "True" {
+			err = apiKeyImp.UpdateIAMKeys(conf)
+			if err != nil {
+				logger.Fatal("Unable to get API key", local.ZapError(err))
+				return nil, err
+			}
 		}
 	}
 

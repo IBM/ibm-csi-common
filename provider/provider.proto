@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "github.ibm.com/alchemy-containers/armada-storage-secret/provider";
+option java_multiple_files = true;
+option java_package = "io.grpc.ibm.storage-secret";
+option java_outer_classname = "StorageSecretClass";
+
+package provider;
+
+// The APIKeyProvider.
+service APIKeyProvider {
+  // Get container API key
+  rpc GetContainerAPIKey(Cipher) returns (APIKey) {}
+
+  // Get VPC API key
+  rpc GetVPCAPIKey(Cipher) returns (APIKey) {}
+}
+
+// The request message containing the cipher.
+message Cipher {
+  string cipher = 1;
+  string requestID = 2;
+}
+
+// The response message containing apikey
+message APIKey {
+  string apikey = 1;
+}
