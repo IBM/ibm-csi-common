@@ -26,7 +26,7 @@ type ConnObjFactory struct{}
 
 type ClientConn interface {
 	Connect(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
-	//Close() error
+	Close() error
 }
 
 type GrpcSes struct {
@@ -40,12 +40,12 @@ func (gs *GrpcSes) Connect(target string, opts ...grpc.DialOption) (*grpc.Client
 	return gs.conn, err
 }
 
-//func (gs *GrpcSes) Close() error {
-//	if gs.conn != nil {
-//		return gs.conn.Close()
-//	}
-//	return nil
-//}
+func (gs *GrpcSes) Close() error {
+	if gs.conn != nil {
+		return gs.conn.Close()
+	}
+	return nil
+}
 
 func (c *ConnObjFactory) NewGrpcSession() GrpcSession {
 	return &GrpcSes{}

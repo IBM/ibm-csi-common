@@ -12,11 +12,12 @@ package grpc_client
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -35,7 +36,7 @@ type fakeClientConn1 struct {
 
 type fakeClConn1 interface {
 	Connect(target string, opts ...grpc.DialOption) (*(grpc.ClientConn), error)
-	//Close() error
+	Close() error
 }
 
 func (gs *fakeClientConn1) Connect(target string, opts ...grpc.DialOption) (*(grpc.ClientConn), error) {
@@ -44,9 +45,9 @@ func (gs *fakeClientConn1) Connect(target string, opts ...grpc.DialOption) (*(gr
 	return &fakeConn, err
 }
 
-//func (gs *fakeClientConn1) Close() error {
-//	return nil
-//}
+func (gs *fakeClientConn1) Close() error {
+	return nil
+}
 
 type fakeClientConn2 struct {
 	fcc2 fakeClConn2
@@ -54,16 +55,16 @@ type fakeClientConn2 struct {
 
 type fakeClConn2 interface {
 	Connect(target string, opts ...grpc.DialOption) (*(grpc.ClientConn), error)
-	//Close() error
+	Close() error
 }
 
 func (gs *fakeClientConn2) Connect(target string, opts ...grpc.DialOption) (*(grpc.ClientConn), error) {
 	return nil, errMsgString
 }
 
-//func (gs *fakeClientConn2) Close() error {
-//	return nil
-//}
+func (gs *fakeClientConn2) Close() error {
+	return nil
+}
 
 func getFakeGrpcSession(gcon *grpc.ClientConn, conn ClientConn) GrpcSession {
 	return &GrpcSes{
