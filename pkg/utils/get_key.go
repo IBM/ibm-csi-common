@@ -93,8 +93,8 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	cc := &grpcClient.GrpcSes{}
 	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
 	if err != nil {
-		fmt.Errorf("Failed to establish grpc-client connection: %v", err)
-		return nil
+		err = fmt.Errorf("failed to establish grpc-client connection: %v", err)
+		return err
 	}
 
 	//APIKeyProvider Client
@@ -102,21 +102,28 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	_, requestID := GetContextLogger(context.Background(), false)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+
 	if config.Bluemix.Encryption {
 		r, err := c.GetContainerAPIKey(ctx, &pb.Cipher{Cipher: config.Bluemix.IamAPIKey, RequestID: requestID})
+		if err != nil {
+			return err
+		}
 		config.Bluemix.IamAPIKey = r.GetApikey()
-		return err
 	}
 	if config.VPC.Encryption {
 		if config.VPC.APIKey != "" {
 			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.APIKey, RequestID: requestID})
+			if err != nil {
+				return err
+			}
 			config.VPC.APIKey = r.GetApikey()
-			return err
 		}
 		if config.VPC.G2APIKey != "" {
 			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.G2APIKey, RequestID: requestID})
+			if err != nil {
+				return err
+			}
 			config.VPC.G2APIKey = r.GetApikey()
-			return err
 		}
 	}
 	return nil
