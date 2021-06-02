@@ -29,8 +29,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
+	"github.com/IBM/ibmcloud-volume-interface/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

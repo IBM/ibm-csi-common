@@ -18,9 +18,9 @@
 package ibmcloudprovider
 
 import (
+	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
-	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )

@@ -24,10 +24,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IBM/ibmcloud-volume-interface/config"
-	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	cloudprovider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
+	"github.com/IBM/ibmcloud-volume-interface/config"
+	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"k8s.io/api/core/v1"

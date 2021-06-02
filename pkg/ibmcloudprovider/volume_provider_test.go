@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- // Package ibmcloudprovider ...
+// Package ibmcloudprovider ...
 package ibmcloudprovider
 
 import (

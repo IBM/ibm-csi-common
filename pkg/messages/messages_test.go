@@ -18,8 +18,8 @@
 package messages
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"testing"
 )
