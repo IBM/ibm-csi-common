@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider/fake_volume_provider.go (92.0%)</option>
 				
-				<option value="file1">github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider/volume_provider.go (67.3%)</option>
+				<option value="file1">github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider/volume_provider.go (64.2%)</option>
 				
 				<option value="file2">github.com/IBM/ibm-csi-common/pkg/messages/messages.go (100.0%)</option>
 				
@@ -75,13 +75,15 @@
 				
 				<option value="file9">github.com/IBM/ibm-csi-common/pkg/utils/get_key.go (0.0%)</option>
 				
-				<option value="file10">github.com/IBM/ibm-csi-common/pkg/utils/lock_store.go (100.0%)</option>
+				<option value="file10">github.com/IBM/ibm-csi-common/pkg/utils/grpc-client/grpc_client.go (45.5%)</option>
 				
-				<option value="file11">github.com/IBM/ibm-csi-common/pkg/utils/logger.go (89.5%)</option>
+				<option value="file11">github.com/IBM/ibm-csi-common/pkg/utils/lock_store.go (100.0%)</option>
 				
-				<option value="file12">github.com/IBM/ibm-csi-common/pkg/utils/utils.go (52.0%)</option>
+				<option value="file12">github.com/IBM/ibm-csi-common/pkg/utils/logger.go (89.5%)</option>
 				
-				<option value="file13">github.com/IBM/ibm-csi-common/pkg/watcher/pv_watcher.go (51.3%)</option>
+				<option value="file13">github.com/IBM/ibm-csi-common/pkg/utils/utils.go (52.0%)</option>
+				
+				<option value="file14">github.com/IBM/ibm-csi-common/pkg/watcher/pv_watcher.go (51.3%)</option>
 				
 				</select>
 			</div>
@@ -104,33 +106,36 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">/*
-Copyright 2018 The Kubernetes Authors.
+		<pre class="file" id="file0" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
+// Package ibmcloudprovider ...
 package ibmcloudprovider
 
 import (
         "bytes"
         "testing"
 
+        "github.com/IBM/ibm-csi-common/pkg/utils"
         "github.com/IBM/ibmcloud-volume-interface/config"
         "github.com/IBM/ibmcloud-volume-interface/lib/provider"
         "github.com/IBM/ibmcloud-volume-interface/lib/provider/fake"
         "github.com/IBM/ibmcloud-volume-interface/provider/local"
         provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
         vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
-        "github.com/IBM/ibm-csi-common/pkg/utils"
         "go.uber.org/zap"
         "go.uber.org/zap/zapcore"
         "golang.org/x/net/context"
@@ -304,33 +309,37 @@ func (ficp *FakeIBMCloudStorageProvider) GetClusterInfo() *utils.ClusterInfo <sp
 }</span>
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">/*
-Copyright 2018 The Kubernetes Authors.
+		<pre class="file" id="file1" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
+// Package ibmcloudprovider ...
 package ibmcloudprovider
 
 import (
         "fmt"
+        "os"
         "time"
 
+        "github.com/IBM/ibm-csi-common/pkg/utils"
         "github.com/IBM/ibmcloud-volume-interface/config"
         "github.com/IBM/ibmcloud-volume-interface/lib/provider"
         "github.com/IBM/ibmcloud-volume-interface/provider/local"
         provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
         vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
         "github.com/IBM/ibmcloud-volume-vpc/common/registry"
-        "github.com/IBM/ibm-csi-common/pkg/utils"
         "go.uber.org/zap"
         "golang.org/x/net/context"
 )
@@ -375,11 +384,13 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
                         logger.Fatal("Unable to create API key getter", local.ZapError(err))
                         return nil, err
                 }</span>
-                <span class="cov10" title="2">err = apiKeyImp.UpdateIAMKeys(conf)
-                if err != nil </span><span class="cov0" title="0">{
-                        logger.Fatal("Unable to get API key", local.ZapError(err))
-                        return nil, err
-                }</span>
+                <span class="cov10" title="2">if os.Getenv("IKS_ENABLED") == "True" </span><span class="cov0" title="0">{
+                        err = apiKeyImp.UpdateIAMKeys(conf)
+                        if err != nil </span><span class="cov0" title="0">{
+                                logger.Fatal("Unable to get API key", local.ZapError(err))
+                                return nil, err
+                        }</span>
+                }
         }
 
         // Update the CSRF  Token
@@ -461,20 +472,28 @@ func (icp *IBMCloudStorageProvider) GetClusterInfo() *utils.ClusterInfo <span cl
 }</span>
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">/*******************************************************************************
- * IBM Confidential
- * OCO Source Materials
- * IBM Bluemix Container Registry, 5737-D42
- * (C) Copyright IBM Corp. 2020 All Rights Reserved.
- * The source code for this program is not  published or otherwise divested of
- * its trade secrets,  * irrespective of what has been deposited with
- * the U.S. Copyright Office.
- ******************************************************************************/
+		<pre class="file" id="file2" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package messages ...
 package messages
 
 import (
         "fmt"
+
         "go.uber.org/zap"
         "google.golang.org/grpc/codes"
         "google.golang.org/grpc/status"
@@ -528,16 +547,23 @@ func GetCSIMessage(code string, args ...interface{}) Message <span class="cov8" 
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">/*******************************************************************************
- * IBM Confidential
- * OCO Source Materials
- * IBM Bluemix Container Registry, 5737-D42
- * (C) Copyright IBM Corp. 2020 All Rights Reserved.
- * The source code for this program is not  published or otherwise divested of
- * its trade secrets,  * irrespective of what has been deposited with
- * the U.S. Copyright Office.
- ******************************************************************************/
+		<pre class="file" id="file3" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package messages ...
 package messages
 
 import (
@@ -1005,20 +1031,28 @@ func (fake *FakeNodeMetadata) recordInvocation(key string, args []interface{}) <
 var _ NodeMetadata = new(FakeNodeMetadata)
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">/*******************************************************************************
- * IBM Confidential
- * OCO Source Materials
- * IBM Bluemix Container Registry, 5737-D42
- * (C) Copyright IBM Corp. 2020 All Rights Reserved.
- * The source code for this program is not  published or otherwise divested of
- * its trade secrets,  * irrespective of what has been deposited with
- * the U.S. Copyright Office.
- ******************************************************************************/
+		<pre class="file" id="file5" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package metadata ...
 package metadata
 
 import (
         "fmt"
+
         "github.com/IBM/ibm-csi-common/pkg/utils"
         "go.uber.org/zap"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -1089,21 +1123,29 @@ func (manager *nodeMetadataManager) GetWorkerID() string <span class="cov8" titl
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">/*******************************************************************************
- * IBM Confidential
- * OCO Source Materials
- * IBM Cloud Kubernetes Service, 5737-D43
- * (C) Copyright IBM Corp. 2019 All Rights Reserved.
- * The source code for this program is not  published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with
- * the U.S. Copyright Office.
- ******************************************************************************/
+		<pre class="file" id="file6" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package metrics ...
 package metrics
 
 import (
-        "go.uber.org/zap"
         "time"
+
+        "go.uber.org/zap"
 
         "github.com/prometheus/client_golang/prometheus"
 )
@@ -1202,19 +1244,23 @@ func RegisterFunction(label FunctionLabel) <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">/*
-Copyright 2018 The Kubernetes Authors.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+		<pre class="file" id="file7" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package mountmanager ...
 package mountmanager
 
 import (
@@ -1242,19 +1288,23 @@ func NewFakeSafeMounter() *mount.SafeFormatAndMount <span class="cov8" title="1"
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">/*
-Copyright 2018 The Kubernetes Authors.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+		<pre class="file" id="file8" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package mountmanager ...
 package mountmanager
 
 import (
@@ -1272,25 +1322,51 @@ func NewSafeMounter() *mount.SafeFormatAndMount <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">/*******************************************************************************
- * IBM Confidential
- * OCO Source Materials
- * IBM Bluemix Container Registry, 5737-D42
- * (C) Copyright IBM Corp. 2020 All Rights Reserved.
- * The source code for this program is not  published or otherwise divested of
- * its trade secrets,  * irrespective of what has been deposited with
- * the U.S. Copyright Office.
- ******************************************************************************/
+		<pre class="file" id="file9" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package utils ...
 package utils
 
 import (
+        "context"
         "encoding/json"
+        "flag"
+        "fmt"
+        "io/ioutil"
+        "net"
+        "path/filepath"
+        "time"
+
+        grpcClient "github.com/IBM/ibm-csi-common/pkg/utils/grpc-client"
+        pb "github.com/IBM/ibm-csi-common/provider"
         "github.com/IBM/ibmcloud-volume-interface/config"
         "go.uber.org/zap"
-        "io/ioutil"
-        "path/filepath"
+        "google.golang.org/grpc"
 )
+
+var (
+        endpoint = flag.String("endpoint", "/tmp/storage-secret-sidecar.sock", "Storage secret sidecar endpoint")
+)
+
+func UnixConnect(addr string, t time.Duration) (net.Conn, error) <span class="cov0" title="0">{
+        unix_addr, err := net.ResolveUnixAddr("unix", addr)
+        conn, err := net.DialUnix("unix", nil, unix_addr)
+        return conn, err
+}</span>
 
 //ClusterInfo contians the cluster information
 type ClusterInfo struct {
@@ -1319,11 +1395,6 @@ func NewClusterInfo(logger *zap.Logger) (*ClusterInfo, error) <span class="cov0"
 
 }
 
-//APIKey Decryptor contract
-type APIKey interface {
-        GetAPIKey(cipherText string) (string, error)
-}
-
 // APIKeyImpl implementation
 type APIKeyImpl struct {
         logger *zap.Logger
@@ -1338,39 +1409,134 @@ func NewAPIKey(loggerIn *zap.Logger) (*APIKeyImpl, error) <span class="cov0" tit
         return apiKeyImp, err
 }</span>
 
-// GetIAMKeys ...
-func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) (error) <span class="cov0" title="0">{
-  if true </span><span class="cov0" title="0">{ // IKS env
-    if config.Bluemix.Encryption </span><span class="cov0" title="0">{
-                    config.Bluemix.IamAPIKey = ""
-          }</span>
-          <span class="cov0" title="0">if config.VPC.Encryption </span><span class="cov0" title="0">{
-                    if config.VPC.APIKey != "" </span><span class="cov0" title="0">{
-                               config.VPC.APIKey = ""
-                    }</span>
-                    <span class="cov0" title="0">if config.VPC.G2APIKey != "" </span><span class="cov0" title="0">{
-                               config.VPC.G2APIKey = ""
-                    }</span>
-          }
-  }
-  <span class="cov0" title="0">return nil</span>
+//UpdateIAMKeys decrypts the API keys and updates.
+func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error <span class="cov0" title="0">{
+        //Setup grpc connection
+        var GRPCBackend grpcClient.GrpcSessionFactory
+        grpcSess := GRPCBackend.NewGrpcSession()
+        cc := &amp;grpcClient.GrpcSes{}
+        conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
+        if err != nil </span><span class="cov0" title="0">{
+                err = fmt.Errorf("failed to establish grpc-client connection: %v", err)
+                return err
+        }</span>
+
+        //APIKeyProvider Client
+        <span class="cov0" title="0">c := pb.NewAPIKeyProviderClient(conn)
+        _, requestID := GetContextLogger(context.Background(), false)
+        ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+        defer cancel()
+        defer cc.Close()
+
+        if config.Bluemix.Encryption </span><span class="cov0" title="0">{
+                r, err := c.GetContainerAPIKey(ctx, &amp;pb.Cipher{Cipher: config.Bluemix.IamAPIKey, RequestID: requestID})
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">config.Bluemix.IamAPIKey = r.GetApikey()</span>
+        }
+        <span class="cov0" title="0">if config.VPC.Encryption </span><span class="cov0" title="0">{
+                if config.VPC.APIKey != "" </span><span class="cov0" title="0">{
+                        r, err := c.GetVPCAPIKey(ctx, &amp;pb.Cipher{Cipher: config.VPC.APIKey, RequestID: requestID})
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">config.VPC.APIKey = r.GetApikey()</span>
+                }
+                <span class="cov0" title="0">if config.VPC.G2APIKey != "" </span><span class="cov0" title="0">{
+                        r, err := c.GetVPCAPIKey(ctx, &amp;pb.Cipher{Cipher: config.VPC.G2APIKey, RequestID: requestID})
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">config.VPC.G2APIKey = r.GetApikey()</span>
+                }
+        }
+        <span class="cov0" title="0">return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">/*
-Copyright 2018 The Kubernetes Authors.
+		<pre class="file" id="file10" style="display: none">/*******************************************************************************
+ * IBM Confidential
+ * OCO Source Materials
+ * IBM Cloud Container Service, 5737-D43
+ * (C) Copyright IBM Corp. 2017, 2018 All Rights Reserved.
+ * The source code for this program is not  published or otherwise divested of
+ * its trade secrets, irrespective of what has been deposited with
+ * the U.S. Copyright Office.
+ ******************************************************************************/
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+package grpc_client
 
+import (
+        "google.golang.org/grpc"
+)
+
+type GrpcSessionFactory interface {
+        NewGrpcSession() GrpcSession
+}
+
+type GrpcSession interface {
+        GrpcDial(cc ClientConn, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
+}
+
+type ConnObjFactory struct{}
+
+type ClientConn interface {
+        Connect(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
+        Close() error
+}
+
+type GrpcSes struct {
+        conn *grpc.ClientConn
+        cc   ClientConn
+}
+
+func (gs *GrpcSes) Connect(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) <span class="cov0" title="0">{
+        var err error
+        gs.conn, err = grpc.Dial(target, opts...)
+        return gs.conn, err
+}</span>
+
+func (gs *GrpcSes) Close() error <span class="cov0" title="0">{
+        if gs.conn != nil </span><span class="cov0" title="0">{
+                return gs.conn.Close()
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (c *ConnObjFactory) NewGrpcSession() GrpcSession <span class="cov1" title="1">{
+        return &amp;GrpcSes{}
+}</span>
+
+var cc ClientConn = &amp;GrpcSes{}
+
+// GrpcDial establishes a grpc-client client server connection
+func (c *GrpcSes) GrpcDial(cc ClientConn, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) <span class="cov10" title="2">{
+        conn, err := cc.Connect(target, opts...)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return conn, err</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Package utils ...
 package utils
 
 import (
@@ -1425,14 +1591,32 @@ func (s *LockStore) Unlock(name string) <span class="cov6" title="3">{
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package utils
+		<pre class="file" id="file12" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Package utils ...
+package utils
 
 import (
+        "os"
+
         uid "github.com/satori/go.uuid"
         "go.uber.org/zap"
         "go.uber.org/zap/zapcore"
         "golang.org/x/net/context"
-        "os"
 )
 
 // GetContextLogger ...
@@ -1475,32 +1659,34 @@ func GetContextLoggerWithRequestID(ctx context.Context, isDebug bool, requestIDI
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">/*
-Copyright 2018 The Kubernetes Authors.
+		<pre class="file" id="file13" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
+// Package utils ...
 package utils
 
 import (
         "bytes"
-        csi "github.com/container-storage-interface/spec/lib/go/csi"
-        "go.uber.org/zap"
-        "go.uber.org/zap/zapcore"
         "os"
         "strings"
         "testing"
+
+        csi "github.com/container-storage-interface/spec/lib/go/csi"
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
 )
 
 // NewVolumeCapabilityAccessMode ...
@@ -1595,32 +1781,40 @@ func GetTestLogger(t *testing.T) (logger *zap.Logger, teardown func()) <span cla
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">/*******************************************************************************
- * IBM Confidential
- * OCO Source Materials
- * IBM Cloud Container Service, 5737-D43
- * (C) Copyright IBM Corp. 2019 All Rights Reserved.
- * The source code for this program is not  published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with
- * the U.S. Copyright Office.
- ******************************************************************************/
+		<pre class="file" id="file14" style="display: none">/**
+ * Copyright 2021 IBM Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// Package watcher ...
 package watcher
 
 import (
         "flag"
-        "github.com/golang/glog"
         "os"
         "strings"
         "time"
 
-        "github.com/IBM/ibmcloud-volume-interface/config"
-        "github.com/IBM/ibmcloud-volume-interface/lib/provider"
+        "github.com/golang/glog"
+
         cloudprovider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
         "github.com/IBM/ibm-csi-common/pkg/utils"
+        "github.com/IBM/ibmcloud-volume-interface/config"
+        "github.com/IBM/ibmcloud-volume-interface/lib/provider"
         "go.uber.org/zap"
         "golang.org/x/net/context"
-        "k8s.io/api/core/v1"
+        v1 "k8s.io/api/core/v1"
         "k8s.io/apimachinery/pkg/fields"
         "k8s.io/apimachinery/pkg/util/wait"
         "k8s.io/client-go/kubernetes"

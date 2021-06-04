@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 IBM Corp.
+ * Copyright 2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package e2e
 import (
 	"os"
 
-	. "github.com/onsi/ginkgo"
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
+	. "github.com/onsi/ginkgo"
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
