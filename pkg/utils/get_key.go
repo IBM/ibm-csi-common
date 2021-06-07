@@ -73,14 +73,16 @@ func NewClusterInfo(logger *zap.Logger) (*ClusterInfo, error) {
 
 // APIKeyImpl implementation
 type APIKeyImpl struct {
-	logger *zap.Logger
+	logger      *zap.Logger
+	GRPCBackend grpcClient.GrpcSessionFactory
 }
 
 //NewAPIKey returns the new decryptor
 func NewAPIKey(loggerIn *zap.Logger) (*APIKeyImpl, error) {
 	var err error
 	apiKeyImp := &APIKeyImpl{
-		logger: loggerIn,
+		logger:      loggerIn,
+		GRPCBackend: &grpcClient.ConnObjFactory{},
 	}
 	return apiKeyImp, err
 }
@@ -88,8 +90,7 @@ func NewAPIKey(loggerIn *zap.Logger) (*APIKeyImpl, error) {
 //UpdateIAMKeys decrypts the API keys and updates.
 func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	//Setup grpc connection
-	var GRPCBackend grpcClient.GrpcSessionFactory
-	grpcSess := GRPCBackend.NewGrpcSession()
+	grpcSess := d.GRPCBackend.NewGrpcSession()
 	cc := &grpcClient.GrpcSes{}
 	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
 	if err != nil {
