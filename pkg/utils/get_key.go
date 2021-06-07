@@ -35,7 +35,7 @@ import (
 )
 
 var (
-	endpoint = flag.String("endpoint", "/tmp/storage-secret-sidecar.sock", "Storage secret sidecar endpoint")
+	endpoint = flag.String("sidecarEndpoint", "/csi/provider.sock", "Storage secret sidecar endpoint")
 )
 
 func UnixConnect(addr string, t time.Duration) (net.Conn, error) {
