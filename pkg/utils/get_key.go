@@ -90,8 +90,10 @@ func NewAPIKey(loggerIn *zap.Logger) (*APIKeyImpl, error) {
 //UpdateIAMKeys decrypts the API keys and updates.
 func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	//Setup grpc connection
+	d.logger.Info("Creating GRPC client")
 	grpcSess := d.GRPCBackend.NewGrpcSession()
 	cc := &grpcClient.GrpcSes{}
+	d.logger.Info("Dialing for connection..")
 	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
 	if err != nil {
 		err = fmt.Errorf("failed to establish grpc-client connection: %v", err)
