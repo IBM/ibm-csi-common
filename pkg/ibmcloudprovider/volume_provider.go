@@ -61,19 +61,23 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 		conf.VPC.APIVersion = "2020-07-02" // setting default values
 	}
 
+	logger.Info("Fetching clusterInfo")
 	clusterInfo, err := utils.NewClusterInfo(logger)
 	if err != nil {
 		logger.Fatal("Unable to load ClusterInfo", local.ZapError(err))
 		return nil, err
 	}
+	logger.Info("Fetched clusterInfo..")
 	if conf.Bluemix.Encryption || conf.VPC.Encryption {
-		// api Key if encryption is enabled
-		apiKeyImp, err := utils.NewAPIKey(logger)
-		if err != nil {
-			logger.Fatal("Unable to create API key getter", local.ZapError(err))
-			return nil, err
-		}
 		if os.Getenv("IKS_ENABLED") == "True" {
+			// api Key if encryption is enabled
+			logger.Info("Creating NewAPIKeyImpl...")
+			apiKeyImp, err := utils.NewAPIKeyImpl(logger)
+			if err != nil {
+				logger.Fatal("Unable to create API key getter", local.ZapError(err))
+				return nil, err
+			}
+			logger.Info("Created NewAPIKeyImpl...")
 			err = apiKeyImp.UpdateIAMKeys(conf)
 			if err != nil {
 				logger.Fatal("Unable to get API key", local.ZapError(err))
