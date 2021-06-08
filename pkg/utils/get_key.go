@@ -77,8 +77,8 @@ type APIKeyImpl struct {
 	GRPCBackend grpcClient.GrpcSessionFactory
 }
 
-//NewAPIKey returns the new decryptor
-func NewAPIKey(loggerIn *zap.Logger) (*APIKeyImpl, error) {
+//NewAPIKeyImpl returns the new decryptor
+func NewAPIKeyImpl(loggerIn *zap.Logger) (*APIKeyImpl, error) {
 	var err error
 	apiKeyImp := &APIKeyImpl{
 		logger:      loggerIn,
