@@ -20,6 +20,7 @@ package ibmcloudprovider
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
@@ -61,15 +62,16 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 		conf.VPC.APIVersion = "2020-07-02" // setting default values
 	}
 
+	var clusterInfo *utils.ClusterInfo
 	logger.Info("Fetching clusterInfo")
-	clusterInfo, err := utils.NewClusterInfo(logger)
-	if err != nil {
-		logger.Fatal("Unable to load ClusterInfo", local.ZapError(err))
-		return nil, err
-	}
-	logger.Info("Fetched clusterInfo..")
-	if conf.Bluemix.Encryption || conf.VPC.Encryption {
-		if os.Getenv("IKS_ENABLED") == "True" {
+	if conf.IKS != nil && conf.IKS.Enabled || strings.Contains(os.Getenv("IKS_ENABLED"), "True") {
+		clusterInfo, err = utils.NewClusterInfo(logger)
+		if err != nil {
+			logger.Fatal("Unable to load ClusterInfo", local.ZapError(err))
+			return nil, err
+		}
+		logger.Info("Fetched clusterInfo..")
+		if conf.Bluemix.Encryption || conf.VPC.Encryption {
 			// api Key if encryption is enabled
 			logger.Info("Creating NewAPIKeyImpl...")
 			apiKeyImp, err := utils.NewAPIKeyImpl(logger)
