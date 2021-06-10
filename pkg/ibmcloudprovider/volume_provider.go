@@ -20,7 +20,6 @@ package ibmcloudprovider
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
@@ -64,7 +63,7 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 
 	var clusterInfo *utils.ClusterInfo
 	logger.Info("Fetching clusterInfo")
-	if conf.IKS != nil && conf.IKS.Enabled || strings.Contains(os.Getenv("IKS_ENABLED"), "True") {
+	if conf.IKS != nil && conf.IKS.Enabled || os.Getenv("IKS_ENABLED") == "True" {
 		clusterInfo, err = utils.NewClusterInfo(logger)
 		if err != nil {
 			logger.Fatal("Unable to load ClusterInfo", local.ZapError(err))
