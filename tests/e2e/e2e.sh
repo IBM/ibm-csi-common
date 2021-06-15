@@ -94,6 +94,10 @@ err_msg2=""
 DRIVER_PODS=$(kubectl get pods -n kube-system | grep 'ibm-vpc-block-csi-controlle' | grep 'Running'); rc=$?
 if [[ $rc -ne 0 ]]; then
     err_msg1="Error       : Controller not active"
+	echo "***************************************************" >> $E2E_TEST_SETUP
+	DRIVER_DETAILS=$(kubectl describe pod -n kube-system ibm-vpc-block-csi-controller | sed -n '/Events/,$p'); 
+	echo -e "\nDRIVER DETAILS = $DRIVER_DETAILS" >> $E2E_TEST_SETUP
+	echo "***************************************************" >> $E2E_TEST_SETUP
 else
     DRIVER_DETAILS=$(kubectl get pods -n kube-system ibm-vpc-block-csi-controller-0 -o jsonpath="{range .spec.containers[*]}{.name}:{.image}{'\n'}"); rc=$?
 fi
@@ -101,6 +105,10 @@ fi
 DRIVER_PODS=$(kubectl get pods -n kube-system | grep 'ibm-vpc-block-csi-node' | grep 'Running'); rc=$?
 if [[ $rc -ne 0 ]]; then
     err_msg2="Error       : Node server not active"
+	echo "***************************************************" >> $E2E_TEST_SETUP
+	DRIVER_DETAILS=$(kubectl describe pod -n kube-system ibm-vpc-block-csi-node | sed -n '/Events/,$p');
+	echo -e "\nDRIVER DETAILS = $DRIVER_DETAILS" >> $E2E_TEST_SETUP
+	echo "***************************************************" >> $E2E_TEST_SETUP
 fi
 
 if [[ -n "$err_msg1" || -n "$err_msg2" ]]; then
