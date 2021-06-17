@@ -29,6 +29,7 @@ import (
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
 	"github.com/IBM/ibmcloud-volume-vpc/common/registry"
+	uid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
@@ -45,11 +46,14 @@ var _ CloudProviderInterface = &IBMCloudStorageProvider{}
 
 // NewIBMCloudStorageProvider ...
 func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMCloudStorageProvider, error) {
-	logger.Info("NewIBMCloudStorageProvider-Reading provider configuration...")
+	ctx := context.TODO()
+	//populate context with RequestID value.
+	ctx = context.WithValue(ctx, provider.RequestID, uid.NewV4().String())
+	logger.Info("NewIBMCloudStorageProvider-Reading provider configuration...", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 	// Load config file
 	conf, err := config.ReadConfig(configPath, logger)
 	if err != nil {
-		logger.Fatal("Error loading configuration")
+		logger.Fatal("Error loading configuration", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 		return nil, err
 	}
 	// Get only VPC_API_VERSION, in "2019-07-02T00:00:00.000Z" case vpc need only 2019-07-02"
@@ -57,31 +61,31 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 	if err == nil {
 		conf.VPC.APIVersion = fmt.Sprintf("%d-%02d-%02d", dateTime.Year(), dateTime.Month(), dateTime.Day())
 	} else {
-		logger.Warn("Failed to parse VPC_API_VERSION, setting default value")
+		logger.Warn("Failed to parse VPC_API_VERSION, setting default value", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 		conf.VPC.APIVersion = "2020-07-02" // setting default values
 	}
 
 	var clusterInfo *utils.ClusterInfo
-	logger.Info("Fetching clusterInfo")
+	logger.Info("Fetching clusterInfo", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 	if conf.IKS != nil && conf.IKS.Enabled || os.Getenv("IKS_ENABLED") == "True" {
 		clusterInfo, err = utils.NewClusterInfo(logger)
 		if err != nil {
-			logger.Fatal("Unable to load ClusterInfo", local.ZapError(err))
+			logger.Fatal("Unable to load ClusterInfo", zap.Reflect("RequestId", ctx.Value(provider.RequestID)), local.ZapError(err))
 			return nil, err
 		}
-		logger.Info("Fetched clusterInfo..")
+		logger.Info("Fetched clusterInfo..", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 		if conf.Bluemix.Encryption || conf.VPC.Encryption {
 			// api Key if encryption is enabled
-			logger.Info("Creating NewAPIKeyImpl...")
+			logger.Info("Creating NewAPIKeyImpl...", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 			apiKeyImp, err := utils.NewAPIKeyImpl(logger)
 			if err != nil {
-				logger.Fatal("Unable to create API key getter", local.ZapError(err))
+				logger.Fatal("Unable to create API key getter", zap.Reflect("RequestId", ctx.Value(provider.RequestID)), local.ZapError(err))
 				return nil, err
 			}
 			logger.Info("Created NewAPIKeyImpl...")
-			err = apiKeyImp.UpdateIAMKeys(conf)
+			err = apiKeyImp.UpdateIAMKeys(conf, ctx)
 			if err != nil {
-				logger.Fatal("Unable to get API key", local.ZapError(err))
+				logger.Fatal("Unable to get API key", zap.Reflect("RequestId", ctx.Value(provider.RequestID)), local.ZapError(err))
 				return nil, err
 			}
 		}

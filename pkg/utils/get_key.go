@@ -30,6 +30,7 @@ import (
 	grpcClient "github.com/IBM/ibm-csi-common/pkg/utils/grpc-client"
 	pb "github.com/IBM/ibm-csi-common/provider"
 	"github.com/IBM/ibmcloud-volume-interface/config"
+	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -88,12 +89,12 @@ func NewAPIKeyImpl(loggerIn *zap.Logger) (*APIKeyImpl, error) {
 }
 
 //UpdateIAMKeys decrypts the API keys and updates.
-func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
+func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config, ctx context.Context) error {
 	//Setup grpc connection
-	d.logger.Info("Creating GRPC client")
+	d.logger.Info("Creating GRPC client", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 	grpcSess := d.GRPCBackend.NewGrpcSession()
 	cc := &grpcClient.GrpcSes{}
-	d.logger.Info("Dialing for connection..")
+	d.logger.Info("Dialing for connection..", zap.Reflect("RequestId", ctx.Value(provider.RequestID)))
 	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
 	if err != nil {
 		err = fmt.Errorf("failed to establish grpc-client connection: %v", err)
@@ -102,7 +103,7 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 
 	//APIKeyProvider Client
 	c := pb.NewAPIKeyProviderClient(conn)
-	_, requestID := GetContextLogger(context.Background(), false)
+	requestID := fmt.Sprintf("%v", ctx.Value(provider.RequestID))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	defer cc.Close()
