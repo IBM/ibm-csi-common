@@ -102,13 +102,12 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 
 	//APIKeyProvider Client
 	c := pb.NewAPIKeyProviderClient(conn)
-	_, requestID := GetContextLogger(context.Background(), false)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	defer cc.Close()
 
 	if config.Bluemix.Encryption {
-		r, err := c.GetContainerAPIKey(ctx, &pb.Cipher{Cipher: config.Bluemix.IamAPIKey, RequestID: requestID})
+		r, err := c.GetContainerAPIKey(ctx, &pb.Cipher{Cipher: config.Bluemix.IamAPIKey, RequestID: ""})
 		if err != nil {
 			return err
 		}
@@ -116,14 +115,14 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	}
 	if config.VPC.Encryption {
 		if config.VPC.APIKey != "" {
-			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.APIKey, RequestID: requestID})
+			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.APIKey, RequestID: ""})
 			if err != nil {
 				return err
 			}
 			config.VPC.APIKey = r.GetApikey()
 		}
 		if config.VPC.G2APIKey != "" {
-			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.G2APIKey, RequestID: requestID})
+			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.G2APIKey, RequestID: ""})
 			if err != nil {
 				return err
 			}
