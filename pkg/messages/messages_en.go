@@ -247,7 +247,7 @@ var messagesEn = map[string]Message{
 	},
 	MultipleVolAccessPointFound: {
 		Code:        MultipleVolAccessPointFound,
-		Description: "Volume has more than one Volume Access Points.Please go through the list of VPCs = '%v'",
+		Description: "Volume has more than one Access Points.Please go through the list of VPCs = '%v'",
 		Type:        codes.FailedPrecondition,
 		Action:      "Try to delete the additional volume access points which are not created as part of the CSI volume request and then retry deleting the volume if it still exists.",
 	},
