@@ -128,4 +128,7 @@ const (
 
 	// VolumePathNotMounted ...
 	VolumePathNotMounted = "VolumePathNotMounted"
+
+	//MultipleVolAccessPointFound
+	MultipleVolAccessPointFound = "MultipleVolAccessPointFound"
 )
