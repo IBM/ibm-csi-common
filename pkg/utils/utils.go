@@ -91,7 +91,6 @@ func getEnv(key string) string {
 
 // GetTestLogger ...
 func GetTestLogger(t *testing.T) (logger *zap.Logger, teardown func()) {
-
 	atom := zap.NewAtomicLevel()
 	atom.SetLevel(zap.DebugLevel)
 

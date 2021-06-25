@@ -30,7 +30,22 @@ issues:
 linters:
     # enable or disable analyzers by name
     enable:
+      - golint
       - gofmt
       - gosec
+      - whitespace
+      - misspell
+      - unconvert
+      - goimports
+      - unused
+      - gosimple
+      - varcheck
+      - structcheck
+      - bodyclose
+      - deadcode
+      - depguard
+      - govet
+      - typecheck
+      - staticcheck
     enable-all: false
     disable-all: true

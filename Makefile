@@ -39,7 +39,7 @@ dofmt:
 
 .PHONY: lint
 lint:
-	golangci-lint run --skip-dirs=tests
+	golangci-lint run --timeout 600s --skip-dirs=tests
 
 .PHONY: vet
 vet:

@@ -32,7 +32,7 @@ func GetContextLogger(ctx context.Context, isDebug bool) (*zap.Logger, string) {
 }
 
 // GetContextLoggerWithRequestID  adds existing requestID in the logger
-// The Existing requestID might be comming from ControllerPublishVolume etc
+// The Existing requestID might be coming from ControllerPublishVolume etc
 func GetContextLoggerWithRequestID(ctx context.Context, isDebug bool, requestIDIn *string) (*zap.Logger, string) {
 	consoleDebugging := zapcore.Lock(os.Stdout)
 	consoleErrors := zapcore.Lock(os.Stderr)

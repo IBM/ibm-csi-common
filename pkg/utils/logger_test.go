@@ -36,11 +36,11 @@ func TestGetContextLogger(t *testing.T) {
 
 func TestGetContextLoggerWithRequestID(t *testing.T) {
 	requestIDIn := "1000"
-	ctxLog, reqID := GetContextLoggerWithRequestID(context.Background(), true, &requestIDIn)
-	assert.NotNil(t, ctxLog)
+	ctxLog, reqID := GetContextLoggerWithRequestID(context.Background(), true, &requestIDIn) //nolint:typecheck,staticcheck
+	assert.NotNil(t, ctxLog)                                                                 //nolint:typecheck
 	assert.NotNil(t, requestIDIn)
 
-	ctxLog, reqID = GetContextLoggerWithRequestID(context.Background(), true, nil)
-	assert.NotNil(t, ctxLog)
+	ctxLog, reqID = GetContextLoggerWithRequestID(context.Background(), true, nil) //nolint:typecheck
+	assert.NotNil(t, ctxLog)                                                       //nolint:typecheck
 	assert.NotNil(t, reqID)
 }

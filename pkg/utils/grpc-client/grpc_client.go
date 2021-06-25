@@ -14,50 +14,57 @@
  * limitations under the License.
  */
 
-package grpc_client
+//Package grpcclient ...
+package grpcclient
 
 import (
 	"google.golang.org/grpc"
 )
 
+//GrpcSessionFactory defines NewGrpcSession
 type GrpcSessionFactory interface {
 	NewGrpcSession() GrpcSession
 }
 
+//GrpcSession defines GrpcDial
 type GrpcSession interface {
 	GrpcDial(cc ClientConn, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
 }
 
+//ConnObjFactory defines empty object
 type ConnObjFactory struct{}
 
+//ClientConn defines main gRPC functionality
 type ClientConn interface {
 	Connect(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error)
 	Close() error
 }
 
+//GrpcSes implements ClientConn and GrpcSession
 type GrpcSes struct {
 	conn *grpc.ClientConn
 	cc   ClientConn
 }
 
-func (gs *GrpcSes) Connect(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+//Connect creates a client connection to a given target
+func (c *GrpcSes) Connect(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	var err error
-	gs.conn, err = grpc.Dial(target, opts...)
-	return gs.conn, err
+	c.conn, err = grpc.Dial(target, opts...)
+	return c.conn, err
 }
 
-func (gs *GrpcSes) Close() error {
-	if gs.conn != nil {
-		return gs.conn.Close()
+//Close tears down the client connection and all underlying connections.
+func (c *GrpcSes) Close() error {
+	if c.conn != nil {
+		return c.conn.Close()
 	}
 	return nil
 }
 
+//NewGrpcSession returns empty GrpcSes object.
 func (c *ConnObjFactory) NewGrpcSession() GrpcSession {
 	return &GrpcSes{}
 }
-
-var cc ClientConn = &GrpcSes{}
 
 // GrpcDial establishes a grpc-client client server connection
 func (c *GrpcSes) GrpcDial(cc ClientConn, target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
