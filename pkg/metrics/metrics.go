@@ -95,7 +95,7 @@ func UpdateVolumeAttachedCount(podsCount int) {
 // UpdateDurationFromStart records the duration of the step identified by the
 // label using start time
 func UpdateDurationFromStart(logger *zap.Logger, label FunctionLabel, start time.Time) {
-	duration := time.Now().Sub(start) //nolint:gosimple
+	duration := time.Since(start)
 	logger.Info("Time to complete", zap.Float64(string(label), duration.Seconds()))
 	UpdateDuration(label, duration)
 }

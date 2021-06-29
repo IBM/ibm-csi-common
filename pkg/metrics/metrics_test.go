@@ -46,7 +46,7 @@ func TestUpdateDurationFromStart(t *testing.T) {
 
 func TestUpdateDuration(t *testing.T) {
 	funLabel := FunctionLabel("myFunction")
-	duration := time.Now().Sub(time.Now()) //nolint:gosimple
+	duration := time.Until(time.Now())
 	UpdateDuration(funLabel, duration)
 }
 
