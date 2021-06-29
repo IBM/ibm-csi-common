@@ -128,7 +128,6 @@ func New(logger *zap.Logger, provisionerName string, volumeType string, cloudPro
 		recorder:        broadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: iksPodName}),
 	}
 	return pvw
-
 }
 
 //Start start pv watcher
@@ -150,7 +149,7 @@ func (pvw *PVWatcher) Start() {
 }
 
 func (pvw *PVWatcher) updateVolume(oldobj, obj interface{}) {
-	// Run as non-blocking thread to allow parallel proccessing of volumes
+	// Run as non-blocking thread to allow parallel processing of volumes
 	go func() {
 		ctxLogger, requestID := utils.GetContextLogger(context.Background(), false)
 		// panic-recovery function that avoid watcher thread to stop because of unexexpected error
@@ -191,14 +190,13 @@ func (pvw *PVWatcher) getTags(pv *v1.PersistentVolume, ctxLogger *zap.Logger) (s
 	// append default tags to users tag list
 	tags = append(tags, utils.ClusterIDLabel+":"+volAttributes[utils.ClusterIDLabel])
 	tags = append(tags, ReclaimPolicyTag+string(pv.Spec.PersistentVolumeReclaimPolicy))
-	tags = append(tags, StorageClassTag+string(pv.Spec.StorageClassName))
-	tags = append(tags, NameSpaceTag+string(pv.Spec.ClaimRef.Namespace))
-	tags = append(tags, PVCNameTag+string(pv.Spec.ClaimRef.Name))
+	tags = append(tags, StorageClassTag+pv.Spec.StorageClassName)
+	tags = append(tags, NameSpaceTag+pv.Spec.ClaimRef.Namespace)
+	tags = append(tags, PVCNameTag+pv.Spec.ClaimRef.Name)
 	tags = append(tags, PVNameTag+pv.ObjectMeta.Name)
 	tags = append(tags, ProvisionerTag+pvw.provisionerName)
 	ctxLogger.Debug("Exit getTags()", zap.String("VolumeCRN", volAttributes[VolumeCRN]), zap.Reflect("tags", tags))
 	return volAttributes[VolumeCRN], tags
-
 }
 
 func (pvw *PVWatcher) getVolume(pv *v1.PersistentVolume, ctxLogger *zap.Logger) provider.Volume {

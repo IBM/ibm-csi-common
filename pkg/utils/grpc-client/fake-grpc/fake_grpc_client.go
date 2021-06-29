@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package fake_grpc
+//Package fakegrpc ...
+package fakegrpc
 
 import (
 	"errors"
@@ -23,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+//nolint:golint
 //FakeGrpcSessionFactory implements grpcClient.GrpcSessionFactory
 type FakeGrpcSessionFactory struct {
 	//FailGrpcConnection ...

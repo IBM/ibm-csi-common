@@ -40,7 +40,6 @@ func (s *LockStore) checkAndInitLockStore() {
 }
 
 func (s *LockStore) getLock(name string) *sync.Mutex {
-
 	lockstoremux.Lock()
 	defer lockstoremux.Unlock()
 

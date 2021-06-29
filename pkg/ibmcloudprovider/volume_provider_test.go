@@ -18,6 +18,7 @@
 package ibmcloudprovider
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -72,7 +73,7 @@ func TestGetProviderSession(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, ibmCloudProvider)
 
-	proSession, err := ibmCloudProvider.GetProviderSession(nil, logger)
+	proSession, err := ibmCloudProvider.GetProviderSession(context.TODO(), logger)
 	assert.NotNil(t, err)     //TODO: It should be Nil
 	assert.Nil(t, proSession) // TODO: It should be NotNil
 }
@@ -108,7 +109,7 @@ func TestNewFakeIBMCloudStorageProvider(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, ibmFakeCloudProvider)
 
-	fakeSession, err := ibmFakeCloudProvider.GetProviderSession(nil, logger)
+	fakeSession, err := ibmFakeCloudProvider.GetProviderSession(context.TODO(), logger)
 	assert.Nil(t, err)
 	assert.NotNil(t, fakeSession)
 

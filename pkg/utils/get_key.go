@@ -38,13 +38,16 @@ var (
 	endpoint = flag.String("sidecarEndpoint", "/csi/provider.sock", "Storage secret sidecar endpoint")
 )
 
-func UnixConnect(addr string, t time.Duration) (net.Conn, error) {
-	unix_addr, err := net.ResolveUnixAddr("unix", addr)
-	conn, err := net.DialUnix("unix", nil, unix_addr)
+func unixConnect(addr string, t time.Duration) (net.Conn, error) {
+	unixAddr, err := net.ResolveUnixAddr("unix", addr)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := net.DialUnix("unix", nil, unixAddr)
 	return conn, err
 }
 
-//ClusterInfo contians the cluster information
+//ClusterInfo contains the cluster information
 type ClusterInfo struct {
 	ClusterID   string `json:"cluster_id"`
 	ClusterName string `json:"cluster_name,omitempty"`
@@ -62,13 +65,12 @@ func NewClusterInfo(logger *zap.Logger) (*ClusterInfo, error) {
 		logger.Error("Error while reading  cluster-config.json", zap.Error(err))
 		return nil, err
 	}
-	err = json.Unmarshal([]byte(clusterInfoContent), clusterInfo)
+	err = json.Unmarshal(clusterInfoContent, clusterInfo)
 	if err != nil {
 		logger.Error("Error while parsing cluster-config", zap.Error(err))
 		return nil, err
 	}
 	return clusterInfo, nil
-
 }
 
 // APIKeyImpl implementation
@@ -94,7 +96,7 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	grpcSess := d.GRPCBackend.NewGrpcSession()
 	cc := &grpcClient.GrpcSes{}
 	d.logger.Info("Dialing for connection..")
-	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
+	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(unixConnect)) //nolint:staticcheck
 	if err != nil {
 		err = fmt.Errorf("failed to establish grpc-client connection: %v", err)
 		return err

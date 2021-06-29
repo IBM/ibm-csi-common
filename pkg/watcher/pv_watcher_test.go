@@ -152,15 +152,12 @@ func TestAddTags(t *testing.T) {
 			assert.Equal(t, "12345", vol.Attributes[strings.ToLower(utils.ClusterIDLabel)])
 
 			pvw.updateVolume(testcase.pv, testcase.pv)
-
 		})
 	}
-
 }
 
 // GetTestLogger ...
 func GetTestLogger(t *testing.T) (logger *zap.Logger, teardown func()) {
-
 	atom := zap.NewAtomicLevel()
 	atom.SetLevel(zap.DebugLevel)
 

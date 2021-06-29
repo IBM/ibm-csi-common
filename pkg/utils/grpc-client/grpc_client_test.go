@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package grpc_client
+package grpcclient
 
 import (
 	"errors"
@@ -90,13 +90,13 @@ var gcon = &grpc.ClientConn{}
 
 func Test_GrpcDial_Positive(t *testing.T) {
 	grSess := getFakeGrpcSession(gcon, &fakeClientConn1{fcc1: cc1})
-	_, err := grSess.GrpcDial(cc1, *sockeEndpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
+	_, err := grSess.GrpcDial(cc1, *sockeEndpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect)) //nolint:staticcheck
 	assert.NoError(t, err)
 }
 
 func Test_GrpcDial_Error(t *testing.T) {
 	grSess := getFakeGrpcSession(gcon, &fakeClientConn2{fcc2: cc2})
-	_, err := grSess.GrpcDial(cc2, *sockeEndpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect))
+	_, err := grSess.GrpcDial(cc2, *sockeEndpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(UnixConnect)) //nolint:staticcheck
 
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), errMsg)
@@ -104,7 +104,10 @@ func Test_GrpcDial_Error(t *testing.T) {
 }
 
 func UnixConnect(addr string, t time.Duration) (net.Conn, error) {
-	unix_addr, err := net.ResolveUnixAddr("unix", addr)
-	conn, err := net.DialUnix("unix", nil, unix_addr)
+	unixAddr, err := net.ResolveUnixAddr("unix", addr)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := net.DialUnix("unix", nil, unixAddr)
 	return conn, err
 }
