@@ -95,6 +95,18 @@ var messagesEn = map[string]Message{
 		Type:        codes.InvalidArgument,
 		Action:      "Please check all node's labels by using kubectl command",
 	},
+	EndpointNotReachable: {
+		Code:        EndpointNotReachable,
+		Description: "Endpoint is incorrect",
+		Type:        codes.Unavailable,
+		Action:      "Verify that iks_token_exchange_endpoint_private_url is reachable from the cluster. You can find this url by running 'kubectl get secret storage-secret-storage -n kube-system'.",
+	},
+	Timeout: {
+		Code:        Timeout,
+		Description: "Timed out for response from endpoint",
+		Type:        codes.DeadlineExceeded,
+		Action:      "Wait for a few mninutes and try again. If the error persists user can open a container network issue.",
+	},
 	FailedPrecondition: {
 		Code:        FailedPrecondition,
 		Description: "Provider is not ready to responde",
