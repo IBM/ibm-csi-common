@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta7
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20210729123109-d7ecd9267fcd
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
@@ -27,6 +27,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
+	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/satori/go.uuid v1.2.0
