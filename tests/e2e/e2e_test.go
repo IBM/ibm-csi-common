@@ -17,6 +17,7 @@
 package e2e
 
 import (
+	"flag"
 	"testing"
 
 	_ "testing"
@@ -24,11 +25,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/kubernetes/test/e2e/framework"
+	"k8s.io/kubernetes/test/e2e/framework/config"
 )
 
 func init() {
 	testing.Init()
-	framework.HandleFlags()
+	config.CopyFlags(config.Flags, flag.CommandLine)
+	framework.RegisterCommonFlags(flag.CommandLine)
+	framework.RegisterClusterFlags(flag.CommandLine)
+	flag.Parse()
 	framework.AfterReadingAllFlags(&framework.TestContext)
 }
 
