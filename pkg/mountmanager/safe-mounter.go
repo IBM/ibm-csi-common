@@ -18,13 +18,14 @@
 package mountmanager
 
 import (
-	"k8s.io/kubernetes/pkg/util/mount"
+	mount "k8s.io/mount-utils"
+	exec "k8s.io/utils/exec"
 )
 
 // NewSafeMounter ...
 func NewSafeMounter() *mount.SafeFormatAndMount {
 	realMounter := mount.New("")
-	realExec := mount.NewOsExec()
+	realExec := exec.New()
 	return &mount.SafeFormatAndMount{
 		Interface: realMounter,
 		Exec:      realExec,

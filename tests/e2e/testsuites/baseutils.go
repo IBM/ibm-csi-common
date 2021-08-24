@@ -17,6 +17,7 @@
 package testsuites
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"os/exec"
@@ -137,6 +138,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 }
 
 func (h *TestHeadlessService) Create() v1.Service {
+	ctx := context.Background()
 	var err error
 	selectorValue := fmt.Sprintf("%s-%d", h.labelsAndSelectors, rand.Int())
 	By(fmt.Sprintf("creating HeadlessService under ns:%q", h.namespace))
@@ -162,7 +164,7 @@ func (h *TestHeadlessService) Create() v1.Service {
 			},
 		},
 	}
-	h.service, err = h.client.CoreV1().Services(h.namespace).Create(headlessService)
+	h.service, err = h.client.CoreV1().Services(h.namespace).Create(ctx, headlessService)
 	framework.ExpectNoError(err)
 	fmt.Println("HeadlessService Label ", h.service.Labels)
 	return *h.service
