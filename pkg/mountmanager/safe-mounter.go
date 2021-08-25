@@ -22,6 +22,21 @@ import (
 	exec "k8s.io/utils/exec"
 )
 
+type mountInterface = mount.Interface
+
+// Mounter is the interface implemented by Mounter
+// A mix & match of functions defined in upstream libraries. (FormatAndMount
+// from struct SafeFormatAndMount, PathExists from an old edition of
+// mount.Interface). Define it explicitly so that it can be mocked and to
+// insulate from oft-changing upstream interfaces/structs
+type Mounter interface {
+	mountInterface
+
+	MakeFile(path string) error
+	MakeDir(path string) error
+	PathExists(path string) (bool, error)
+}
+
 // NewSafeMounter ...
 func NewSafeMounter() *mount.SafeFormatAndMount {
 	realMounter := mount.New("")

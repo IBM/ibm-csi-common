@@ -53,6 +53,7 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.21.0
 	k8s.io/mount-utils => k8s.io/mount-utils v0.21.0-beta.0
 	k8s.io/node-api => k8s.io/node-api v0.21.0
+	k8s.io/pod-security-admission => k8s.io/pod-security-admission v0.0.0
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.21.0
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.21.0
 )
