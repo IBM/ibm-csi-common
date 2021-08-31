@@ -22,23 +22,40 @@ import (
 	exec "k8s.io/utils/exec"
 )
 
-// type mountInterface = mount.Interface
+type MountInterface = mount.Interface
 
-// // Mounter is the interface implemented by Mounter
-// // A mix & match of functions defined in upstream libraries. (FormatAndMount
-// // from struct SafeFormatAndMount, PathExists from an old edition of
-// // mount.Interface). Define it explicitly so that it can be mocked and to
-// // insulate from oft-changing upstream interfaces/structs
-// type Mounter interface {
-// 	mountInterface
+//type execInterface = exec.Interface
 
-// 	MakeFile(path string) error
-// 	MakeDir(path string) error
-// 	PathExists(path string) (bool, error)
-// }
+//type mounter = *mount.SafeFormatAndMount
+
+// Mounter is the interface implemented by Mounter
+// A mix & match of functions defined in upstream libraries. (FormatAndMount
+// from struct SafeFormatAndMount, PathExists from an old edition of
+// mount.Interface). Define it explicitly so that it can be mocked and to
+// insulate from oft-changing upstream interfaces/structs
+type Mounter interface {
+	MountInterface
+	//execInterface
+
+	MakeFile(path string) error
+	MakeDir(path string) error
+	PathExists(path string) (bool, error)
+}
+
+// NodeMounter implements Mounter.
+// A superstruct of SafeFormatAndMount.
+type NodeMounter struct {
+	*mount.SafeFormatAndMount
+}
+
+func NewNodeMounter() Mounter {
+	// mounter.NewSafeMounter returns a SafeFormatAndMount
+	safeMounter := newSafeMounter()
+	return &NodeMounter{safeMounter}
+}
 
 // NewSafeMounter ...
-func NewSafeMounter() *mount.SafeFormatAndMount {
+func newSafeMounter() *mount.SafeFormatAndMount {
 	realMounter := mount.New("")
 	realExec := exec.New()
 	return &mount.SafeFormatAndMount{

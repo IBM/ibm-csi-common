@@ -24,7 +24,7 @@ import (
 )
 
 func TestNewSafeMounter(t *testing.T) {
-	safeMounter := NewSafeMounter()
+	safeMounter := newSafeMounter()
 	assert.NotNil(t, safeMounter)
 }
 
@@ -32,7 +32,6 @@ func TestNewFakeSafeMounter(t *testing.T) {
 	safeMounter := NewFakeSafeMounter()
 	assert.NotNil(t, safeMounter)
 
-	cmd := safeMounter.Exec.Command("ls", "la")
-	err := cmd.Run()
+	err := safeMounter.Exec.Command("ls", "la").Run()
 	assert.Nil(t, err)
 }

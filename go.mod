@@ -23,9 +23,10 @@ require (
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v11.0.1-0.20190516230509-ae8359b20417+incompatible
+	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.21.0
 	k8s.io/mount-utils v0.21.0
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	k8s.io/utils v0.0.0-20210305010621-2afb4311ab10
 )
 
 replace (
