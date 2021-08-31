@@ -32,6 +32,6 @@ func TestNewFakeSafeMounter(t *testing.T) {
 	safeMounter := NewFakeSafeMounter()
 	assert.NotNil(t, safeMounter)
 
-	err := safeMounter.Exec.Command("ls", "la").Run()
+	err := safeMounter.NewSafeFormatAndMount().Exec.Command("ls", "la").Run()
 	assert.Nil(t, err)
 }

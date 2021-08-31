@@ -36,7 +36,14 @@ func NewFakeNodeMounter() Mounter {
 }
 
 // NewFakeSafeMounter ...
+<<<<<<< HEAD
 func NewFakeSafeMounter() *mount.SafeFormatAndMount {
+=======
+func NewFakeSafeMounter() Mounter {
+	// execCallback := func(cmd string, args ...string) ([]byte, error) {
+	// 	return nil, nil
+	// }
+>>>>>>> 065876c (Fix fake mounter)
 	fakeMounter := &mount.FakeMounter{MountPoints: []mount.MountPoint{{
 		Device: "valid-devicePath",
 		Path:   "valid-vol-path",
@@ -46,15 +53,23 @@ func NewFakeSafeMounter() *mount.SafeFormatAndMount {
 		Pass:   2,
 	}},
 	}
+<<<<<<< HEAD
 
 	var fakeExec exec.Interface = &testExec.FakeExec{
 		DisableScripts: true,
 	}
 
 	return &mount.SafeFormatAndMount{
+=======
+	//TODO: NewFakeExec is deprecated; failing test
+	//fakeExec := exec.New()
+	var fakeExecInterface exec.Interface = &testExec.FakeExec{}
+	//mount.NewFakeExec(execCallback)
+	return &NodeMounter{&mount.SafeFormatAndMount{
+>>>>>>> 065876c (Fix fake mounter)
 		Interface: fakeMounter,
-		Exec:      fakeExec,
-	}
+		Exec:      fakeExecInterface,
+	}}
 }
 
 // MakeDir ...
