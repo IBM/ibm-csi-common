@@ -22,9 +22,9 @@ import (
 	exec "k8s.io/utils/exec"
 )
 
-type MountInterface = mount.Interface
+type mountInterface = mount.Interface
 
-//type execInterface = exec.Interface
+//type ExecInterface = exec.Interface
 
 //type mounter = *mount.SafeFormatAndMount
 
@@ -34,9 +34,10 @@ type MountInterface = mount.Interface
 // mount.Interface). Define it explicitly so that it can be mocked and to
 // insulate from oft-changing upstream interfaces/structs
 type Mounter interface {
-	MountInterface
+	mountInterface
 	//execInterface
 
+	NewSafeFormatAndMount() *mount.SafeFormatAndMount
 	MakeFile(path string) error
 	MakeDir(path string) error
 	PathExists(path string) (bool, error)

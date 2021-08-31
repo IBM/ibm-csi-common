@@ -19,7 +19,7 @@ package mountmanager
 import (
 	"os"
 
-	mountutils "k8s.io/mount-utils"
+	mount "k8s.io/mount-utils"
 )
 
 // This function is mirrored in ./sanity_test.go to make sure sanity test covered this block of code
@@ -52,5 +52,10 @@ func (m *NodeMounter) MakeDir(path string) error {
 // This function is mirrored in ./sanity_test.go to make sure sanity test covered this block of code
 // Please mirror the change to func MakeFile in ./sanity_test.go
 func (m *NodeMounter) PathExists(path string) (bool, error) {
-	return mountutils.PathExists(path)
+	return mount.PathExists(path)
+}
+
+// This function retunr the new object of SafeFormatAndMount
+func (m *NodeMounter) NewSafeFormatAndMount() *mount.SafeFormatAndMount {
+	return newSafeMounter()
 }
