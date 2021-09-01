@@ -24,10 +24,6 @@ import (
 
 type mountInterface = mount.Interface
 
-//type ExecInterface = exec.Interface
-
-//type mounter = *mount.SafeFormatAndMount
-
 // Mounter is the interface implemented by Mounter
 // A mix & match of functions defined in upstream libraries. (FormatAndMount
 // from struct SafeFormatAndMount, PathExists from an old edition of
@@ -35,7 +31,6 @@ type mountInterface = mount.Interface
 // insulate from oft-changing upstream interfaces/structs
 type Mounter interface {
 	mountInterface
-	//execInterface
 
 	NewSafeFormatAndMount() *mount.SafeFormatAndMount
 	MakeFile(path string) error
@@ -50,7 +45,7 @@ type NodeMounter struct {
 }
 
 func NewNodeMounter() Mounter {
-	// mounter.NewSafeMounter returns a SafeFormatAndMount
+	// mounter.newSafeMounter returns a SafeFormatAndMount
 	safeMounter := newSafeMounter()
 	return &NodeMounter{safeMounter}
 }

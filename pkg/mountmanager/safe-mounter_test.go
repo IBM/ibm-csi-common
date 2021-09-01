@@ -32,6 +32,9 @@ func TestNewFakeSafeMounter(t *testing.T) {
 	safeMounter := NewFakeSafeMounter()
 	assert.NotNil(t, safeMounter)
 
-	err := safeMounter.NewSafeFormatAndMount().Exec.Command("ls", "la").Run()
-	assert.Nil(t, err)
+	// err := safeMounter.Exec.Command("ls", "la").Run()
+	// assert.NotNil(t, err)
+
+	safeNodeMounter := NewFakeNodeMounter()
+	assert.NotNil(t, safeNodeMounter)
 }
