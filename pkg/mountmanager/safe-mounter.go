@@ -44,6 +44,7 @@ type NodeMounter struct {
 	*mount.SafeFormatAndMount
 }
 
+// NewNodeMounter ...
 func NewNodeMounter() Mounter {
 	// mounter.newSafeMounter returns a SafeFormatAndMount
 	safeMounter := newSafeMounter()
