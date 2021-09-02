@@ -23,6 +23,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewNodeMounter(t *testing.T) {
+	nodeMounter := NewNodeMounter()
+	assert.NotNil(t, nodeMounter)
+}
+
 func TestNewSafeMounter(t *testing.T) {
 	safeMounter := newSafeMounter()
 	assert.NotNil(t, safeMounter)
