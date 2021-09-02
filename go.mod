@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta7
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20210830105832-8e35540c4f11
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20210902070457-53b2bdad8039
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
