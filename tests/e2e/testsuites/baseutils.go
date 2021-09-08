@@ -66,8 +66,6 @@ type TestStatefulsets struct {
 	podName     []string
 }
 
-var ctx = context.Background()
-
 func NewSecret(c clientset.Interface, name, ns, iops, tags, encrypt, encryptKey, stype string) *TestSecret {
 	return &TestSecret{
 		client:     c,
@@ -143,7 +141,6 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 }
 
 func (h *TestHeadlessService) Create() v1.Service {
-	ctx := context.Background()
 	var err error
 	selectorValue := fmt.Sprintf("%s-%d", h.labelsAndSelectors, rand.Int())
 	By(fmt.Sprintf("creating HeadlessService under ns:%q", h.namespace))
@@ -169,7 +166,7 @@ func (h *TestHeadlessService) Create() v1.Service {
 			},
 		},
 	}
-	h.service, err = h.client.CoreV1().Services(h.namespace).Create(ctx, headlessService, metav1.CreateOptions{})
+	h.service, err = h.client.CoreV1().Services(h.namespace).Create(context.Background(), headlessService, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 	fmt.Println("HeadlessService Label ", h.service.Labels)
 	return *h.service
@@ -177,7 +174,7 @@ func (h *TestHeadlessService) Create() v1.Service {
 
 func (h *TestHeadlessService) Cleanup() {
 	framework.Logf("deleting headless service  %s", h.service.Name)
-	err := h.client.CoreV1().Services(h.service.Namespace).Delete(ctx, h.service.Name, metav1.DeleteOptions{})
+	err := h.client.CoreV1().Services(h.service.Namespace).Delete(context.Background(), h.service.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -195,7 +192,7 @@ func (t *TestStatefulsets) Logs() {
 func (t *TestStatefulsets) Create() {
 	var err error
 	//replicaCount := *t.statefulset.Spec.Replicas
-	t.statefulset, err = t.client.AppsV1().StatefulSets(t.namespace.Name).Create(ctx, t.statefulset, metav1.CreateOptions{})
+	t.statefulset, err = t.client.AppsV1().StatefulSets(t.namespace.Name).Create(context.Background(), t.statefulset, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 
 	// newstatefulSet.WaitForStatusReadyReplicas(t.statefulset, replicaCount)
@@ -290,7 +287,7 @@ func (t *TestStatefulsets) Cleanup() {
 	framework.DumpDebugInfo(t.client, t.namespace.Name)
 	t.Logs()
 	framework.Logf("deleting Statefulset %q/%q", t.namespace.Name, t.statefulset.Name)
-	err := t.client.AppsV1().StatefulSets(t.namespace.Name).Delete(ctx, t.statefulset.Name, metav1.DeleteOptions{})
+	err := t.client.AppsV1().StatefulSets(t.namespace.Name).Delete(context.Background(), t.statefulset.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 func (s *TestSecret) Create() {
@@ -316,14 +313,14 @@ func (s *TestSecret) Create() {
 		},
 		Type: v1.SecretType(s.stype),
 	}
-	s.secret, err = s.client.CoreV1().Secrets(s.namespace).Create(ctx, &secret, metav1.CreateOptions{})
+	s.secret, err = s.client.CoreV1().Secrets(s.namespace).Create(context.Background(), &secret, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 }
 
 func (s *TestSecret) Cleanup() {
 	By("deleting Secret")
 	framework.Logf("deleting Secret [%s]", s.secret.Name)
-	err := s.client.CoreV1().Secrets(s.namespace).Delete(ctx, s.secret.Name, metav1.DeleteOptions{})
+	err := s.client.CoreV1().Secrets(s.namespace).Delete(context.Background(), s.secret.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -345,7 +342,7 @@ func (t *TestStorageClass) Create() storagev1.StorageClass {
 	var err error
 	By("creating StorageClass")
 	framework.Logf("creating StorageClass [%s]", t.storageClass.Name)
-	t.storageClass, err = t.client.StorageV1().StorageClasses().Create(ctx, t.storageClass, metav1.CreateOptions{})
+	t.storageClass, err = t.client.StorageV1().StorageClasses().Create(context.Background(), t.storageClass, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 	return *t.storageClass
 }
@@ -353,7 +350,7 @@ func (t *TestStorageClass) Create() storagev1.StorageClass {
 func (t *TestStorageClass) Cleanup() {
 	By("deleting a StorageClass")
 	framework.Logf("deleting StorageClass [%s]", t.storageClass.Name)
-	err := t.client.StorageV1().StorageClasses().Delete(ctx, t.storageClass.Name, metav1.DeleteOptions{})
+	err := t.client.StorageV1().StorageClasses().Delete(context.Background(), t.storageClass.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -373,7 +370,7 @@ func NewTestPreProvisionedPersistentVolume(c clientset.Interface, pv *v1.Persist
 func (pv *TestPreProvisionedPersistentVolume) Create() v1.PersistentVolume {
 	var err error
 	By("creating a PV")
-	pv.persistentVolume, err = pv.client.CoreV1().PersistentVolumes().Create(ctx, pv.requestedPersistentVolume, metav1.CreateOptions{})
+	pv.persistentVolume, err = pv.client.CoreV1().PersistentVolumes().Create(context.Background(), pv.requestedPersistentVolume, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 	return *pv.persistentVolume
 }
@@ -425,11 +422,11 @@ func (t *TestPersistentVolumeClaim) Create() {
 	if t.storageClass != nil {
 		storageClassName = t.storageClass.Name
 	}
-	_, err = t.client.StorageV1().StorageClasses().Get(ctx, storageClassName, metav1.GetOptions{})
+	_, err = t.client.StorageV1().StorageClasses().Get(context.Background(), storageClassName, metav1.GetOptions{})
 	framework.ExpectNoError(err)
 
 	t.requestedPersistentVolumeClaim = generatePVC(t.name, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode)
-	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Create(ctx, t.requestedPersistentVolumeClaim, metav1.CreateOptions{})
+	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Create(context.Background(), t.requestedPersistentVolumeClaim, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -438,7 +435,7 @@ func (t *TestPersistentVolumeClaim) ValidateProvisionedPersistentVolume() {
 
 	// Get the bound PersistentVolume
 	By("validating provisioned PV")
-	t.persistentVolume, err = t.client.CoreV1().PersistentVolumes().Get(ctx, t.persistentVolumeClaim.Spec.VolumeName, metav1.GetOptions{})
+	t.persistentVolume, err = t.client.CoreV1().PersistentVolumes().Get(context.Background(), t.persistentVolumeClaim.Spec.VolumeName, metav1.GetOptions{})
 	framework.ExpectNoError(err)
 	framework.Logf("validating provisioned PV [%s] for PVC [%s]", t.persistentVolume.Name, t.persistentVolumeClaim.Name)
 
@@ -474,7 +471,7 @@ func (t *TestPersistentVolumeClaim) WaitForBound() v1.PersistentVolumeClaim {
 
 	By("checking the PVC")
 	// Get new copy of the claim
-	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Get(ctx, t.persistentVolumeClaim.Name, metav1.GetOptions{})
+	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Get(context.Background(), t.persistentVolumeClaim.Name, metav1.GetOptions{})
 	framework.ExpectNoError(err)
 
 	return *t.persistentVolumeClaim
@@ -677,7 +674,7 @@ func (t *TestDeployment) SetupVolume(pvc *v1.PersistentVolumeClaim, name, mountP
 
 func (t *TestDeployment) Create() {
 	var err error
-	t.deployment, err = t.client.AppsV1().Deployments(t.namespace.Name).Create(ctx, t.deployment, metav1.CreateOptions{})
+	t.deployment, err = t.client.AppsV1().Deployments(t.namespace.Name).Create(context.Background(), t.deployment, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 
 	err = e2edep.WaitForDeploymentComplete(t.client, t.deployment)
@@ -716,7 +713,7 @@ func (t *TestDeployment) DeletePodAndWait() {
 	By("Deployment DeletePodAndWait: deleting POD")
 	framework.Logf("deleting POD [%s/%s]", t.namespace.Name, t.podName)
 	framework.DumpDebugInfo(t.client, t.namespace.Name)
-	err := t.client.CoreV1().Pods(t.namespace.Name).Delete(ctx, t.podName, metav1.DeleteOptions{})
+	err := t.client.CoreV1().Pods(t.namespace.Name).Delete(context.Background(), t.podName, metav1.DeleteOptions{})
 	if err != nil {
 		if !apierrs.IsNotFound(err) {
 			framework.ExpectNoError(fmt.Errorf("pod %q Delete API error: %v", t.podName, err))
@@ -737,7 +734,7 @@ func (t *TestDeployment) Cleanup() {
 	framework.Logf("deleting Deployment [%s/%s]", t.namespace.Name, t.deployment.Name)
 	framework.DumpDebugInfo(t.client, t.namespace.Name)
 	t.Logs()
-	err := t.client.AppsV1().Deployments(t.namespace.Name).Delete(ctx, t.deployment.Name, metav1.DeleteOptions{})
+	err := t.client.AppsV1().Deployments(t.namespace.Name).Delete(context.Background(), t.deployment.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -817,7 +814,7 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 func (t *TestPod) Create() {
 	var err error
 
-	t.pod, err = t.client.CoreV1().Pods(t.namespace.Name).Create(ctx, t.pod, metav1.CreateOptions{})
+	t.pod, err = t.client.CoreV1().Pods(t.namespace.Name).Create(context.Background(), t.pod, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -825,7 +822,7 @@ func (t *TestPod) Delete() {
 	By("POD Delete: deleting POD")
 	framework.Logf("deleting POD [%s/%s]", t.namespace.Name, t.pod.Name)
 	framework.DumpDebugInfo(t.client, t.namespace.Name)
-	err := t.client.CoreV1().Pods(t.namespace.Name).Delete(ctx, t.pod.Name, metav1.DeleteOptions{})
+	err := t.client.CoreV1().Pods(t.namespace.Name).Delete(context.Background(), t.pod.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 
@@ -964,5 +961,5 @@ func cleanupPodOrFail(client clientset.Interface, name, namespace string, dbginf
 }
 
 func podLogs(client clientset.Interface, name, namespace string) ([]byte, error) {
-	return client.CoreV1().Pods(namespace).GetLogs(name, &v1.PodLogOptions{}).Do(ctx).Raw()
+	return client.CoreV1().Pods(namespace).GetLogs(name, &v1.PodLogOptions{}).Do(context.Background()).Raw()
 }
