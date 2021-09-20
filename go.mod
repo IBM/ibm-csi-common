@@ -1,4 +1,4 @@
-module github.com/ambiknai/ibm-csi-common
+module github.com/IBM/ibm-csi-common
 
 go 1.16
 
