@@ -61,7 +61,7 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 		conf.VPC.APIVersion = "2020-07-02" // setting default values
 	}
 
-	var clusterInfo *utils.ClusterInfo
+	var clusterInfo = &utils.ClusterInfo{}
 	logger.Info("Fetching clusterInfo")
 	if conf.IKS != nil && conf.IKS.Enabled || os.Getenv("IKS_ENABLED") == "True" {
 		clusterInfo, err = utils.NewClusterInfo(logger)
