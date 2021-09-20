@@ -81,6 +81,9 @@ const (
 	// DevicePathFindFailed ...
 	DevicePathFindFailed = "DevicePathFindFailed"
 
+	// DevicePathFindFailed ...
+	DevicePathNotFound = "DevicePathNotFound"
+
 	// TargetPathCheckFailed ...
 	TargetPathCheckFailed = "TargetPathCheckFailed"
 

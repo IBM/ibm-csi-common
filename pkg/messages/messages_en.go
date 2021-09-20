@@ -143,6 +143,12 @@ var messagesEn = map[string]Message{
 		Type:        codes.Internal,
 		Action:      "Please check if there is any error in POD describe related with volume attach",
 	},
+	DevicePathNotFound: {
+		Code:        DevicePathNotFound,
+		Description: "Device path '%s' is not present",
+		Type:        codes.Internal,
+		Action:      "Please check if there is any error in POD describe related with volume attach",
+	},
 	TargetPathCheckFailed: {
 		Code:        TargetPathCheckFailed,
 		Description: "Failed to check if staging target path '%s' exists",
