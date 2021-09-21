@@ -40,7 +40,6 @@ func (t *StatefulsetWithVolWRTest) Run(client clientset.Interface, namespace *v1
 	for i := range cleanup {
 		defer cleanup[i]()
 	}
-	//newstatefulSet := framework.NewStatefulSetTester(client)
 	By("deploying the statefulset")
 	tStatefulset.Create()
 

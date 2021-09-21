@@ -30,8 +30,6 @@ import (
 
 func init() {
 	testing.Init()
-	//Ref https://github.com/kubernetes/kubernetes/pull/81488
-	//framework.HandleFlags()
 	config.CopyFlags(config.Flags, flag.CommandLine)
 	framework.RegisterCommonFlags(flag.CommandLine)
 	framework.RegisterClusterFlags(flag.CommandLine)
