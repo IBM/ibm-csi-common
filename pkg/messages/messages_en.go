@@ -147,7 +147,7 @@ var messagesEn = map[string]Message{
 		Code:        DevicePathNotFound,
 		Description: "Device path '%s' is not present",
 		Type:        codes.Internal,
-		Action:      "Please check if there is any error in POD describe related with volume attach",
+		Action:      "Please confirm using ibmcloud is vol <vol-id> command and see if volume is attachment is successful, then open a ticket for vpc team.",
 	},
 	TargetPathCheckFailed: {
 		Code:        TargetPathCheckFailed,
