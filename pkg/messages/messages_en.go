@@ -147,7 +147,7 @@ var messagesEn = map[string]Message{
 		Code:        DevicePathNotFound,
 		Description: "Device path '%s' is not present",
 		Type:        codes.Internal,
-		Action:      "Please confirm using ibmcloud is vol <vol-id> command and see if volume is attachment is successful, then open a ticket for vpc team.",
+		Action:      "List volume attachments by using `ibmcloud ks storage attachments --worker <worker-ID> --cluster <cluster-ID> | grep <volume-ID≥` If the volume is attached, open a ticket and select VPC for the Problem type. Otherwise, select IBM Cloud Kubernetes service Problem type.",
 	},
 	TargetPathCheckFailed: {
 		Code:        TargetPathCheckFailed,
