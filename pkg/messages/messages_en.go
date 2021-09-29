@@ -143,6 +143,12 @@ var messagesEn = map[string]Message{
 		Type:        codes.Internal,
 		Action:      "Please check if there is any error in POD describe related with volume attach",
 	},
+	DevicePathNotFound: {
+		Code:        DevicePathNotFound,
+		Description: "Device path '%s' is not present",
+		Type:        codes.Internal,
+		Action:      "List volume attachments by using `ibmcloud ks storage attachments --worker <worker-ID> --cluster <cluster-ID> | grep <volume-ID>`. If the volume is attached, open a ticket and select VPC for the Problem type. Otherwise, select IBM Cloud Kubernetes service as Problem type.",
+	},
 	TargetPathCheckFailed: {
 		Code:        TargetPathCheckFailed,
 		Description: "Failed to check if staging target path '%s' exists",
