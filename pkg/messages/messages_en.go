@@ -105,7 +105,7 @@ var messagesEn = map[string]Message{
 		Code:        Timeout,
 		Description: "Timed out for response from endpoint",
 		Type:        codes.DeadlineExceeded,
-		Action:      "Wait for a few mninutes and try again. If the error persists user can open a container network issue.",
+		Action:      "Wait for a few minutes and try again. If the error persists user can open a container network issue.",
 	},
 	FailedPrecondition: {
 		Code:        FailedPrecondition,
