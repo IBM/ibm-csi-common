@@ -26,7 +26,6 @@ func NewFakeSafeMounter() *mount.SafeFormatAndMount {
 	execCallback := func(cmd string, args ...string) ([]byte, error) {
 		return nil, nil
 	}
-	//	fileSystem := map[string]mount.FileType{"fake": "Direectory"}
 	fakeMounter := &mount.FakeMounter{MountPoints: []mount.MountPoint{{
 		Device: "valid-devicePath",
 		Path:   "valid-vol-path",
