@@ -97,13 +97,13 @@ var messagesEn = map[string]Message{
 	},
 	EndpointNotReachable: {
 		Code:        EndpointNotReachable,
-		Description: "Endpoint is incorrect",
+		Description: "IAM TOKEN exchange request failed.",
 		Type:        codes.Unavailable,
 		Action:      "Verify that iks_token_exchange_endpoint_private_url is reachable from the cluster. You can find this url by running 'kubectl get secret storage-secret-storage -n kube-system'.",
 	},
 	Timeout: {
 		Code:        Timeout,
-		Description: "Timed out for response from endpoint",
+		Description: "IAM Token exchange endpoint is not reachable.",
 		Type:        codes.DeadlineExceeded,
 		Action:      "Wait for a few minutes and try again. If the error persists user can open a container network issue.",
 	},
