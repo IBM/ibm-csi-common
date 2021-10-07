@@ -8,7 +8,8 @@
    ```
    export E2E_POD_COUNT="1"
    export E2E_PVC_COUNT="1"
-   export E2E_SECRET_ENCRYPTION_KEY=<base64 encoded key>
+   export GO111MODULE=on
+   export GOPATH=<GOPATH>
    ```
 
 5. Test all SC with deployment
