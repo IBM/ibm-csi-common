@@ -20,7 +20,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -32,10 +31,6 @@ import (
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-)
-
-var (
-	endpoint = flag.String("sidecarEndpoint", "/csi/provider.sock", "Storage secret sidecar endpoint")
 )
 
 func unixConnect(addr string, t time.Duration) (net.Conn, error) {
@@ -96,7 +91,7 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	grpcSess := d.GRPCBackend.NewGrpcSession()
 	cc := &grpcClient.GrpcSes{}
 	d.logger.Info("Dialing for connection..")
-	conn, err := grpcSess.GrpcDial(cc, *endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(unixConnect)) //nolint:staticcheck
+	conn, err := grpcSess.GrpcDial(cc, *Endpoint, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithDialer(unixConnect)) //nolint:staticcheck
 	if err != nil {
 		err = fmt.Errorf("failed to establish grpc-client connection: %v", err)
 		return err

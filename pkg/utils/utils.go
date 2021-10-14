@@ -19,13 +19,18 @@ package utils
 
 import (
 	"bytes"
-	"os"
-	"strings"
-	"testing"
-
+	"flag"
 	csi "github.com/container-storage-interface/spec/lib/go/csi"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
+	"strings"
+	"testing"
+)
+
+var (
+	// Endpoint refers to the storage secret sidecar endpoint
+	Endpoint = flag.String("sidecarEndpoint", "/csi/provider.sock", "Storage secret sidecar endpoint")
 )
 
 // NewVolumeCapabilityAccessMode ...
