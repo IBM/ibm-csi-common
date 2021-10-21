@@ -69,7 +69,10 @@ func (f *FakeNodeMounter) MakeFile(pathname string) error {
 
 // PathExists ...
 func (f *FakeNodeMounter) PathExists(pathname string) (bool, error) {
-	return mount.PathExists(pathname)
+	if pathname == "fake" {
+		return true, nil
+	}
+	return false, nil
 }
 
 // NewSafeFormatAndMount ...
