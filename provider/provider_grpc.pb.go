@@ -17,10 +17,8 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type APIKeyProviderClient interface {
-	// Get container API key
-	GetContainerAPIKey(ctx context.Context, in *Cipher, opts ...grpc.CallOption) (*APIKey, error)
-	// Get VPC API key
-	GetVPCAPIKey(ctx context.Context, in *Cipher, opts ...grpc.CallOption) (*APIKey, error)
+	// Get API key
+	GetAPIKey(ctx context.Context, in *Provider, opts ...grpc.CallOption) (*APIKey, error)
 }
 
 type aPIKeyProviderClient struct {
@@ -31,18 +29,9 @@ func NewAPIKeyProviderClient(cc grpc.ClientConnInterface) APIKeyProviderClient {
 	return &aPIKeyProviderClient{cc}
 }
 
-func (c *aPIKeyProviderClient) GetContainerAPIKey(ctx context.Context, in *Cipher, opts ...grpc.CallOption) (*APIKey, error) {
+func (c *aPIKeyProviderClient) GetAPIKey(ctx context.Context, in *Provider, opts ...grpc.CallOption) (*APIKey, error) {
 	out := new(APIKey)
-	err := c.cc.Invoke(ctx, "/provider.APIKeyProvider/GetContainerAPIKey", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aPIKeyProviderClient) GetVPCAPIKey(ctx context.Context, in *Cipher, opts ...grpc.CallOption) (*APIKey, error) {
-	out := new(APIKey)
-	err := c.cc.Invoke(ctx, "/provider.APIKeyProvider/GetVPCAPIKey", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/provider.APIKeyProvider/GetAPIKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,10 +42,8 @@ func (c *aPIKeyProviderClient) GetVPCAPIKey(ctx context.Context, in *Cipher, opt
 // All implementations must embed UnimplementedAPIKeyProviderServer
 // for forward compatibility
 type APIKeyProviderServer interface {
-	// Get container API key
-	GetContainerAPIKey(context.Context, *Cipher) (*APIKey, error)
-	// Get VPC API key
-	GetVPCAPIKey(context.Context, *Cipher) (*APIKey, error)
+	// Get API key
+	GetAPIKey(context.Context, *Provider) (*APIKey, error)
 	mustEmbedUnimplementedAPIKeyProviderServer()
 }
 
@@ -64,11 +51,8 @@ type APIKeyProviderServer interface {
 type UnimplementedAPIKeyProviderServer struct {
 }
 
-func (UnimplementedAPIKeyProviderServer) GetContainerAPIKey(context.Context, *Cipher) (*APIKey, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetContainerAPIKey not implemented")
-}
-func (UnimplementedAPIKeyProviderServer) GetVPCAPIKey(context.Context, *Cipher) (*APIKey, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetVPCAPIKey not implemented")
+func (UnimplementedAPIKeyProviderServer) GetAPIKey(context.Context, *Provider) (*APIKey, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKey not implemented")
 }
 func (UnimplementedAPIKeyProviderServer) mustEmbedUnimplementedAPIKeyProviderServer() {}
 
@@ -80,58 +64,39 @@ type UnsafeAPIKeyProviderServer interface {
 }
 
 func RegisterAPIKeyProviderServer(s *grpc.Server, srv APIKeyProviderServer) {
-	s.RegisterService(&_APIKeyProvider_serviceDesc, srv)
+       s.RegisterService(&_APIKeyProvider_serviceDesc, srv)
 }
 
-func _APIKeyProvider_GetContainerAPIKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Cipher)
+func _APIKeyProvider_GetAPIKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Provider)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(APIKeyProviderServer).GetContainerAPIKey(ctx, in)
+		return srv.(APIKeyProviderServer).GetAPIKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/provider.APIKeyProvider/GetContainerAPIKey",
+		FullMethod: "/provider.APIKeyProvider/GetAPIKey",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIKeyProviderServer).GetContainerAPIKey(ctx, req.(*Cipher))
+		return srv.(APIKeyProviderServer).GetAPIKey(ctx, req.(*Provider))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _APIKeyProvider_GetVPCAPIKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Cipher)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(APIKeyProviderServer).GetVPCAPIKey(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/provider.APIKeyProvider/GetVPCAPIKey",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIKeyProviderServer).GetVPCAPIKey(ctx, req.(*Cipher))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
+// _APIKeyProvider_serviceDesc is the grpc.ServiceDesc for APIKeyProvider service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
 var _APIKeyProvider_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "provider.APIKeyProvider",
 	HandlerType: (*APIKeyProviderServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetContainerAPIKey",
-			Handler:    _APIKeyProvider_GetContainerAPIKey_Handler,
-		},
-		{
-			MethodName: "GetVPCAPIKey",
-			Handler:    _APIKeyProvider_GetVPCAPIKey_Handler,
+			MethodName: "GetAPIKey",
+			Handler:    _APIKeyProvider_GetAPIKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "provider/provider.proto",
+	Metadata: "provider.proto",
 }

@@ -26,8 +26,10 @@ import (
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
+	utilReasonCode "github.com/IBM/ibmcloud-volume-interface/lib/utils/reasoncode"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
+        userError "github.com/IBM/ibmcloud-volume-vpc/common/messages"
 	"github.com/IBM/ibmcloud-volume-vpc/common/registry"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
@@ -144,10 +146,37 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		APIConfig:    icp.ProviderConfig.API,
 		ServerConfig: icp.ProviderConfig.Server,
 	}
-	session, isFatal, err := provider_util.OpenProviderSessionWithContext(ctx, vpcBlockConfig, icp.Registry, icp.ProviderName, logger)
-	if err != nil || isFatal {
-		logger.Error("Failed to get provider session", zap.Reflect("Error", err))
-		return nil, err
+
+	maxRetryAttempt := 2
+	var session provider.Session
+	var isFatal bool
+	var err error
+	for retryCount := 0; retryCount < maxRetryAttempt; retryCount++ {
+		session, isFatal, err = provider_util.OpenProviderSessionWithContext(ctx, vpcBlockConfig, icp.Registry, icp.ProviderName, logger)
+		if err != nil || isFatal {
+			logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+			if userError.GetUserErrorCode(err) == string(utilReasonCode.ErrorFailedTokenExchange) {
+				apiKeyImp, err := utils.NewAPIKeyImpl(logger)
+				if err != nil {
+					logger.Fatal("Unable to create API key getter", zap.Reflect("Error", err))
+					return nil, err
+				}
+				logger.Info("Created NewAPIKeyImpl...")
+				err = apiKeyImp.UpdateIAMKeys(icp.ProviderConfig)
+				if err != nil {
+					logger.Fatal("Unable to get API key", local.ZapError(err))
+					return nil, err
+				}
+				vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.APIKey
+				vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
+				// continue to retry fetching session after updating API key
+				continue
+			}
+			// return if the error is not related to invalid API key and do not retry
+			return nil, err
+		}
+		// if there is no error fetching the session, break from the loop and do not retry
+		break
 	}
 
 	// Instantiate CloudProvider

@@ -109,22 +109,15 @@ func (d *APIKeyImpl) UpdateIAMKeys(config *config.Config) error {
 	defer cc.Close()
 
 	if config.Bluemix.Encryption {
-		r, err := c.GetContainerAPIKey(ctx, &pb.Cipher{Cipher: config.Bluemix.IamAPIKey})
+		r, err := c.GetAPIKey(ctx, &pb.Provider{Provider: "Bluemix"})
 		if err != nil {
 			return err
 		}
 		config.Bluemix.IamAPIKey = r.GetApikey()
 	}
 	if config.VPC.Encryption {
-		if config.VPC.APIKey != "" {
-			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.APIKey})
-			if err != nil {
-				return err
-			}
-			config.VPC.APIKey = r.GetApikey()
-		}
 		if config.VPC.G2APIKey != "" {
-			r, err := c.GetVPCAPIKey(ctx, &pb.Cipher{Cipher: config.VPC.G2APIKey})
+			r, err := c.GetAPIKey(ctx, &pb.Provider{Provider: "VPC"})
 			if err != nil {
 				return err
 			}
