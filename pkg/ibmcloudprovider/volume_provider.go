@@ -155,6 +155,7 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		session, isFatal, err = provider_util.OpenProviderSessionWithContext(ctx, vpcBlockConfig, icp.Registry, icp.ProviderName, logger)
 		if err != nil || isFatal {
 			logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+			// TODO - check the appropriate error code and update the following
 			if userError.GetUserErrorCode(err) == string(utilReasonCode.ErrorFailedTokenExchange) {
 				apiKeyImp, err := utils.NewAPIKeyImpl(logger)
 				if err != nil {
