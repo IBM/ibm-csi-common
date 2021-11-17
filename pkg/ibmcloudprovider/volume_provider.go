@@ -21,15 +21,14 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	"strings"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
-	utilReasonCode "github.com/IBM/ibmcloud-volume-interface/lib/utils/reasoncode"
+	utilErrorMessage "github.com/IBM/ibmcloud-volume-interface/lib/utils"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
-        userError "github.com/IBM/ibmcloud-volume-vpc/common/messages"
 	"github.com/IBM/ibmcloud-volume-vpc/common/registry"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
@@ -154,31 +153,42 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 	for retryCount := 0; retryCount < maxRetryAttempt; retryCount++ {
 		session, isFatal, err = provider_util.OpenProviderSessionWithContext(ctx, vpcBlockConfig, icp.Registry, icp.ProviderName, logger)
 		if err != nil || isFatal {
-			logger.Error("Failed to get provider session", zap.Reflect("Error", err))
-			// TODO - check the appropriate error code and update the following
-			if userError.GetUserErrorCode(err) == string(utilReasonCode.ErrorFailedTokenExchange) {
-				apiKeyImp, err := utils.NewAPIKeyImpl(logger)
-				if err != nil {
-					logger.Fatal("Unable to create API key getter", zap.Reflect("Error", err))
-					return nil, err
-				}
-				logger.Info("Created NewAPIKeyImpl...")
-				err = apiKeyImp.UpdateIAMKeys(icp.ProviderConfig)
-				if err != nil {
-					logger.Fatal("Unable to get API key", local.ZapError(err))
-					return nil, err
-				}
-				vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.APIKey
-				vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
-				// continue to retry fetching session after updating API key
-				continue
-			}
-			// return if the error is not related to invalid API key and do not retry
-			return nil, err
-		}
-		// if there is no error fetching the session, break from the loop and do not retry
-		break
+                        logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+                        if errMsg, ok := err.(utilErrorMessage.Message); ok && errMsg.Code == "AuthenticationFailed" && strings.Contains(errMsg.BackendError, "API key could not be found") {
+
+                                apiKeyImp, err := utils.NewAPIKeyImpl(logger)
+                                if err != nil {
+                                        logger.Fatal("Unable to create API key getter", zap.Reflect("Error", err))
+                                        return nil, err
+                                }
+                                logger.Info("Created NewAPIKeyImpl...")
+                                err = apiKeyImp.UpdateIAMKeys(icp.ProviderConfig)
+                                if err != nil {
+                                        logger.Fatal("Unable to get API key", local.ZapError(err))
+                                        return nil, err
+                                }
+                                vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.G2APIKey
+                                vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
+                                registry, err := provider_util.InitProviders(vpcBlockConfig, logger)
+                                if err != nil {
+                                        logger.Error("Error registering the provider with updated API key", zap.Reflect("Error", err))
+                                        return nil, err
+                                }
+                                icp.Registry = registry
+                                // continue to retry fetching session after updating API key
+                                continue
+                        }
+                        // return if the error is not related to invalid API key and do not retry
+                        return nil, err
+                }
+                // if there is no error fetching the session, break from the loop and do not retry
+                break
 	}
+
+	if err != nil {
+		logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+                return nil, err
+        }
 
 	// Instantiate CloudProvider
 	logger.Info("Successfully got the provider session", zap.Reflect("ProviderName", session.ProviderName()))
