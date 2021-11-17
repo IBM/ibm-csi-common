@@ -64,7 +64,7 @@ type UnsafeAPIKeyProviderServer interface {
 }
 
 func RegisterAPIKeyProviderServer(s *grpc.Server, srv APIKeyProviderServer) {
-       s.RegisterService(&_APIKeyProvider_serviceDesc, srv)
+	s.RegisterService(&_APIKeyProvider_serviceDesc, srv)
 }
 
 func _APIKeyProvider_GetAPIKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
