@@ -19,6 +19,10 @@ package ibmcloudprovider
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
@@ -29,9 +33,6 @@ import (
 	"github.com/IBM/ibmcloud-volume-vpc/common/registry"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
-	"os"
-	"strings"
-	"time"
 )
 
 // IBMCloudStorageProvider Provider
@@ -155,7 +156,6 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		if err != nil || isFatal {
 			logger.Error("Failed to get provider session", zap.Reflect("Error", err))
 			if errMsg, ok := err.(utilErrorMessage.Message); ok && errMsg.Code == "AuthenticationFailed" && strings.Contains(errMsg.BackendError, "API key could not be found") {
-
 				apiKeyImp, err := utils.NewAPIKeyImpl(logger)
 				if err != nil {
 					logger.Fatal("Unable to create API key getter", zap.Reflect("Error", err))

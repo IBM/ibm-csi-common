@@ -18,7 +18,8 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.15.0
-	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+	golang.org/x/tools v0.1.7 // indirect
 	google.golang.org/grpc v1.27.1
 	google.golang.org/protobuf v1.26.0
 	k8s.io/api v0.21.0
