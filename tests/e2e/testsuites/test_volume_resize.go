@@ -17,7 +17,6 @@
 package testsuites
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -68,16 +67,16 @@ func (t *DynamicallyProvisionedResizeVolumeTest) Run(client clientset.Interface,
 			By("checking that the pods command exits with no error")
 			tpod.WaitForSuccess()
 		}
-		pod, err := client.CoreV1().Pods(namespace.Name).Get(context.Background(), tpod.pod.Name, metav1.GetOptions{})
+		pod, err := client.CoreV1().Pods(namespace.Name).Get(tpod.pod.Name, metav1.GetOptions{})
 		pvcName := getClaimsForPod(pod)
-		pvc, err := client.CoreV1().PersistentVolumeClaims(namespace.Name).Get(context.Background(), pvcName[0], metav1.GetOptions{})
+		pvc, err := client.CoreV1().PersistentVolumeClaims(namespace.Name).Get(pvcName[0], metav1.GetOptions{})
 		By(fmt.Sprintf("Get pvc name: %v", pvc.Name))
 		delta := resource.Quantity{}
 		delta.Set(t.ExpandVolSizeG * 1024 * 1024 * 1024)
 		pvc.Spec.Resources.Requests["storage"] = delta
 
 		By("resizing the pvc")
-		updatedPvc, err := client.CoreV1().PersistentVolumeClaims(namespace.Name).Update(context.Background(), pvc, metav1.UpdateOptions{})
+		updatedPvc, err := client.CoreV1().PersistentVolumeClaims(namespace.Name).Update(pvc)
 		if err != nil {
 			framework.ExpectNoError(err, fmt.Sprintf("fail to resize pvc(%s): %v", pvcName, err))
 		}
@@ -96,7 +95,7 @@ func (t *DynamicallyProvisionedResizeVolumeTest) Run(client clientset.Interface,
 func WaitForPvToResize(c clientset.Interface, ns *v1.Namespace, pvName string, desiredSize resource.Quantity, timeout time.Duration, interval time.Duration) error {
 	By(fmt.Sprintf("Waiting up to %v for pv in namespace %q to be complete", timeout, ns.Name))
 	for start := time.Now(); time.Since(start) < timeout; time.Sleep(interval) {
-		newPv, _ := c.CoreV1().PersistentVolumes().Get(context.Background(), pvName, metav1.GetOptions{})
+		newPv, _ := c.CoreV1().PersistentVolumes().Get(pvName, metav1.GetOptions{})
 		newPvSize := newPv.Spec.Capacity["storage"]
 		if desiredSize.Cmp(newPvSize) == 0 {
 			By(fmt.Sprintf("Pv size is updated to %v", newPvSize.String()))

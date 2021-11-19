@@ -20,6 +20,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/kubernetes/test/e2e/framework"
 )
 
 //Statefulset will provision required PVC and pods
@@ -40,11 +41,12 @@ func (t *StatefulsetWithVolWRTest) Run(client clientset.Interface, namespace *v1
 	for i := range cleanup {
 		defer cleanup[i]()
 	}
+	newstatefulSet := framework.NewStatefulSetTester(client)
 	By("deploying the statefulset")
-	tStatefulset.Create()
+	tStatefulset.Create(newstatefulSet)
 
 	By("checking that the pod(s) is/are running")
-	tStatefulset.WaitForPodReady()
+	tStatefulset.WaitForPodReady(newstatefulSet)
 
 	if t.PodCheck != nil {
 		By("checking pod exec before pod delete")
@@ -54,7 +56,7 @@ func (t *StatefulsetWithVolWRTest) Run(client clientset.Interface, namespace *v1
 		tStatefulset.drainNode()
 		defer tStatefulset.uncordonNode()
 		By("checking again that the pod(s) is/are running")
-		tStatefulset.WaitForPodReady()
+		tStatefulset.WaitForPodReady(newstatefulSet)
 
 		if t.PodCheck != nil {
 			By("checking pod exec after pod recreate")

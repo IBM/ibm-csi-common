@@ -23,13 +23,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewNodeMounter(t *testing.T) {
-	nodeMounter := NewNodeMounter()
-	assert.NotNil(t, nodeMounter)
-}
-
 func TestNewSafeMounter(t *testing.T) {
-	safeMounter := newSafeMounter()
+	safeMounter := NewSafeMounter()
 	assert.NotNil(t, safeMounter)
 }
 
@@ -37,6 +32,6 @@ func TestNewFakeSafeMounter(t *testing.T) {
 	safeMounter := NewFakeSafeMounter()
 	assert.NotNil(t, safeMounter)
 
-	safeNodeMounter := NewFakeNodeMounter()
-	assert.NotNil(t, safeNodeMounter)
+	_, err := safeMounter.Exec.Run("ls", "la")
+	assert.Nil(t, err)
 }
