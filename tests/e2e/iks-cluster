@@ -981,7 +981,7 @@ else
     if [[ $rc -eq 0 ]]; then IC_PROVIDER="vpc-gen2"; else IC_PROVIDER="classic"; fi
     export E2ETEST_CLUSTER_NAME="$cluster_name"
 
-    addons=$(kubectl get sts -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
+    addons=$(ibmcloud ks cluster addon ls --cluster $cluster_name --output json)
     version=$(jq '. | map(select(.name == "vpc-block-csi-driver"))[0].version' <<< "$addons")
     version=${version//\"/}
     target=$(jq '. | map(select(.name == "vpc-block-csi-driver"))[0].targetVersion' <<< "$addons")
