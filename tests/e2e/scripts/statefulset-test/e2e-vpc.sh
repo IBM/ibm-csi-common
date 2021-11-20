@@ -127,7 +127,10 @@ DRIVER_PODS=$(kubectl get pods -n kube-system | grep 'ibm-vpc-block-csi-controll
 if [[ $rc -ne 0 ]]; then
     err_msg1="Error       : Controller not active"
 else
+   	echo "***************************************************" >> $E2E_TEST_SETUP
     DRIVER_DETAILS=$(kubectl get pods -n kube-system ibm-vpc-block-csi-controller-0 -o jsonpath="{range .spec.containers[*]}{.name}:{.image}{'\n'}"); rc=$?
+	echo -e "\nDRIVER DETAILS = $DRIVER_DETAILS" >> $E2E_TEST_SETUP
+	echo "***************************************************" >> $E2E_TEST_SETUP
 fi
 
 DRIVER_PODS=$(kubectl get pods -n kube-system | grep 'ibm-vpc-block-csi-node' | grep 'Running'); rc=$?
