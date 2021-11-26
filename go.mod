@@ -14,7 +14,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.3.1 // indirect
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d // indirect
