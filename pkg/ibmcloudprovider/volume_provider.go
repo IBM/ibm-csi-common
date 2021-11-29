@@ -138,13 +138,7 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 			PassthroughSecret: string([]byte{}), // // TODO~ Need to remove it
 		}
 	}
-	vpcBlockConfig := &vpcconfig.VPCBlockConfig{
-		VPCConfig:    icp.ProviderConfig.VPC,
-		IKSConfig:    icp.ProviderConfig.IKS,
-		APIConfig:    icp.ProviderConfig.API,
-		ServerConfig: icp.ProviderConfig.Server,
-	}
-	session, isFatal, err := provider_util.OpenProviderSessionWithContext(ctx, vpcBlockConfig, icp.Registry, icp.ProviderName, logger)
+	session, isFatal, err := provider_util.OpenProviderSessionWithContext(ctx, icp.ProviderConfig, icp.Registry, icp.ProviderName, logger)
 	if err != nil || isFatal {
 		logger.Error("Failed to get provider session", zap.Reflect("Error", err))
 		return nil, err
