@@ -4,16 +4,9 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/IBM-Cloud/ibm-cloud-cli-sdk v0.6.7 h1:eHgfQl6IeSmzWUyiSi13CvoFYsovoyqWlpHX0pa9J54=
 github.com/IBM-Cloud/ibm-cloud-cli-sdk v0.6.7/go.mod h1:RiUvKuHKTBmBApDMUQzBL14pQUGKcx/IioKQPIcRQjs=
-github.com/IBM/ibmcloud-volume-interface v1.0.0-beta8 h1:0oCBQidejAlLI5f5PlBHIytArhJI1aEOBCCOMoxNOPs=
-github.com/IBM/ibmcloud-volume-interface v1.0.0-beta8/go.mod h1:2LxqkERml3eBxfRkQniuiRmKkAnl5tfC0ttlP2gupJM=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126093108-2c9994804e32/go.mod h1:2LxqkERml3eBxfRkQniuiRmKkAnl5tfC0ttlP2gupJM=
-github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126135815-30d8a848c0e1 h1:k82uE9DMTNRWMo+JZRyjwdVJaY83or0d2Gy56cNv8Fw=
-github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126135815-30d8a848c0e1/go.mod h1:RC8x/jHtcH7ZuA/JpG44RTMAb9Hh8z1IK4zPZkm9OPM=
+github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211130042446-32c5e8b6904f h1:1enm9AfrWxTnvHDURio0KX3NkBpYPmARoY0FHTP9fgg=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211130042446-32c5e8b6904f/go.mod h1:x0xKlIggufsWvOPj04GBxRXESap058/HHN0nctnVGWE=
-github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta12 h1:Hfw7XvHpexffDfvD50wFJCwUmhKeVUlKEFi7JMcSSZI=
-github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta12/go.mod h1:MEyNF/zxHl2Zw/kBy7qykGPt8X+U+kDEJV1kimrvCbs=
-github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126100702-ab6fa4cee4a0/go.mod h1:QU6D89qbQEKxiHTDv0Ma8EV7zL/PnJITFJaTjI497Sk=
-github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126134947-e223b824b1cd h1:94rDRhxTFMb61+Ssyw3Ym81ysHjrGUjQUJCWpEUea4Q=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126134947-e223b824b1cd/go.mod h1:7cnjoXBK6M0pAWV7QV6fqrIvwfS8aaGLbLB8z7ncUBA=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211130053508-b761ad66fae3 h1:h2v+Oz3vPCkrcw5x/Nl19/GPuuSAiGyIkjuVVpHRQ/Y=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211130053508-b761ad66fae3/go.mod h1:GGDwMCUjg2jm3GCpLCArAfhgGE36m/0tzg5Yi31DPUU=
@@ -178,7 +171,6 @@ github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtP
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/peterbourgon/diskv v2.0.1+incompatible h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
-github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 h1:i5VIxp6QB8oWZ8IkK8zrDgeT6ORGIUeiN+61iETwJbI=
 github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0/go.mod h1:4xpMLz7RBWyB+ElzHu8Llua96TRCB3YwX+l5EP1wmHk=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
@@ -232,8 +224,8 @@ github.com/stretchr/testify v0.0.0-20151208002404-e3a8ff8ce365/go.mod h1:a8OnRci
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
