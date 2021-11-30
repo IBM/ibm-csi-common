@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.16
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126135815-30d8a848c0e1
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126134947-e223b824b1cd
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211130042446-32c5e8b6904f
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211130053508-b761ad66fae3
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect

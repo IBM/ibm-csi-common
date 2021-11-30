@@ -9,11 +9,14 @@ github.com/IBM/ibmcloud-volume-interface v1.0.0-beta8/go.mod h1:2LxqkERml3eBxfRk
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126093108-2c9994804e32/go.mod h1:2LxqkERml3eBxfRkQniuiRmKkAnl5tfC0ttlP2gupJM=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126135815-30d8a848c0e1 h1:k82uE9DMTNRWMo+JZRyjwdVJaY83or0d2Gy56cNv8Fw=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211126135815-30d8a848c0e1/go.mod h1:RC8x/jHtcH7ZuA/JpG44RTMAb9Hh8z1IK4zPZkm9OPM=
+github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211130042446-32c5e8b6904f/go.mod h1:x0xKlIggufsWvOPj04GBxRXESap058/HHN0nctnVGWE=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta12 h1:Hfw7XvHpexffDfvD50wFJCwUmhKeVUlKEFi7JMcSSZI=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta12/go.mod h1:MEyNF/zxHl2Zw/kBy7qykGPt8X+U+kDEJV1kimrvCbs=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126100702-ab6fa4cee4a0/go.mod h1:QU6D89qbQEKxiHTDv0Ma8EV7zL/PnJITFJaTjI497Sk=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126134947-e223b824b1cd h1:94rDRhxTFMb61+Ssyw3Ym81ysHjrGUjQUJCWpEUea4Q=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211126134947-e223b824b1cd/go.mod h1:7cnjoXBK6M0pAWV7QV6fqrIvwfS8aaGLbLB8z7ncUBA=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211130053508-b761ad66fae3 h1:h2v+Oz3vPCkrcw5x/Nl19/GPuuSAiGyIkjuVVpHRQ/Y=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211130053508-b761ad66fae3/go.mod h1:GGDwMCUjg2jm3GCpLCArAfhgGE36m/0tzg5Yi31DPUU=
 github.com/NYTimes/gziphandler v0.0.0-20170623195520-56545f4a5d46/go.mod h1:3wb06e3pkSAbeQ52E9H9iFoQsEEwGN64994WTCIhntQ=
 github.com/PuerkitoBio/purell v1.0.0 h1:0GoNN3taZV6QI81IXgCbxMyEaJDXMSIjArYBCYzVVvs=
 github.com/PuerkitoBio/purell v1.0.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
