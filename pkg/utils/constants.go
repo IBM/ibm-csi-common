@@ -75,4 +75,7 @@ const (
 
 	// ZoneLabel ...
 	ZoneLabel = "zone"
+
+	// ConfigFileName ...
+	ConfigFileName = "slclient.toml"
 )

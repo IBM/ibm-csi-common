@@ -218,13 +218,13 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 		// If the retrieved API key is the same as previous one, returning error
 		if vpcAPIKey == icp.ProviderConfig.VPC.G2APIKey {
 			logger.Error("API key is not reset")
-			return errors.New("API key is not reset")
+			return errors.New("API key is not found, reset the api key. If reset, retry after few minutes")
 		}
 		vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.G2APIKey
 		vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
 	} else {
 		conf := new(config.Config)
-		configPath := filepath.Join(config.GetConfPathDir(), "slclient.toml")
+		configPath := filepath.Join(config.GetConfPathDir(), utils.ConfigFileName)
 		_, err := toml.DecodeFile(configPath, conf)
 		if err != nil {
 			logger.Error("Failed to parse config file", zap.Error(err))
@@ -233,8 +233,10 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 
 		if vpcAPIKey == conf.VPC.G2APIKey {
 			logger.Error("API is not reset")
-			return errors.New("API key is not reset")
+			return errors.New("API key is not found, reset the api key. If reset, retry after few minutes")
 		}
+		icp.ProviderConfig.VPC.APIKey = conf.VPC.APIKey
+		icp.ProviderConfig.VPC.G2APIKey = conf.VPC.G2APIKey
 		vpcBlockConfig.VPCConfig.APIKey = conf.VPC.G2APIKey
 		vpcBlockConfig.VPCConfig.G2APIKey = conf.VPC.G2APIKey
 	}
@@ -242,13 +244,13 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 	prov, err := icp.Registry.Get(icp.ProviderName)
 	if err != nil {
 		logger.Error("Not able to get the said provider, it might not registered", local.ZapError(err))
-		return err
+		return errors.New("unable to fetch the provider, hence unable to update the new API key")
 	}
 
 	err = prov.UpdateAPIKey(vpcBlockConfig, logger)
 	if err != nil {
 		logger.Error("Failed to update API key in the provider", local.ZapError(err))
-		return err
+		return errors.New("unable to update the new API key")
 	}
 
 	return nil
