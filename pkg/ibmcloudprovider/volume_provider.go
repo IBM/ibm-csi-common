@@ -155,15 +155,19 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		ServerConfig: icp.ProviderConfig.Server,
 	}
 
-	maxRetryAttempt := 3
-	for retryCount := 0; retryCount < maxRetryAttempt; retryCount++ {
+	for retryCount := 0; retryCount < utils.MaxRetryAttemptForSessions; retryCount++ {
 		session, _, err := provider_util.OpenProviderSessionWithContext(ctx, prov, vpcBlockConfig, icp.ProviderName, logger)
 		if err == nil {
 			logger.Info("Successfully got the provider session", zap.Reflect("ProviderName", session.ProviderName()))
 			return session, nil
 		}
 		logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+		if retryCount == 1 {
+			return nil, err
+		}
 		if providerError, ok := err.(provider.Error); ok && string(providerError.Code()) == provider.APIKeyNotFound {
+			// Waiting for minute expecting the API key to be updated in config
+			time.Sleep(time.Minute * 1)
 			err := icp.UpdateAPIKey(logger)
 			if err != nil {
 				logger.Error("Failed to update api key in cloud storage provider", zap.Error(err))
