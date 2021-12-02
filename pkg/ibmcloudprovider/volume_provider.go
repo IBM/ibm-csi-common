@@ -22,12 +22,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
+	"github.com/IBM/ibmcloud-volume-interface/lib/utils/reasoncode"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
@@ -165,7 +167,7 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		if retryCount == 1 {
 			return nil, err
 		}
-		if providerError, ok := err.(provider.Error); ok && string(providerError.Code()) == provider.APIKeyNotFound {
+		if providerError, ok := err.(provider.Error); ok && providerError.Code() == reasoncode.ErrorFailedTokenExchange && strings.Contains(strings.ToLower(providerError.Error()), "api key could not be found") {
 			// Waiting for minute expecting the API key to be updated in config
 			time.Sleep(time.Minute * 1)
 			err := icp.UpdateAPIKey(logger)
