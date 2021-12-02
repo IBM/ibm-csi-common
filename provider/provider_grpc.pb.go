@@ -4,6 +4,7 @@ package provider
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -80,7 +81,7 @@ type UnsafeAPIKeyProviderServer interface {
 }
 
 func RegisterAPIKeyProviderServer(s *grpc.Server, srv APIKeyProviderServer) {
-       s.RegisterService(&_APIKeyProvider_serviceDesc, srv)
+	s.RegisterService(&_APIKeyProvider_serviceDesc, srv)
 }
 
 func _APIKeyProvider_GetVPCAPIKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
