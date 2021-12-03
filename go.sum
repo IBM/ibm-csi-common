@@ -10,6 +10,8 @@ github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203060434-3dba4e43a6db h1
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203060434-3dba4e43a6db/go.mod h1:8yw6hCU3CV0cENIMhrxAMAs3Q+0+RFUrYqleSJAt3II=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203081301-9c95c7f94044 h1:Yddyb7YazOefbcp60ZZjZ+u58gozuQ7DV5fB5M+gWXw=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203081301-9c95c7f94044/go.mod h1:8yw6hCU3CV0cENIMhrxAMAs3Q+0+RFUrYqleSJAt3II=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203100720-a4fbb3ea7e02 h1:U3GZCSKzCALiRdR8NEeazRRo6hYhmefxOhVXd+pqObg=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203100720-a4fbb3ea7e02/go.mod h1:8yw6hCU3CV0cENIMhrxAMAs3Q+0+RFUrYqleSJAt3II=
 github.com/NYTimes/gziphandler v0.0.0-20170623195520-56545f4a5d46/go.mod h1:3wb06e3pkSAbeQ52E9H9iFoQsEEwGN64994WTCIhntQ=
 github.com/PuerkitoBio/purell v1.0.0 h1:0GoNN3taZV6QI81IXgCbxMyEaJDXMSIjArYBCYzVVvs=
 github.com/PuerkitoBio/purell v1.0.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
