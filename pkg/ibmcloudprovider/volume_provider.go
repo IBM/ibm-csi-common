@@ -167,7 +167,7 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		if retryCount == 1 {
 			return nil, err
 		}
-		if providerError, ok := err.(provider.Error); ok && providerError.Code() == reasoncode.ErrorFailedTokenExchange && strings.Contains(strings.ToLower(providerError.Error()), "api key could not be found") {
+		if providerError, ok := err.(provider.Error); ok && providerError.Code() == reasoncode.ErrorFailedTokenExchange && (strings.Contains(strings.ToLower(providerError.Error()), "api key could not be found") || strings.Contains(strings.ToLower(providerError.Error()), "user not found or active")) {
 			// Waiting for minute expecting the API key to be updated in config
 			time.Sleep(time.Minute * 1)
 			err := icp.UpdateAPIKey(logger)
