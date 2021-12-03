@@ -78,6 +78,33 @@ func TestGetProviderSession(t *testing.T) {
 	assert.Nil(t, proSession) // TODO: It should be NotNil
 }
 
+func TestUpdateAPIKey(t *testing.T) {
+	// Creating test logger
+	logger, teardown := GetTestLogger(t)
+	defer teardown()
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Errorf("Failed to get current working directory, some unit tests will fail")
+	}
+
+	// As its required by NewIBMCloudStorageProvider
+	secretConfigPath := filepath.Join(pwd, "..", "..", "test-fixtures", "valid")
+	err = os.Setenv("SECRET_CONFIG_PATH", secretConfigPath)
+	defer os.Unsetenv("SECRET_CONFIG_PATH")
+	if err != nil {
+		t.Errorf("This test will fail because of %v", err)
+	}
+
+	configPath := filepath.Join(pwd, "..", "..", "test-fixtures", "slconfig.toml")
+	ibmCloudProvider, err := NewIBMCloudStorageProvider(configPath, logger)
+	assert.Nil(t, err)
+	assert.NotNil(t, ibmCloudProvider)
+
+	err = ibmCloudProvider.UpdateAPIKey(logger)
+	assert.NotNil(t, err)
+}
+
 func TestGetTestProvider(t *testing.T) {
 	// Creating test logger
 	logger, teardown := GetTestLogger(t)
