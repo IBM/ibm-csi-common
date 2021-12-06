@@ -6,26 +6,15 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta9
 	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta13
-	github.com/container-storage-interface/spec v1.2.0
-	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
+	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.3.1 // indirect
-	github.com/google/btree v1.0.1 // indirect
-	github.com/google/uuid v1.1.1 // indirect
-	github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d // indirect
-	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7 // indirect
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.7.1
-	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/satori/go.uuid v1.2.0
-	github.com/spf13/cobra v0.0.5 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
