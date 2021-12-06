@@ -17,6 +17,7 @@
 package testsuites
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -54,7 +55,7 @@ func (t *DynamicallyProvisioneMultiPodWithVolTest) RunSync(client clientset.Inte
 	var ix, maxCount int
 	var nodeName []string
 
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		framework.Logf("failed to get Nodes list")
 	} else {
@@ -99,7 +100,7 @@ func (t *DynamicallyProvisioneMultiPodWithVolTest) RunAsync(client clientset.Int
 	var nodeName []string
 
 	wg.Add(len(t.Pods))
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		framework.Logf("failed to get Nodes list")
 	} else {

@@ -1,3 +1,5 @@
+// +build !linux,!windows
+
 /**
  * Copyright 2021 IBM Corp.
  *
@@ -18,25 +20,29 @@
 package mountmanager
 
 import (
-	"testing"
+	"errors"
 
-	"github.com/stretchr/testify/assert"
+	mount "k8s.io/mount-utils"
 )
 
-func TestNewNodeMounter(t *testing.T) {
-	nodeMounter := NewNodeMounter()
-	assert.NotNil(t, nodeMounter)
+var errUnsupported = errors.New("util/mount on this platform is not supported")
+
+// MakeFile ...
+func (m *NodeMounter) MakeFile(pathname string) error {
+	return errUnsupported
 }
 
-func TestNewSafeMounter(t *testing.T) {
-	safeMounter := newSafeMounter()
-	assert.NotNil(t, safeMounter)
+// MakeDir ...
+func (m *NodeMounter) MakeDir(pathname string) error {
+	return errUnsupported
 }
 
-func TestNewFakeSafeMounter(t *testing.T) {
-	safeMounter := NewFakeSafeMounter()
-	assert.NotNil(t, safeMounter)
+// PathExists ...
+func (m *NodeMounter) PathExists(pathname string) (bool, error) {
+	return true, errors.New("not implemented")
+}
 
-	safeNodeMounter := NewFakeNodeMounter()
-	assert.NotNil(t, safeNodeMounter)
+// NewSafeFormatAndMount ...
+func (m *NodeMounter) NewSafeFormatAndMount() *mount.SafeFormatAndMount {
+	return nil
 }
