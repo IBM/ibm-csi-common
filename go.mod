@@ -3,8 +3,9 @@ module github.com/IBM/ibm-csi-common
 go 1.16
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta8
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta12
+	github.com/BurntSushi/toml v0.3.1
+	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta9
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta13
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
@@ -14,7 +15,6 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/mock v1.3.1 // indirect
-	github.com/golang/protobuf v1.4.2
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d // indirect
@@ -28,11 +28,10 @@ require (
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v0.0.5 // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
