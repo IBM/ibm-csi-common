@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20211203045519-74fe99e68e4f
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20211203112609-2e152c6d0539
+	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta9
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta13
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect

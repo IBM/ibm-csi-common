@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/IBM/ibm-csi-common/pkg/messages"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
@@ -150,6 +151,7 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		return nil, err
 	}
 
+	// Populating vpcBlockConfig which is used to open session
 	vpcBlockConfig := &vpcconfig.VPCBlockConfig{
 		VPCConfig:    icp.ProviderConfig.VPC,
 		IKSConfig:    icp.ProviderConfig.IKS,
@@ -164,10 +166,12 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 			return session, nil
 		}
 		logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+		// In the second retry, if there's an error, it will be returned without the need for validating it further.
 		if retryCount == 1 {
 			return nil, err
 		}
-		if providerError, ok := err.(provider.Error); ok && providerError.Code() == reasoncode.ErrorFailedTokenExchange && (strings.Contains(strings.ToLower(providerError.Error()), "api key could not be found") || strings.Contains(strings.ToLower(providerError.Error()), "user not found or active")) {
+		// If the error is related to invalid api key or invalid user, update api key will be called
+		if providerError, ok := err.(provider.Error); ok && providerError.Code() == reasoncode.ErrorFailedTokenExchange && (strings.Contains(strings.ToLower(providerError.Error()), messages.APIKeyNotFound) || strings.Contains(strings.ToLower(providerError.Error()), messages.UserNotFound)) {
 			// Waiting for minute expecting the API key to be updated in config
 			time.Sleep(time.Minute * 1)
 			err := icp.UpdateAPIKey(logger)
@@ -175,13 +179,16 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 				logger.Error("Failed to update api key in cloud storage provider", zap.Error(err))
 				return nil, err
 			}
+			// Updating the vpc block config with the newly read api key which is further used open provider session in the 2nd retry
 			vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.G2APIKey
 			vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
+			// Continuing the open provider session in next attempt after updating the api key
 			continue
 		}
+		// returning error if it isn't related to invalid api key/user
 		return nil, err
 	}
-	return nil, errors.New("API key not found, if it is reset, retry after few minutes")
+	return nil, errors.New(messages.ErrAPIKeyNotFound)
 }
 
 // GetConfig ...
@@ -197,12 +204,15 @@ func (icp *IBMCloudStorageProvider) GetClusterInfo() *utils.ClusterInfo {
 // UpdateAPIKey ...
 func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 	logger.Info("Updating API key in cloud storage provider")
+	// Populating vpc block config structure, which will be used for updating iks and vpc block provider
 	vpcBlockConfig := &vpcconfig.VPCBlockConfig{
 		VPCConfig:    icp.ProviderConfig.VPC,
 		IKSConfig:    icp.ProviderConfig.IKS,
 		APIConfig:    icp.ProviderConfig.API,
 		ServerConfig: icp.ProviderConfig.Server,
 	}
+	// Storing a backup of the existing api key, to make sure the newly read api key isn't the same as the old one
+	// Hence avoiding fetching session with the same api key again
 	vpcAPIKey := vpcBlockConfig.VPCConfig.G2APIKey
 
 	if icp.ProviderConfig.IKS != nil && (icp.ProviderConfig.IKS.Enabled || os.Getenv("IKS_ENABLED") == "True") && icp.ProviderConfig.VPC.Encryption {
@@ -212,19 +222,22 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 			return err
 		}
 		logger.Info("Created NewAPIKeyImpl...")
+		// Call to update cloud storage provider with api key
 		err = apiKeyImp.UpdateIAMKeys(icp.ProviderConfig)
 		if err != nil {
 			logger.Error("Unable to get API key", local.ZapError(err))
 			return err
 		}
-		// If the retrieved API key is the same as previous one, returning error
+		// If the retrieved API key is the same as previous one, return error
 		if vpcAPIKey == icp.ProviderConfig.VPC.G2APIKey {
 			logger.Error("API key is not reset")
-			return errors.New("API key is not found, reset the api key. If reset, retry after few minutes")
+			return errors.New(messages.ErrAPIKeyNotFound)
 		}
+		// Updating the api key in vpc block config which will further be used to update the provider
 		vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.G2APIKey
 		vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
 	} else {
+		// Reading config again to read the api key
 		conf := new(config.Config)
 		configPath := filepath.Join(config.GetConfPathDir(), utils.ConfigFileName)
 		_, err := toml.DecodeFile(configPath, conf)
@@ -233,10 +246,12 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 			return err
 		}
 
+		// If the retrieved API key is the same as previous one, return error
 		if vpcAPIKey == conf.VPC.G2APIKey {
 			logger.Error("API is not reset")
-			return errors.New("API key is not found, reset the api key. If reset, retry after few minutes")
+			return errors.New(messages.ErrAPIKeyNotFound)
 		}
+		// Updating the api key in cloud storage provider and vpc block config which will further be used to update the provider
 		icp.ProviderConfig.VPC.APIKey = conf.VPC.APIKey
 		icp.ProviderConfig.VPC.G2APIKey = conf.VPC.G2APIKey
 		vpcBlockConfig.VPCConfig.APIKey = conf.VPC.G2APIKey
@@ -246,13 +261,14 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 	prov, err := icp.Registry.Get(icp.ProviderName)
 	if err != nil {
 		logger.Error("Not able to get the said provider, it might not registered", local.ZapError(err))
-		return errors.New("unable to fetch the provider, hence unable to update the new API key")
+		return errors.New(messages.ErrUpdatingAPIKey)
 	}
 
+	// Updating the api key in provider using the updated vpc block config
 	err = prov.UpdateAPIKey(vpcBlockConfig, logger)
 	if err != nil {
 		logger.Error("Failed to update API key in the provider", local.ZapError(err))
-		return errors.New("unable to update the new API key")
+		return errors.New(messages.ErrUpdatingAPIKey)
 	}
 
 	return nil
