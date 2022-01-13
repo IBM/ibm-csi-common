@@ -5,14 +5,14 @@ go 1.16
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta9
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta13
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220113085426-8f2bd50f1a88
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.14.2
+	github.com/onsi/gomega v1.10.5
 	github.com/prometheus/client_golang v1.7.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.7.0
