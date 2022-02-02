@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220201130745-7f3b37d37f31
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220201131636-412b3a1fa16f
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220202070523-66a472da8bd1
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220202070747-dc6875479379
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
