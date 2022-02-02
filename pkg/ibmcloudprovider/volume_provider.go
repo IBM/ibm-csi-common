@@ -18,19 +18,13 @@
 package ibmcloudprovider
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
-	"github.com/IBM/ibm-csi-common/pkg/messages"
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
-	"github.com/IBM/ibmcloud-volume-interface/lib/utils/reasoncode"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
@@ -144,36 +138,13 @@ func (icp *IBMCloudStorageProvider) GetProviderSession(ctx context.Context, logg
 		ServerConfig: icp.ProviderConfig.Server,
 	}
 
-	for retryCount := 0; retryCount < utils.MaxRetryAttemptForSessions; retryCount++ {
-		session, _, err := provider_util.OpenProviderSessionWithContext(ctx, prov, vpcBlockConfig, icp.ProviderName, logger)
-		if err == nil {
-			logger.Info("Successfully got the provider session", zap.Reflect("ProviderName", session.ProviderName()))
-			return session, nil
-		}
-		logger.Error("Failed to get provider session", zap.Reflect("Error", err))
-		// In the second retry, if there's an error, it will be returned without the need for validating it further.
-		if retryCount == 1 {
-			return nil, err
-		}
-		// If the error is related to invalid api key or invalid user, update api key will be called
-		if providerError, ok := err.(provider.Error); ok && providerError.Code() == reasoncode.ErrorFailedTokenExchange && (strings.Contains(strings.ToLower(providerError.Error()), messages.APIKeyNotFound) || strings.Contains(strings.ToLower(providerError.Error()), messages.UserNotFound)) {
-			// Waiting for minute expecting the API key to be updated in config
-			time.Sleep(time.Minute * 1)
-			err := icp.UpdateAPIKey(logger)
-			if err != nil {
-				logger.Error("Failed to update api key in cloud storage provider", zap.Error(err))
-				return nil, err
-			}
-			// Updating the vpc block config with the newly read api key which is further used open provider session in the 2nd retry
-			vpcBlockConfig.VPCConfig.APIKey = icp.ProviderConfig.VPC.G2APIKey
-			vpcBlockConfig.VPCConfig.G2APIKey = icp.ProviderConfig.VPC.G2APIKey
-			// Continuing the open provider session in next attempt after updating the api key
-			continue
-		}
-		// returning error if it isn't related to invalid api key/user
-		return nil, err
+	session, _, err := provider_util.OpenProviderSessionWithContext(ctx, prov, vpcBlockConfig, icp.ProviderName, logger)
+	if err == nil {
+		logger.Info("Successfully got the provider session", zap.Reflect("ProviderName", session.ProviderName()))
+		return session, nil
 	}
-	return nil, errors.New(messages.ErrAPIKeyNotFound)
+	logger.Error("Failed to get provider session", zap.Reflect("Error", err))
+	return nil, err
 }
 
 // GetConfig ...
@@ -188,7 +159,7 @@ func (icp *IBMCloudStorageProvider) GetClusterInfo() *utils.ClusterInfo {
 
 // UpdateAPIKey ...
 func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
-	logger.Info("Updating API key in cloud storage provider")
+	/*logger.Info("Updating API key in cloud storage provider")
 	// Populating vpc block config structure, which will be used for updating iks and vpc block provider
 	vpcBlockConfig := &vpcconfig.VPCBlockConfig{
 		VPCConfig:    icp.ProviderConfig.VPC,
@@ -255,6 +226,7 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 		logger.Error("Failed to update API key in the provider", local.ZapError(err))
 		return errors.New(messages.ErrUpdatingAPIKey)
 	}
-
+	*/
+	logger.Info("Unimplemented")
 	return nil
 }
