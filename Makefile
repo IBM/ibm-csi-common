@@ -23,15 +23,16 @@ all: deps fmt vet test
 .PHONY: deps
 deps:
 	echo "Installing dependencies ..."
-	go mod vendor
+	go mod download
 	go get github.com/pierrre/gotestcover
+	go install github.com/pierrre/gotestcover
 	@if ! which golangci-lint >/dev/null || [[ "$$(golangci-lint --version)" != *${LINT_VERSION}* ]]; then \
 		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v${LINT_VERSION}; \
 	fi
 
 .PHONY: fmt
-fmt: lint
-	golangci-lint run --disable-all --enable=gofmt --timeout 600s --skip-dirs=tests
+fmt: 
+	gofmt -l -w ${GOFILES}
 
 .PHONY: dofmt
 dofmt:
