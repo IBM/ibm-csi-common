@@ -3,17 +3,17 @@ module github.com/IBM/ibm-csi-common
 go 1.16
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220216042025-5badad79df4a
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220216042220-9ecd4f8be1fa
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220220161851-ce99a252a582
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220220162231-9d576a1854f7
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.5
 	github.com/prometheus/client_golang v1.7.1
-	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
@@ -28,6 +28,7 @@ require (
 )
 
 replace (
+	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
 	k8s.io/api => k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.21.0
