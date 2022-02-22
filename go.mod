@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.16
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220220161851-ce99a252a582
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220220162231-9d576a1854f7
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220222032633-f24c982fb2ac
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222032811-9de7e01620c6
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible
@@ -16,7 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
 	k8s.io/api v0.21.0
