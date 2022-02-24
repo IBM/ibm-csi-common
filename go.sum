@@ -62,6 +62,7 @@ github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220222040024-7840325ef6ad/go
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220222091556-c43104e16761/go.mod h1:jnagPrCJVK0XTcaZcEspV670i2aRlB/otFrbGbW+iGc=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220222222529-d860899abd43/go.mod h1:yyZKj58cFlRT3yommh0RygokqoTGsEc83xOaH3MW22E=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220223174714-bc946aa16131/go.mod h1:GT1POAxZyY8hAbXphB5ub0NVCsiEn5WgWXYy4ZwwXVg=
+github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220224044225-8430830ed652/go.mod h1:EWTag6+8DRmrt2Q3Eu26RfRuEyazUuok0Q50Wjn/Qh0=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9/go.mod h1:W7x7R58nPNBFO2HwebpDSkbCOYMkdsxKW1+7bA7r+Uk=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222040614-983678165d4c h1:gGR9zlKXMfr62U7T2CPw43XKNMWDU1q1l7JAHky3VVE=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222040614-983678165d4c/go.mod h1:9r2im7L6I01APX5cV0qIfOGdP9QfGTtuk48BnERKf/k=
@@ -71,11 +72,14 @@ github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222223009-9de3236d8124 h1
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222223009-9de3236d8124/go.mod h1:7vK/9/LGHUdkXGL+MW18qlI4GaZ4pA35AcNarKTvpi8=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220223175019-4f7c20a65d3d h1:zDRTOr89fQNsGcA/1dPMiAKJi4/VncvLXc9IVePX1Bc=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220223175019-4f7c20a65d3d/go.mod h1:9qWgTCmfrZ8QtSEe4zCYQvxBe+b8vaVenr9ezCNlXhg=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220224044326-c4af39ecc516 h1:JKVQry76EijFgLbyCw660ktckbrben8siNIZNziiLwI=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220224044326-c4af39ecc516/go.mod h1:/Ps5eLCxv4qyTgnumDEiTdNi8vWIns5nZbiUW7RtdmA=
 github.com/IBM/secret-common-lib v0.0.0-20220222035641-74dd653e399a h1:RRI6zac0VGfjBUwK8mMFDLiqYT9AeWWXIZfLWrmXRzI=
 github.com/IBM/secret-common-lib v0.0.0-20220222035641-74dd653e399a/go.mod h1:0LfL3s+hInZB0CDos8YlNIamsA6uiNOPt0Xpm+oxXMI=
 github.com/IBM/secret-common-lib v0.0.0-20220222091149-122b3c46dd06/go.mod h1:mdUas+jgrbHHnVgpzxyTFuLrIWESZlAvLDJl1DycEyc=
 github.com/IBM/secret-common-lib v0.0.0-20220222222105-7999328de814/go.mod h1:mdUas+jgrbHHnVgpzxyTFuLrIWESZlAvLDJl1DycEyc=
 github.com/IBM/secret-common-lib v0.0.0-20220223111213-8814275ab888/go.mod h1:SF4pzpjaxLjzYA2VRPzPuJLs3x71RD+JOVIbb+slHFc=
+github.com/IBM/secret-common-lib v0.0.0-20220224044015-b128a0d2b1a0/go.mod h1:SF4pzpjaxLjzYA2VRPzPuJLs3x71RD+JOVIbb+slHFc=
 github.com/IBM/secret-utils-lib v0.0.0-20220222034757-d8f67c92ba87 h1:l4MWUjS55tPoFvNOBuITkNsmXy7e1q+RO9z6L2Kz6eE=
 github.com/IBM/secret-utils-lib v0.0.0-20220222034757-d8f67c92ba87/go.mod h1:kAUqVoy1qjG75BIgPbqOLYwZyOu+V7KHtTltkha7Los=
 github.com/IBM/secret-utils-lib v0.0.0-20220222091029-9500d6f2d071/go.mod h1:kAUqVoy1qjG75BIgPbqOLYwZyOu+V7KHtTltkha7Los=
