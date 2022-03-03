@@ -38,6 +38,7 @@ import (
 	k8sDevPod "k8s.io/kubernetes/test/e2e/framework/pod"
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 )
 
 type TestSecret struct {
@@ -329,6 +330,13 @@ type TestStorageClass struct {
 	storageClass *storagev1.StorageClass
 	namespace    *v1.Namespace
 }
+
+type TestVolumeSnapshotClass struct {
+	client              restclientset.Interface
+	volumeSnapshotClass *volumesnapshotv1.VolumeSnapshotClass
+	namespace           *v1.Namespace
+}
+
 
 func NewTestStorageClass(c clientset.Interface, ns *v1.Namespace, sc *storagev1.StorageClass) *TestStorageClass {
 	return &TestStorageClass{
@@ -961,4 +969,89 @@ func cleanupPodOrFail(client clientset.Interface, name, namespace string, dbginf
 
 func podLogs(client clientset.Interface, name, namespace string) ([]byte, error) {
 	return client.CoreV1().Pods(namespace).GetLogs(name, &v1.PodLogOptions{}).Do(context.Background()).Raw()
+}
+
+func NewTestVolumeSnapshotClass(c restclientset.Interface, ns *v1.Namespace, vsc *volumesnapshotv1.VolumeSnapshotClass) *TestVolumeSnapshotClass {
+	return &TestVolumeSnapshotClass{
+		client:              c,
+		volumeSnapshotClass: vsc,
+		namespace:           ns,
+	}
+}
+
+func (t *TestVolumeSnapshotClass) Create() {
+	By("creating a VolumeSnapshotClass")
+	var err error
+	t.volumeSnapshotClass, err = snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshotClasses().Create(context.TODO(), t.volumeSnapshotClass, metav1.CreateOptions{})
+	framework.ExpectNoError(err)
+}
+
+func (t *TestVolumeSnapshotClass) CreateSnapshot(pvc *v1.PersistentVolumeClaim) *volumesnapshotv1.VolumeSnapshot {
+	By("creating a VolumeSnapshot for " + pvc.Name)
+	snapshot := &volumesnapshotv1.VolumeSnapshot{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       VolumeSnapshotKind,
+			APIVersion: SnapshotAPIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: "volume-snapshot-",
+			Namespace:    t.namespace.Name,
+		},
+		Spec: volumesnapshotv1.VolumeSnapshotSpec{
+			VolumeSnapshotClassName: &t.volumeSnapshotClass.Name,
+			Source: volumesnapshotv1.VolumeSnapshotSource{
+				PersistentVolumeClaimName: &pvc.Name,
+			},
+		},
+	}
+	snapshot, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Create(context.TODO(), snapshot, metav1.CreateOptions{})
+	framework.ExpectNoError(err)
+	return snapshot
+}
+
+func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSnapshot) {
+	By("waiting for VolumeSnapshot to be ready to use - " + snapshot.Name)
+	err := wait.Poll(15*time.Second, 5*time.Minute, func() (bool, error) {
+		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(context.TODO(), snapshot.Name, metav1.GetOptions{})
+		if err != nil {
+			return false, fmt.Errorf("did not see ReadyToUse: %v", err)
+		}
+
+		if vs.Status == nil || vs.Status.ReadyToUse == nil {
+			return false, nil
+		}
+		return *vs.Status.ReadyToUse, nil
+	})
+	framework.ExpectNoError(err)
+}
+
+func (t *TestVolumeSnapshotClass) DeleteSnapshot(vs *volumesnapshotv1.VolumeSnapshot) {
+	By("deleting a VolumeSnapshot " + vs.Name)
+	err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Delete(context.TODO(), vs.Name, metav1.DeleteOptions{})
+	framework.ExpectNoError(err)
+
+	err = t.waitForSnapshotDeleted(t.namespace.Name, vs.Name, 5*time.Second, 5*time.Minute)
+	framework.ExpectNoError(err)
+}
+
+func (t *TestVolumeSnapshotClass) Cleanup() {
+	e2elog.Logf("deleting VolumeSnapshotClass %s", t.volumeSnapshotClass.Name)
+	err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshotClasses().Delete(context.TODO(), t.volumeSnapshotClass.Name, metav1.DeleteOptions{})
+	framework.ExpectNoError(err)
+}
+
+func (t *TestVolumeSnapshotClass) waitForSnapshotDeleted(ns string, snapshotName string, poll, timeout time.Duration) error {
+	e2elog.Logf("Waiting up to %v for VolumeSnapshot %s to be removed", timeout, snapshotName)
+	c := snapshotclientset.New(t.client).SnapshotV1()
+	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
+		_, err := c.VolumeSnapshots(ns).Get(context.TODO(), snapshotName, metav1.GetOptions{})
+		if err != nil {
+			if apierrs.IsNotFound(err) {
+				e2elog.Logf("Snapshot %q in namespace %q doesn't exist in the system", snapshotName, ns)
+				return nil
+			}
+			e2elog.Logf("Failed to get snapshot %q in namespace %q, retrying in %v. Error: %v", snapshotName, ns, poll, err)
+		}
+	}
+	return fmt.Errorf("VolumeSnapshot %s is not removed from the system within %v", snapshotName, timeout)
 }

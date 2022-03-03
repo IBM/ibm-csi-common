@@ -57,8 +57,8 @@ const (
 
 const (
 	VolumeSnapshotKind = "VolumeSnapshot"
-	SnapshotAPIVersion = "snapshot.storage.k8s.io/v1alpha1"
-	APIVersionv1alpha1 = "v1alpha1"
+	SnapshotAPIVersion = "snapshot.storage.k8s.io/v1"
+	APIVersionv1 = "v1"
 )
 
 var (
@@ -214,3 +214,13 @@ func (pod *PodDetails) SetupStatefulset(client clientset.Interface, namespace *v
 	cleanupFuncs = append(cleanupFuncs, tStatefulset.Cleanup)
 	return tStatefulset, cleanupFuncs
 }
+
+func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Namespace, csiDriver driver.VolumeSnapshotTestDriver) (*TestVolumeSnapshotClass, func()) {
+	By("setting up the VolumeSnapshotClass")
+	volumeSnapshotClass := csiDriver.GetVolumeSnapshotClass(namespace.Name)
+	tvsc := NewTestVolumeSnapshotClass(client, namespace, volumeSnapshotClass)
+	tvsc.Create()
+
+	return tvsc, tvsc.Cleanup
+}
+
