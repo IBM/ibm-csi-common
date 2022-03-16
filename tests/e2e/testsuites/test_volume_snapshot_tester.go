@@ -71,7 +71,7 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interfac
 		}
 
 		By("taking snapshots")
-		tvsc, cleanup := CreateVolumeSnapshotClass(restclient, namespace, t.CSIDriver)
+		tvsc, cleanup := CreateVolumeSnapshotClass(restclient, namespace)
 		defer cleanup()
 
 		snapshot := tvsc.CreateSnapshot(tpvc.persistentVolumeClaim)
@@ -81,7 +81,7 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interfac
 		t.RestoredPod.Volumes[0].DataSource = &DataSource{Name: snapshot.Name}
 		trpod := NewTestPod(client, namespace, t.RestoredPod.Cmd)
 		rvolume := t.RestoredPod.Volumes[0]
-		trpvc, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace, t.CSIDriver)
+		trpvc, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace)
 		for i := range rpvcCleanup {
 			defer rpvcCleanup[i]()
 		}

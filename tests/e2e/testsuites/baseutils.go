@@ -67,6 +67,11 @@ type TestStatefulsets struct {
 	podName     []string
 }
 
+const (
+	VolumeSnapshotClassKind = "VolumeSnapshotClass"
+	SnapshotAPIVersion      = "snapshot.storage.k8s.io/v1"
+)
+
 func NewSecret(c clientset.Interface, name, ns, iops, tags, encrypt, encryptKey, stype string) *TestSecret {
 	return &TestSecret{
 		client:     c,
@@ -1054,4 +1059,26 @@ func (t *TestVolumeSnapshotClass) waitForSnapshotDeleted(ns string, snapshotName
 		}
 	}
 	return fmt.Errorf("VolumeSnapshot %s is not removed from the system within %v", snapshotName, timeout)
+}
+
+func GetVolumeSnapshotClass(namespace string) *volumesnapshotv1.VolumeSnapshotClass {
+	provisioner := "vpc.block.csi.ibm.io"
+	generateName := fmt.Sprintf("%s-%s-dynamic-sc-", namespace, provisioner)
+	return getVolumeSnapshotClass(generateName, provisioner)
+}
+
+
+
+func getVolumeSnapshotClass(generateName string, provisioner string) *volumesnapshotv1.VolumeSnapshotClass {
+	return &volumesnapshotv1.VolumeSnapshotClass{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       VolumeSnapshotClassKind,
+			APIVersion: SnapshotAPIVersion,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: generateName,
+		},
+		Driver:         provisioner,
+		DeletionPolicy: volumesnapshotv1.VolumeSnapshotContentDelete,
+	}
 }

@@ -462,3 +462,80 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 		}
 	})
 })
+
+
+
+var _ = Describe("[ics-e2e] [resize] Dynamic Provisioning and Snapshot", func() {
+	f := framework.NewDefaultFramework("ebs")
+
+	var (
+		cs          clientset.Interface
+		snapshotrcs restclientset.Interface
+		ns          *v1.Namespace
+	)
+
+	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
+        if secretKey == "" {
+                secretKey = defaultSecret
+        }
+
+        BeforeEach(func() {
+                cs = f.ClientSet
+                ns = f.Namespace
+		var err error
+		snapshotrcs, err = restClient(testsuites.SnapshotAPIGroup, testsuites.APIVersionv1)
+                if err != nil {
+                        Fail(fmt.Sprintf("could not get rest clientset: %v", err))
+                }
+        })
+
+	It("should create a pod, write and read to it, take a volume snapshot, and create another pod from the snapshot", func() {
+		pod := testsuites.PodDetails{
+			// sync before taking a snapshot so that any cached data is written to the EBS volume
+			Cmd: "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					VolumeType: "ibmc-vpc-block-5iops-tier",
+					FSType:     "ext4",
+					ClaimSize:  "20Gi",
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		restoredPod := testsuites.PodDetails{
+			Cmd: "grep 'hello world' /mnt/test-1/data",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					VolumeType: "ibmc-vpc-block-5iops-tier",
+					FSType:     "ext4",
+					ClaimSize:  "20Gi",
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+			Pod:         pod,
+			RestoredPod: restoredPod,
+		}
+		test.Run(cs, snapshotrcs, ns)
+	})
+})
+
+func restClient(group string, version string) (restclientset.Interface, error) {
+	// setup rest client
+	config, err := framework.LoadConfig()
+	if err != nil {
+		Fail(fmt.Sprintf("could not load config: %v", err))
+	}
+	gv := schema.GroupVersion{Group: group, Version: version}
+	config.GroupVersion = &gv
+	config.APIPath = "/apis"
+	config.NegotiatedSerializer = serializer.WithoutConversionCodecFactory{CodecFactory: serializer.NewCodecFactory(runtime.NewScheme())}
+	return restclientset.RESTClientFor(config)
+}

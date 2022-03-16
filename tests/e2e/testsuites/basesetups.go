@@ -184,7 +184,16 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 	storageClass.MountOptions = volume.MountOptions
 
 	var tpvc *TestPersistentVolumeClaim
+	if volume.DataSource != nil {
+		dataSource := &v1.TypedLocalObjectReference{
+			Name:     volume.DataSource.Name,
+			Kind:     VolumeSnapshotKind,
+			APIGroup: &SnapshotAPIGroup,
+		}
+		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, namespace, volume.ClaimSize, volume.VolumeMode, &createdStorageClass, dataSource)
+	} else {
 	tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
+	}
 	tpvc.Create()
 	cleanupFuncs = append(cleanupFuncs, tpvc.Cleanup)
 	// PV will not be ready until PVC is used in a pod when volumeBindingMode: WaitForFirstConsumer
@@ -217,7 +226,7 @@ func (pod *PodDetails) SetupStatefulset(client clientset.Interface, namespace *v
 
 func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Namespace, csiDriver driver.VolumeSnapshotTestDriver) (*TestVolumeSnapshotClass, func()) {
 	By("setting up the VolumeSnapshotClass")
-	volumeSnapshotClass := csiDriver.GetVolumeSnapshotClass(namespace.Name)
+	volumeSnapshotClass := GetVolumeSnapshotClass(namespace.Name)
 	tvsc := NewTestVolumeSnapshotClass(client, namespace, volumeSnapshotClass)
 	tvsc.Create()
 
