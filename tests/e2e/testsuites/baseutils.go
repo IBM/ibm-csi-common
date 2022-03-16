@@ -19,11 +19,14 @@ package testsuites
 import (
 	"context"
 	"fmt"
+	restclientset "k8s.io/client-go/rest"
 	"math/rand"
 	"os/exec"
 	"strings"
 	"time"
 
+	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
+	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
@@ -32,13 +35,13 @@ import (
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	k8sDevDep "k8s.io/kubernetes/test/e2e/framework/deployment"
 	k8sDevPod "k8s.io/kubernetes/test/e2e/framework/pod"
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
 	imageutils "k8s.io/kubernetes/test/utils/image"
-	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 )
 
 type TestSecret struct {
@@ -66,11 +69,6 @@ type TestStatefulsets struct {
 	statefulset *apps.StatefulSet
 	podName     []string
 }
-
-const (
-	VolumeSnapshotClassKind = "VolumeSnapshotClass"
-	SnapshotAPIVersion      = "snapshot.storage.k8s.io/v1"
-)
 
 func NewSecret(c clientset.Interface, name, ns, iops, tags, encrypt, encryptKey, stype string) *TestSecret {
 	return &TestSecret{
@@ -342,7 +340,6 @@ type TestVolumeSnapshotClass struct {
 	namespace           *v1.Namespace
 }
 
-
 func NewTestStorageClass(c clientset.Interface, ns *v1.Namespace, sc *storagev1.StorageClass) *TestStorageClass {
 	return &TestStorageClass{
 		client:       c,
@@ -399,6 +396,7 @@ type TestPersistentVolumeClaim struct {
 	persistentVolume               *v1.PersistentVolume
 	persistentVolumeClaim          *v1.PersistentVolumeClaim
 	requestedPersistentVolumeClaim *v1.PersistentVolumeClaim
+	dataSource                     *v1.TypedLocalObjectReference
 }
 
 func NewTestPersistentVolumeClaim(
@@ -424,6 +422,25 @@ func NewTestPersistentVolumeClaim(
 		volumeMode:   mode,
 		namespace:    ns,
 		storageClass: sc,
+	}
+}
+func NewTestPersistentVolumeClaimWithDataSource(
+	c clientset.Interface, pvcName string, ns *v1.Namespace,
+	claimSize string, volumeMode VolumeMode, sc *storagev1.StorageClass, dataSource *v1.TypedLocalObjectReference) *TestPersistentVolumeClaim {
+	mode := v1.PersistentVolumeFilesystem
+	if volumeMode == Block {
+		mode = v1.PersistentVolumeBlock
+	}
+	By("Create tpvc with data source")
+	return &TestPersistentVolumeClaim{
+		name:         pvcName,
+		client:       c,
+		claimSize:    claimSize,
+		accessMode:   v1.ReadWriteOnce,
+		volumeMode:   mode,
+		namespace:    ns,
+		storageClass: sc,
+		dataSource:   dataSource,
 	}
 }
 
@@ -1040,22 +1057,22 @@ func (t *TestVolumeSnapshotClass) DeleteSnapshot(vs *volumesnapshotv1.VolumeSnap
 }
 
 func (t *TestVolumeSnapshotClass) Cleanup() {
-	e2elog.Logf("deleting VolumeSnapshotClass %s", t.volumeSnapshotClass.Name)
+	framework.Logf("deleting VolumeSnapshotClass %s", t.volumeSnapshotClass.Name)
 	err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshotClasses().Delete(context.TODO(), t.volumeSnapshotClass.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
 
 func (t *TestVolumeSnapshotClass) waitForSnapshotDeleted(ns string, snapshotName string, poll, timeout time.Duration) error {
-	e2elog.Logf("Waiting up to %v for VolumeSnapshot %s to be removed", timeout, snapshotName)
+	framework.Logf("Waiting up to %v for VolumeSnapshot %s to be removed", timeout, snapshotName)
 	c := snapshotclientset.New(t.client).SnapshotV1()
 	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
 		_, err := c.VolumeSnapshots(ns).Get(context.TODO(), snapshotName, metav1.GetOptions{})
 		if err != nil {
 			if apierrs.IsNotFound(err) {
-				e2elog.Logf("Snapshot %q in namespace %q doesn't exist in the system", snapshotName, ns)
+				framework.Logf("Snapshot %q in namespace %q doesn't exist in the system", snapshotName, ns)
 				return nil
 			}
-			e2elog.Logf("Failed to get snapshot %q in namespace %q, retrying in %v. Error: %v", snapshotName, ns, poll, err)
+			framework.Logf("Failed to get snapshot %q in namespace %q, retrying in %v. Error: %v", snapshotName, ns, poll, err)
 		}
 	}
 	return fmt.Errorf("VolumeSnapshot %s is not removed from the system within %v", snapshotName, timeout)
@@ -1066,8 +1083,6 @@ func GetVolumeSnapshotClass(namespace string) *volumesnapshotv1.VolumeSnapshotCl
 	generateName := fmt.Sprintf("%s-%s-dynamic-sc-", namespace, provisioner)
 	return getVolumeSnapshotClass(generateName, provisioner)
 }
-
-
 
 func getVolumeSnapshotClass(generateName string, provisioner string) *volumesnapshotv1.VolumeSnapshotClass {
 	return &volumesnapshotv1.VolumeSnapshotClass{

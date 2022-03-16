@@ -16,14 +16,18 @@
 package e2e
 
 import (
-	"os"
-
+	"fmt"
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	clientset "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	restclientset "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
+	"os"
 )
 
 const defaultSecret = ""
@@ -463,8 +467,6 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 	})
 })
 
-
-
 var _ = Describe("[ics-e2e] [resize] Dynamic Provisioning and Snapshot", func() {
 	f := framework.NewDefaultFramework("ebs")
 
@@ -472,22 +474,23 @@ var _ = Describe("[ics-e2e] [resize] Dynamic Provisioning and Snapshot", func() 
 		cs          clientset.Interface
 		snapshotrcs restclientset.Interface
 		ns          *v1.Namespace
+		secretKey   string
 	)
 
 	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
-        if secretKey == "" {
-                secretKey = defaultSecret
-        }
+	if secretKey == "" {
+		secretKey = defaultSecret
+	}
 
-        BeforeEach(func() {
-                cs = f.ClientSet
-                ns = f.Namespace
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
 		var err error
 		snapshotrcs, err = restClient(testsuites.SnapshotAPIGroup, testsuites.APIVersionv1)
-                if err != nil {
-                        Fail(fmt.Sprintf("could not get rest clientset: %v", err))
-                }
-        })
+		if err != nil {
+			Fail(fmt.Sprintf("could not get rest clientset: %v", err))
+		}
+	})
 
 	It("should create a pod, write and read to it, take a volume snapshot, and create another pod from the snapshot", func() {
 		pod := testsuites.PodDetails{

@@ -23,6 +23,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	restclientset "k8s.io/client-go/rest"
 )
 
 type PodDetails struct {
@@ -48,6 +49,7 @@ type VolumeDetails struct {
 	VolumeMount           VolumeMountDetails
 	VolumeDevice          VolumeDeviceDetails
 	pvc                   *TestPersistentVolumeClaim
+	DataSource            *DataSource
 }
 
 const (
@@ -56,9 +58,10 @@ const (
 )
 
 const (
-	VolumeSnapshotKind = "VolumeSnapshot"
-	SnapshotAPIVersion = "snapshot.storage.k8s.io/v1"
-	APIVersionv1 = "v1"
+	VolumeSnapshotKind      = "VolumeSnapshot"
+	SnapshotAPIVersion      = "snapshot.storage.k8s.io/v1"
+	APIVersionv1            = "v1"
+	VolumeSnapshotClassKind = "VolumeSnapshotClass"
 )
 
 var (
@@ -190,9 +193,9 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 			Kind:     VolumeSnapshotKind,
 			APIGroup: &SnapshotAPIGroup,
 		}
-		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, namespace, volume.ClaimSize, volume.VolumeMode, &createdStorageClass, dataSource)
+		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, volume.PVCName, namespace, volume.ClaimSize, volume.VolumeMode, &storageClass, dataSource)
 	} else {
-	tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
+		tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
 	}
 	tpvc.Create()
 	cleanupFuncs = append(cleanupFuncs, tpvc.Cleanup)
@@ -224,7 +227,7 @@ func (pod *PodDetails) SetupStatefulset(client clientset.Interface, namespace *v
 	return tStatefulset, cleanupFuncs
 }
 
-func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Namespace, csiDriver driver.VolumeSnapshotTestDriver) (*TestVolumeSnapshotClass, func()) {
+func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Namespace) (*TestVolumeSnapshotClass, func()) {
 	By("setting up the VolumeSnapshotClass")
 	volumeSnapshotClass := GetVolumeSnapshotClass(namespace.Name)
 	tvsc := NewTestVolumeSnapshotClass(client, namespace, volumeSnapshotClass)
@@ -232,4 +235,3 @@ func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Nam
 
 	return tvsc, tvsc.Cleanup
 }
-
