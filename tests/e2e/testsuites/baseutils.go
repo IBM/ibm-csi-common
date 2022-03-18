@@ -93,7 +93,7 @@ func NewHeadlessService(c clientset.Interface, name, namespace, labelSelctors st
 }
 
 func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns *v1.Namespace, servicename, command, storageClassName, volumeName, mountPath string, labels map[string]string, replicaCount int32) *TestStatefulsets {
-	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode)
+	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
 	generateName := "ics-e2e-tester-"
 	return &TestStatefulsets{
 		client:    c,
@@ -455,7 +455,7 @@ func (t *TestPersistentVolumeClaim) Create() {
 	_, err = t.client.StorageV1().StorageClasses().Get(context.Background(), storageClassName, metav1.GetOptions{})
 	framework.ExpectNoError(err)
 
-	t.requestedPersistentVolumeClaim = generatePVC(t.name, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode)
+	t.requestedPersistentVolumeClaim = generatePVC(t.name, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
 	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Create(context.Background(), t.requestedPersistentVolumeClaim, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 }
@@ -509,7 +509,7 @@ func (t *TestPersistentVolumeClaim) WaitForBound() v1.PersistentVolumeClaim {
 func generatePVC(name, namespace,
 	storageClassName, claimSize string,
 	accessMode v1.PersistentVolumeAccessMode,
-	volumeMode v1.PersistentVolumeMode) *v1.PersistentVolumeClaim {
+	volumeMode v1.PersistentVolumeMode, dataSource *v1.TypedLocalObjectReference) *v1.PersistentVolumeClaim {
 	var objMeta metav1.ObjectMeta
 	lastChar := name[len(name)-1:]
 	if lastChar == "-" {
@@ -538,6 +538,7 @@ func generatePVC(name, namespace,
 				},
 			},
 			VolumeMode: &volumeMode,
+			DataSource: dataSource,
 		},
 	}
 }

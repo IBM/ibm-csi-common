@@ -188,12 +188,14 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 
 	var tpvc *TestPersistentVolumeClaim
 	if volume.DataSource != nil {
+		By("Setting up datasource in PVC")
 		dataSource := &v1.TypedLocalObjectReference{
 			Name:     volume.DataSource.Name,
 			Kind:     VolumeSnapshotKind,
 			APIGroup: &SnapshotAPIGroup,
 		}
 		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, volume.PVCName, namespace, volume.ClaimSize, volume.VolumeMode, &storageClass, dataSource)
+		By(fmt.Sprintf("%q",tpvc))
 	} else {
 		tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
 	}

@@ -467,8 +467,8 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 	})
 })
 
-var _ = Describe("[ics-e2e] [resize] Dynamic Provisioning and Snapshot", func() {
-	f := framework.NewDefaultFramework("ebs")
+var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func() {
+	f := framework.NewDefaultFramework("ics-e2e-snap")
 
 	var (
 		cs          clientset.Interface
@@ -493,14 +493,17 @@ var _ = Describe("[ics-e2e] [resize] Dynamic Provisioning and Snapshot", func() 
 	})
 
 	It("should create a pod, write and read to it, take a volume snapshot, and create another pod from the snapshot", func() {
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		pod := testsuites.PodDetails{
 			// sync before taking a snapshot so that any cached data is written to the EBS volume
 			Cmd: "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
 			Volumes: []testsuites.VolumeDetails{
 				{
+					PVCName:       "ics-vol-5iops-snap-",
 					VolumeType: "ibmc-vpc-block-5iops-tier",
 					FSType:     "ext4",
 					ClaimSize:  "20Gi",
+					ReclaimPolicy: &reclaimPolicy,
 					VolumeMount: testsuites.VolumeMountDetails{
 						NameGenerate:      "test-volume-",
 						MountPathGenerate: "/mnt/test-",
@@ -512,9 +515,11 @@ var _ = Describe("[ics-e2e] [resize] Dynamic Provisioning and Snapshot", func() 
 			Cmd: "grep 'hello world' /mnt/test-1/data",
 			Volumes: []testsuites.VolumeDetails{
 				{
+					PVCName:       "ics-vol-5iops-snap-",
 					VolumeType: "ibmc-vpc-block-5iops-tier",
 					FSType:     "ext4",
 					ClaimSize:  "20Gi",
+					ReclaimPolicy: &reclaimPolicy,
 					VolumeMount: testsuites.VolumeMountDetails{
 						NameGenerate:      "test-volume-",
 						MountPathGenerate: "/mnt/test-",
