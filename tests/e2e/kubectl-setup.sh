@@ -27,8 +27,8 @@ function icLogin {
 }
 
 function initKSEndpoint {
-    DEV_ARMADA_API_ENDPOINT="https://origin.containers.dev.cloud.ibm.com/"
-    PRESTAGE_ARMADA_API_ENDPOINT="https://origin.containers.pretest.cloud.ibm.com"
+    DEV_ARMADA_API_ENDPOINT="https://containers.dev.cloud.ibm.com/"
+    PRESTAGE_ARMADA_API_ENDPOINT="https://containers.pretest.cloud.ibm.com"
     STAGE_ARMADA_API_ENDPOINT="https://containers.test.cloud.ibm.com"
     ARMADA_API_ENDPOINT="https://containers.cloud.ibm.com"
 
