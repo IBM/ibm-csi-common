@@ -58,6 +58,19 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 		logger.Fatal("Error loading configuration")
 		return nil, err
 	}
+
+	// Correct if the G2EndpointURL is of the form "http://".
+	if strings.Contains(conf.VPC.G2EndpointURL, "http") && !strings.Contains(conf.VPC.G2EndpointURL, "https") {
+		logger.Warn("Riaas endpoint URL is of the form 'http' instead 'https'. Correcting it for valid request.", zap.Reflect("Endpoint URL: ", conf.VPC.G2EndpointURL))
+		conf.VPC.G2EndpointURL = strings.Replace(conf.VPC.G2EndpointURL, "http", "https", 1)
+	}
+
+	// Correct if the G2TokenExchangeURL is of the form "http://"
+	if strings.Contains(conf.VPC.G2TokenExchangeURL, "http") && !strings.Contains(conf.VPC.G2TokenExchangeURL, "https") {
+		logger.Warn("Token exchange endpoint URL is of the form 'http' instead 'https'. Correcting it for valid request.", zap.Reflect("Endpoint URL: ", conf.VPC.G2TokenExchangeURL))
+		conf.VPC.G2TokenExchangeURL = strings.Replace(conf.VPC.G2TokenExchangeURL, "http", "https", 1)
+	}
+
 	// Get only VPC_API_VERSION, in "2019-07-02T00:00:00.000Z" case vpc need only 2019-07-02"
 	dateTime, err := time.Parse(time.RFC3339, conf.VPC.APIVersion)
 	if err == nil {
