@@ -11,8 +11,8 @@ require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/GoogleCloudPlatform/k8s-cloud-provider v0.0.0-20200415212048-7901bc822317 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.9.1 // indirect
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220330224707-dfd3498f3181
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220330225358-81c87f0004c0
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220407182141-09b247a21b53
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220408053522-342e31e90015
 	github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20170808103936-bb23615498cd // indirect
 	github.com/Microsoft/go-winio v0.4.15 // indirect
