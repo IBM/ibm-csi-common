@@ -66,6 +66,7 @@ github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220224044225-8430830ed652/go
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220225045232-09c7e391afd9/go.mod h1:4LGxge1zkxYmBjgRpfRblumUs/b1PC7Zy3cdknRqqoc=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220330224707-dfd3498f3181/go.mod h1:KafKE+tGQt6IP7Rx9vIlWRrg/PYNxk2e4IrforvgsW0=
 github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220407182141-09b247a21b53/go.mod h1:RT+Jy8icHC/YupO0GM3QAXo8A/qiRHoyKFHBB6IENZ8=
+github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220411092254-236761f9729d/go.mod h1:2YR1XfRGg0eJ2GYpzlEKULUX48unVjGpSNmty+AdBTA=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9/go.mod h1:W7x7R58nPNBFO2HwebpDSkbCOYMkdsxKW1+7bA7r+Uk=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222040614-983678165d4c h1:gGR9zlKXMfr62U7T2CPw43XKNMWDU1q1l7JAHky3VVE=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220222040614-983678165d4c/go.mod h1:9r2im7L6I01APX5cV0qIfOGdP9QfGTtuk48BnERKf/k=
@@ -83,6 +84,8 @@ github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220330225358-81c87f0004c0 h1
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220330225358-81c87f0004c0/go.mod h1:qJbTMElrOfZx1sIoDemXj8SGIkjkuWism0OeaVz8klg=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220408053522-342e31e90015 h1:R9/fFFgU3xav6vlZ9dI+BTeqX+SCUhNXN41e9JiDUJA=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220408053522-342e31e90015/go.mod h1:ZZ90Pp1QzRrs/G/r2KnDWnqouqLv88X2UtbbQEm7pU8=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220411092628-d862dead7883 h1:L+KDq9bHsmFXrrX3ggk9Tr2n54MnoS4ay6qWQLHSvF4=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220411092628-d862dead7883/go.mod h1:crtP0qprFozfPhMX2i75FXTevk5GlOtTHPNE7ZP/Xfo=
 github.com/IBM/secret-common-lib v0.0.0-20220222035641-74dd653e399a h1:RRI6zac0VGfjBUwK8mMFDLiqYT9AeWWXIZfLWrmXRzI=
 github.com/IBM/secret-common-lib v0.0.0-20220222035641-74dd653e399a/go.mod h1:0LfL3s+hInZB0CDos8YlNIamsA6uiNOPt0Xpm+oxXMI=
 github.com/IBM/secret-common-lib v0.0.0-20220222091149-122b3c46dd06/go.mod h1:mdUas+jgrbHHnVgpzxyTFuLrIWESZlAvLDJl1DycEyc=
