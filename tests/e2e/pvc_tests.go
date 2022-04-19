@@ -496,13 +496,14 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		pod := testsuites.PodDetails{
 			// sync before taking a snapshot so that any cached data is written to the EBS volume
-			Cmd: "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
+			Cmd:      "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
+			CmdExits: false,
 			Volumes: []testsuites.VolumeDetails{
 				{
 					PVCName:       "ics-vol-5iops-snap-",
-					VolumeType: "ibmc-vpc-block-5iops-tier",
-					FSType:     "ext4",
-					ClaimSize:  "20Gi",
+					VolumeType:    "ibmc-vpc-block-5iops-tier",
+					FSType:        "ext4",
+					ClaimSize:     "20Gi",
 					ReclaimPolicy: &reclaimPolicy,
 					VolumeMount: testsuites.VolumeMountDetails{
 						NameGenerate:      "test-volume-",
@@ -512,13 +513,13 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 			},
 		}
 		restoredPod := testsuites.PodDetails{
-			Cmd: "grep 'hello world' /mnt/test-1/data",
+			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
 			Volumes: []testsuites.VolumeDetails{
 				{
 					PVCName:       "ics-vol-5iops-snap-",
-					VolumeType: "ibmc-vpc-block-5iops-tier",
-					FSType:     "ext4",
-					ClaimSize:  "20Gi",
+					VolumeType:    "ibmc-vpc-block-5iops-tier",
+					FSType:        "ext4",
+					ClaimSize:     "20Gi",
 					ReclaimPolicy: &reclaimPolicy,
 					VolumeMount: testsuites.VolumeMountDetails{
 						NameGenerate:      "test-volume-",
@@ -527,9 +528,22 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 				},
 			},
 		}
+		/*test := testsuites.DynamicallyProvisioneDeployWithVolWRTest{
+			Pod: pod,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}*/
 		test := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
 			Pod:         pod,
 			RestoredPod: restoredPod,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
 		}
 		test.Run(cs, snapshotrcs, ns)
 	})

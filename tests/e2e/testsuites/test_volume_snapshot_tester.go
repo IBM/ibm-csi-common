@@ -34,6 +34,7 @@ import (
 type DynamicallyProvisionedVolumeSnapshotTest struct {
 	Pod         PodDetails
 	RestoredPod PodDetails
+	PodCheck    *PodExecCheck
 }
 
 func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interface, restclient restclientset.Interface, namespace *v1.Namespace) {
@@ -73,5 +74,6 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interfac
 	trpod.Create()
 	defer trpod.Cleanup()
 	By("checking that the pods command exits with no error")
-	trpod.WaitForSuccess()
+	trpod.WaitForRunningSlow()
+	trpod.Exec(t.PodCheck.Cmd, t.PodCheck.ExpectedString01)
 }
