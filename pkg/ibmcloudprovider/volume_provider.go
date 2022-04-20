@@ -91,7 +91,8 @@ func NewIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*IBMClou
 	// Prepare provider registry
 	registry, err := provider_util.InitProviders(vpcBlockConfig, logger)
 	if err != nil {
-		logger.Fatal("Error configuring providers", local.ZapError(err))
+		logger.Error("Error configuring providers", local.ZapError(err))
+		return nil, err
 	}
 
 	var providerName string
