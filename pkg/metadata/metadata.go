@@ -20,6 +20,8 @@ package metadata
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"go.uber.org/zap"
@@ -71,10 +73,18 @@ func NewNodeMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) 
 		return nil, errorMsg
 	}
 
+	var workerId string
+	// In case of satelite cluster use label NodeVPCIDLabel for workerID.
+	if isSatellite := os.Getenv(strings.ToUpper("IS_SATELLITE")); isSatellite == "True" {
+		workerId = nodeLabels[utils.NodeVPCIDLabel]
+	} else {
+		workerId = nodeLabels[utils.NodeWorkerIDLabel]
+	}
+
 	return &nodeMetadataManager{
 		zone:     nodeLabels[utils.NodeZoneLabel],
 		region:   nodeLabels[utils.NodeRegionLabel],
-		workerID: nodeLabels[utils.NodeWorkerIDLabel],
+		workerID: workerId,
 	}, nil
 }
 
