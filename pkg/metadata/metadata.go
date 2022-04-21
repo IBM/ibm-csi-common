@@ -73,18 +73,18 @@ func NewNodeMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) 
 		return nil, errorMsg
 	}
 
-	var workerId string
-	// In case of satelite cluster use label NodeVPCIDLabel for workerID.
+	var workerID string
+	// In case of satellte cluster use label NodeVPCIDLabel for workerID.
 	if isSatellite := os.Getenv(strings.ToUpper("IS_SATELLITE")); isSatellite == "True" {
-		workerId = nodeLabels[utils.NodeVPCIDLabel]
+		workerID = nodeLabels[utils.NodeVPCIDLabel]
 	} else {
-		workerId = nodeLabels[utils.NodeWorkerIDLabel]
+		workerID = nodeLabels[utils.NodeWorkerIDLabel]
 	}
 
 	return &nodeMetadataManager{
 		zone:     nodeLabels[utils.NodeZoneLabel],
 		region:   nodeLabels[utils.NodeRegionLabel],
-		workerID: workerId,
+		workerID: workerID,
 	}, nil
 }
 
