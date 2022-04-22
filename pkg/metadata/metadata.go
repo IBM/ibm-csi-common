@@ -40,13 +40,13 @@ type NodeMetadata interface {
 	GetWorkerID() string
 }
 
-type nodeMetadataManager struct {
+type NodeMetadataManager struct {
 	zone     string
 	region   string
 	workerID string
 }
 
-var _ NodeMetadata = &nodeMetadataManager{}
+var _ NodeMetadata = &NodeMetadataManager{}
 
 // NewNodeMetadata ...
 func NewNodeMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) {
@@ -71,21 +71,21 @@ func NewNodeMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) 
 		return nil, errorMsg
 	}
 
-	return &nodeMetadataManager{
+	return &NodeMetadataManager{
 		zone:     nodeLabels[utils.NodeZoneLabel],
 		region:   nodeLabels[utils.NodeRegionLabel],
 		workerID: nodeLabels[utils.NodeWorkerIDLabel],
 	}, nil
 }
 
-func (manager *nodeMetadataManager) GetZone() string {
+func (manager *NodeMetadataManager) GetZone() string {
 	return manager.zone
 }
 
-func (manager *nodeMetadataManager) GetRegion() string {
+func (manager *NodeMetadataManager) GetRegion() string {
 	return manager.region
 }
 
-func (manager *nodeMetadataManager) GetWorkerID() string {
+func (manager *NodeMetadataManager) GetWorkerID() string {
 	return manager.workerID
 }
