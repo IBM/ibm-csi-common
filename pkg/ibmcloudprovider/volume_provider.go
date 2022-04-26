@@ -157,9 +157,3 @@ func (icp *IBMCloudStorageProvider) GetConfig() *config.Config {
 func (icp *IBMCloudStorageProvider) GetClusterInfo() *utils.ClusterInfo {
 	return icp.ClusterInfo
 }
-
-// UpdateAPIKey ...
-func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
-	logger.Info("Unimplemented")
-	return nil
-}
