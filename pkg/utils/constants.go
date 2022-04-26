@@ -61,8 +61,8 @@ const (
 	// NodeWorkerIDLabel  worker ID label attached to node
 	NodeWorkerIDLabel = "ibm-cloud.kubernetes.io/worker-id"
 
-	// NodeVPCIDLabel VPC ID label attached to satellite host
-	NodeVPCIDLabel = "ibm-cloud.kubernetes.io/vpc-instance-id"
+	// NodeInstanceIDLabel VPC ID label attached to satellite host
+	NodeInstanceIDLabel = "ibm-cloud.kubernetes.io/vpc-instance-id"
 
 	// VolumeIDLabel ...
 	VolumeIDLabel = "volumeId"
