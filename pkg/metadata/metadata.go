@@ -74,8 +74,8 @@ func NewNodeMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) 
 	}
 
 	var workerID string
-	// In case of satellte cluster use label NodeInstanceIDLabel for workerID.
-	if os.Getenv(strings.ToUpper("IKS_ENABLED")) == "False" {
+	// In case of unmanaged cluster use label NodeInstanceIDLabel for workerID.
+	if os.Getenv(strings.ToUpper("IKS_ENABLED")) != "True" {
 		workerID = nodeLabels[utils.NodeInstanceIDLabel]
 	} else {
 		workerID = nodeLabels[utils.NodeWorkerIDLabel]
