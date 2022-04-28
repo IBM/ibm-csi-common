@@ -89,3 +89,12 @@ func (manager *nodeMetadataManager) GetRegion() string {
 func (manager *nodeMetadataManager) GetWorkerID() string {
 	return manager.workerID
 }
+
+// InitMetadata ..
+func InitMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) {
+        return &nodeMetadataManager{
+                zone:     "my-zone",
+                region:   "my-region",
+                workerID: "my-worerid",
+        }, nil
+}
