@@ -18,13 +18,14 @@
 package metadata
 
 import (
+	"go.uber.org/zap"
 	"testing"
 
 	cloudprovider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
 	"github.com/stretchr/testify/assert"
 )
 
-func InitMetadata() {
+func InitMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) {
 	return &nodeMetadataManager{
 		zone:     "my-zone",
 		region:   "my-region",
