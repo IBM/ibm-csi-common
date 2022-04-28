@@ -22,8 +22,8 @@ import "go.uber.org/zap"
 // InitMetadata ...
 func InitMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) {
 	return &nodeMetadataManager{
-		zone:     "my-zone",
-		region:   "my-region",
-		workerID: "my-worerid",
+		zone:     "testzone",
+		region:   "testregion",
+		workerID: "testworkerid",
 	}, nil
 }
