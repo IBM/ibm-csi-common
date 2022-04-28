@@ -1,5 +1,3 @@
- 
-
 /**
  * Copyright 2021 IBM Corp.
  *
@@ -19,11 +17,13 @@
 // Package metadata ...
 package metadata
 
+import "go.uber.org/zap"
+
 // InitMetadata ...
 func InitMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) {
-        return &nodeMetadataManager{
-                zone:     "my-zone",
-                region:   "my-region",
-                workerID: "my-worerid",
-        }, nil
+	return &nodeMetadataManager{
+		zone:     "my-zone",
+		region:   "my-region",
+		workerID: "my-worerid",
+	}, nil
 }
