@@ -24,6 +24,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func InitMetadata() {
+	return &nodeMetadataManager{
+		zone:     "my-zone",
+		region:   "my-region",
+		workerID: "my-worerid",
+	}, nil
+}
+
 func TestNewNodeMetadata(t *testing.T) {
 	// Creating test logger
 	logger, teardown := cloudprovider.GetTestLogger(t)
