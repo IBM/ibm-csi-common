@@ -506,6 +506,22 @@ func (t *TestPersistentVolumeClaim) WaitForBound() v1.PersistentVolumeClaim {
 	return *t.persistentVolumeClaim
 }
 
+func (t *TestPersistentVolumeClaim) WaitForPending() v1.PersistentVolumeClaim {
+        var err error
+
+        By(fmt.Sprintf("waiting for PVC to be in phase %q", v1.ClaimPending))
+	time.Sleep(5 * time.Minute)
+        err = k8sDevPV.WaitForPersistentVolumeClaimPhase(v1.ClaimPending, t.client, t.namespace.Name, t.persistentVolumeClaim.Name, framework.Poll, framework.ClaimProvisionTimeout)
+        framework.ExpectNoError(err)
+
+        By("checking the PVC")
+        // Get new copy of the claim
+        t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Get(context.Background(), t.persistentVolumeClaim.Name, metav1.GetOptions{})
+        framework.ExpectNoError(err)
+
+        return *t.persistentVolumeClaim
+}
+
 func generatePVC(name, namespace,
 	storageClassName, claimSize string,
 	accessMode v1.PersistentVolumeAccessMode,
@@ -545,8 +561,8 @@ func generatePVC(name, namespace,
 
 func (t *TestPersistentVolumeClaim) Cleanup() {
 	By(fmt.Sprintf("deleting PVC [%s]", t.persistentVolumeClaim.Name))
-	framework.Logf("deleting PVC [%s/%s] using PV [%s]", t.namespace.Name, t.persistentVolumeClaim.Name, t.persistentVolume.Name)
 	err := k8sDevPV.DeletePersistentVolumeClaim(t.client, t.persistentVolumeClaim.Name, t.namespace.Name)
+	By("Triggered DeletePersistentVolumeClaim call")
 	framework.ExpectNoError(err)
 	// Wait for the PV to get deleted if reclaim policy is Delete. (If it's
 	// Retain, there's no use waiting because the PV won't be auto-deleted and
@@ -554,7 +570,8 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 	// attempts may fail, as the volume is still attached to a node because
 	// kubelet is slowly cleaning up the previous pod, however it should succeed
 	// in a couple of minutes.
-	if t.persistentVolume.Spec.PersistentVolumeReclaimPolicy == v1.PersistentVolumeReclaimDelete {
+	if  t.persistentVolume != nil && t.persistentVolume.Spec.PersistentVolumeReclaimPolicy == v1.PersistentVolumeReclaimDelete {
+		framework.Logf("deleting PVC [%s/%s] using PV [%s]", t.namespace.Name, t.persistentVolumeClaim.Name, t.persistentVolume.Name)
 		By(fmt.Sprintf("waiting for claim's PV [%s] to be deleted", t.persistentVolume.Name))
 		err := k8sDevPV.WaitForPersistentVolumeDeleted(t.client, t.persistentVolume.Name, 5*time.Second, 10*time.Minute)
 		framework.ExpectNoError(err)
@@ -1032,7 +1049,7 @@ func (t *TestVolumeSnapshotClass) CreateSnapshot(pvc *v1.PersistentVolumeClaim) 
 	return snapshot
 }
 
-func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSnapshot) {
+func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSnapshot, snapFail bool) {
 	By("waiting for VolumeSnapshot to be ready to use - " + snapshot.Name)
 	err := wait.Poll(15*time.Second, 5*time.Minute, func() (bool, error) {
 		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(context.TODO(), snapshot.Name, metav1.GetOptions{})
@@ -1045,7 +1062,11 @@ func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSn
 		}
 		return *vs.Status.ReadyToUse, nil
 	})
-	framework.ExpectNoError(err)
+	if snapFail == true {
+		framework.ExpectError(err)
+	} else {
+		framework.ExpectNoError(err)
+	}
 }
 
 func (t *TestVolumeSnapshotClass) DeleteSnapshot(vs *volumesnapshotv1.VolumeSnapshot) {

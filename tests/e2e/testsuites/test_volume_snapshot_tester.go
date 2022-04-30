@@ -18,7 +18,7 @@ package testsuites
 
 import (
 	v1 "k8s.io/api/core/v1"
-
+//	"time"
 	. "github.com/onsi/ginkgo"
 	clientset "k8s.io/client-go/kubernetes"
 	restclientset "k8s.io/client-go/rest"
@@ -35,12 +35,14 @@ type DynamicallyProvisionedVolumeSnapshotTest struct {
 	Pod         PodDetails
 	RestoredPod PodDetails
 	PodCheck    *PodExecCheck
+	PVCFail bool
 }
 
 func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interface, restclient restclientset.Interface, namespace *v1.Namespace) {
+	By("Executing Positive test scenario for volume snapshot")
 	tpod := NewTestPod(client, namespace, t.Pod.Cmd)
 	volume := t.Pod.Volumes[0]
-	tpvc, pvcCleanup := volume.SetupDynamicPersistentVolumeClaim(client, namespace)
+	tpvc, pvcCleanup := volume.SetupDynamicPersistentVolumeClaim(client, namespace, false)
 	for i := range pvcCleanup {
 		defer pvcCleanup[i]()
 	}
@@ -58,13 +60,13 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interfac
 
 	snapshot := tvsc.CreateSnapshot(tpvc.persistentVolumeClaim)
 	defer tvsc.DeleteSnapshot(snapshot)
-	tvsc.ReadyToUse(snapshot)
+	tvsc.ReadyToUse(snapshot, false)
 	By("Snapshot Creation Completed")
 	t.RestoredPod.Volumes[0].DataSource = &DataSource{Name: snapshot.Name}
 	trpod := NewTestPod(client, namespace, t.RestoredPod.Cmd)
 	rvolume := t.RestoredPod.Volumes[0]
 	By("Creating PersistentVolumeClaim from a Volume Snapshot")
-	trpvc, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace)
+	trpvc, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace, false)
 	for i := range rpvcCleanup {
 		defer rpvcCleanup[i]()
 	}
@@ -76,4 +78,55 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) Run(client clientset.Interfac
 	By("checking that the pods command exits with no error")
 	trpod.WaitForRunningSlow()
 	trpod.Exec(t.PodCheck.Cmd, t.PodCheck.ExpectedString01)
+}
+
+func (t *DynamicallyProvisionedVolumeSnapshotTest) VolumeSizeLess(client clientset.Interface, restclient restclientset.Interface, namespace *v1.Namespace) {
+	 By("Executing Negative test scenario for volume snapshot")
+	tpod := NewTestPod(client, namespace, t.Pod.Cmd)
+        volume := t.Pod.Volumes[0]
+        tpvc, pvcCleanup := volume.SetupDynamicPersistentVolumeClaim(client, namespace, false)
+        for i := range pvcCleanup {
+                defer pvcCleanup[i]()
+        }
+        tpod.SetupVolume(tpvc.persistentVolumeClaim, volume.VolumeMount.NameGenerate+"1", volume.VolumeMount.MountPathGenerate+"1", volume.VolumeMount.ReadOnly)
+
+        By("deploying the pod")
+        tpod.Create()
+        defer tpod.Cleanup()
+        By("checking that the pods command exits with no error")
+        tpod.WaitForSuccess()
+
+        By("taking snapshots")
+        tvsc, cleanup := CreateVolumeSnapshotClass(restclient, namespace)
+        defer cleanup()
+
+        snapshot := tvsc.CreateSnapshot(tpvc.persistentVolumeClaim)
+        defer tvsc.DeleteSnapshot(snapshot)
+	tvsc.ReadyToUse(snapshot, false)
+        By("Snapshot Creation Completed")
+        t.RestoredPod.Volumes[0].DataSource = &DataSource{Name: snapshot.Name}
+        rvolume := t.RestoredPod.Volumes[0]
+        By("Creating PersistentVolumeClaim from a Volume Snapshot")
+        _, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace, true)
+        for i := range rpvcCleanup {
+                defer rpvcCleanup[i]()
+        }
+}
+
+
+func (t *DynamicallyProvisionedVolumeSnapshotTest) SnapShotForUnattached(client clientset.Interface, restclient restclientset.Interface, namespace *v1.Namespace) {
+        By("Executing Snapshot for Unattached volume")
+	volume := t.Pod.Volumes[0]
+        tpvc, pvcCleanup := volume.SetupDynamicPersistentVolumeClaim(client, namespace, false)
+        for i := range pvcCleanup {
+                defer pvcCleanup[i]()
+        }
+        By("taking snapshots")
+        tvsc, cleanup := CreateVolumeSnapshotClass(restclient, namespace)
+        defer cleanup()
+
+        snapshot := tvsc.CreateSnapshot(tpvc.persistentVolumeClaim)
+        defer tvsc.DeleteSnapshot(snapshot)
+        tvsc.ReadyToUse(snapshot, true)
+        By("Snapshot Deletion Completed")
 }

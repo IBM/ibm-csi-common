@@ -512,7 +512,7 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 				},
 			},
 		}
-		restoredPod := testsuites.PodDetails{
+		restoredPod1 := testsuites.PodDetails{
 			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
 			Volumes: []testsuites.VolumeDetails{
 				{
@@ -528,24 +528,72 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 				},
 			},
 		}
-		/*test := testsuites.DynamicallyProvisioneDeployWithVolWRTest{
-			Pod: pod,
-			PodCheck: &testsuites.PodExecCheck{
-				Cmd:              []string{"cat", "/mnt/test-1/data"},
-				ExpectedString01: "hello world\n",
-				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
-			},
-		}*/
-		test := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+		test1 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
 			Pod:         pod,
-			RestoredPod: restoredPod,
+			RestoredPod: restoredPod1,
 			PodCheck: &testsuites.PodExecCheck{
 				Cmd:              []string{"cat", "/mnt/test-1/data"},
 				ExpectedString01: "hello world\n",
 				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
 			},
 		}
-		test.Run(cs, snapshotrcs, ns)
+		/*test1.Run(cs, snapshotrcs, ns)
+
+                restoredPod2 := testsuites.PodDetails{
+                        Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+                        Volumes: []testsuites.VolumeDetails{
+                                {
+                                        PVCName:       "ics-vol-5iops-snap-",
+                                        VolumeType:    "ibmc-vpc-block-5iops-tier",
+                                        FSType:        "ext4",
+                                        ClaimSize:     "10Gi",
+                                        ReclaimPolicy: &reclaimPolicy,
+                                        VolumeMount: testsuites.VolumeMountDetails{
+                                                NameGenerate:      "test-volume-",
+                                                MountPathGenerate: "/mnt/test-",
+                                        },
+                                },
+                        },
+                }
+                test2 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+                        Pod:         pod,
+                        RestoredPod: restoredPod2,
+                        PodCheck: &testsuites.PodExecCheck{
+                                Cmd:              []string{"cat", "/mnt/test-1/data"},
+                                ExpectedString01: "hello world\n",
+                                ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+                        },
+                }
+                test2.VolumeSizeLess(cs, snapshotrcs, ns)
+                restoredPod3 := testsuites.PodDetails{
+                        Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+                        Volumes: []testsuites.VolumeDetails{
+                                {
+                                        PVCName:       "ics-vol-5iops-snap-",
+                                        VolumeType:    "ibmc-vpc-block-5iops-tier",
+                                        FSType:        "ext4",
+                                        ClaimSize:     "30Gi",
+                                        ReclaimPolicy: &reclaimPolicy,
+                                        VolumeMount: testsuites.VolumeMountDetails{
+                                                NameGenerate:      "test-volume-",
+                                                MountPathGenerate: "/mnt/test-",
+                                        },
+                                },
+                        },
+                }
+                test3 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+                        Pod:         pod,
+                        RestoredPod: restoredPod3,
+                        PodCheck: &testsuites.PodExecCheck{
+                                Cmd:              []string{"cat", "/mnt/test-1/data"},
+                                ExpectedString01: "hello world\n",
+                                ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+                        },
+                }
+                test3.Run(cs, snapshotrcs, ns)
+
+		// Snapshot for unattached volume*/
+		test1.SnapShotForUnattached(cs, snapshotrcs, ns)
 	})
 })
 

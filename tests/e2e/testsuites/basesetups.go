@@ -110,7 +110,7 @@ func (pod *PodDetails) SetupWithDynamicVolumes(client clientset.Interface, names
 	tpod := NewTestPod(client, namespace, pod.Cmd)
 	By("setting up the PVC for POD")
 	for n, v := range pod.Volumes {
-		tpvc, funcs := v.SetupDynamicPersistentVolumeClaim(client, namespace)
+		tpvc, funcs := v.SetupDynamicPersistentVolumeClaim(client, namespace, false)
 		cleanupFuncs = append(cleanupFuncs, funcs...)
 
 		if v.VolumeMode == Block {
@@ -177,7 +177,7 @@ func (pod *PodDetails) SetupDeployment(client clientset.Interface, namespace *v1
 	return tDeployment, cleanupFuncs
 }
 
-func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.Interface, namespace *v1.Namespace) (*TestPersistentVolumeClaim, []func()) {
+func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.Interface, namespace *v1.Namespace, pvcErrExpected bool) (*TestPersistentVolumeClaim, []func()) {
 	cleanupFuncs := make([]func(), 0)
 	By("setting up the PVC and PV")
 	//By(fmt.Sprintf("PVC: %q    NS: %q", volume.PVCName, namespace.Name))
@@ -195,7 +195,7 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 			APIGroup: &SnapshotAPIGroup,
 		}
 		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, volume.PVCName, namespace, volume.ClaimSize, volume.VolumeMode, &storageClass, dataSource)
-		By(fmt.Sprintf("%q",tpvc))
+		By(fmt.Sprintf("%q", tpvc))
 	} else {
 		tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
 	}
@@ -203,8 +203,13 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 	cleanupFuncs = append(cleanupFuncs, tpvc.Cleanup)
 	// PV will not be ready until PVC is used in a pod when volumeBindingMode: WaitForFirstConsumer
 	if volume.VolumeBindingMode == nil || *volume.VolumeBindingMode == storagev1.VolumeBindingImmediate {
-		tpvc.WaitForBound()
-		tpvc.ValidateProvisionedPersistentVolume()
+		if pvcErrExpected == true {
+			By("PVC Creation should go to Pending state as volume size is less than source volume")
+			tpvc.WaitForPending()
+		} else {
+			tpvc.WaitForBound()
+			tpvc.ValidateProvisionedPersistentVolume()
+		}
 	}
 	volume.pvc = tpvc
 
