@@ -84,14 +84,10 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) VolumeSizeLess(client clients
 	tpod := NewTestPod(client, namespace, t.Pod.Cmd)
 	volume := t.Pod.Volumes[0]
 	tpvc, pvcCleanup := volume.SetupDynamicPersistentVolumeClaim(client, namespace, false)
-	for i := range pvcCleanup {
-		defer pvcCleanup[i]()
-	}
 	tpod.SetupVolume(tpvc.persistentVolumeClaim, volume.VolumeMount.NameGenerate+"1", volume.VolumeMount.MountPathGenerate+"1", volume.VolumeMount.ReadOnly)
 
 	By("deploying the pod")
 	tpod.Create()
-	defer tpod.Cleanup()
 	By("checking that the pods command exits with no error")
 	tpod.WaitForSuccess()
 
@@ -100,13 +96,19 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) VolumeSizeLess(client clients
 	defer cleanup()
 
 	snapshot := tvsc.CreateSnapshot(tpvc.persistentVolumeClaim)
-	defer tvsc.DeleteSnapshot(snapshot)
+	//defer tvsc.DeleteSnapshot(snapshot)
 	tvsc.ReadyToUse(snapshot, false)
 	By("Snapshot Creation Completed")
 	t.RestoredPod.Volumes[0].DataSource = &DataSource{Name: snapshot.Name}
 	rvolume := t.RestoredPod.Volumes[0]
 	By("Creating PersistentVolumeClaim from a Volume Snapshot")
 	_, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace, true)
+	// Delete snapshot for which volume is deleted | detached
+        defer tvsc.DeleteSnapshot(snapshot)
+	for i := range pvcCleanup {
+                defer pvcCleanup[i]()
+        }
+	defer tpod.Cleanup()
 	for i := range rpvcCleanup {
 		defer rpvcCleanup[i]()
 	}

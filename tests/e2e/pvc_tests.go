@@ -590,10 +590,10 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
                                 ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
                         },
                 }
-                test3.Run(cs, snapshotrcs, ns)
+          test3.Run(cs, snapshotrcs, ns)
 
 		// Snapshot for unattached volume
-		test1.SnapShotForUnattached(cs, snapshotrcs, ns)
+	  test1.SnapShotForUnattached(cs, snapshotrcs, ns)
 	})
 })
 
