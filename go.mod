@@ -3,26 +3,26 @@ module github.com/IBM/ibm-csi-common
 go 1.16
 
 require (
-	github.com/BurntSushi/toml v0.3.1
-	github.com/IBM/ibmcloud-volume-interface v1.0.0-beta10
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta15
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-beta2
+	github.com/IBM/ibmcloud-volume-vpc v1.0.1-beta1
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.14.2
+	github.com/onsi/gomega v1.10.5
+	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.15.0
-	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
-	google.golang.org/grpc v1.27.1
-	google.golang.org/protobuf v1.26.0
+	go.uber.org/zap v1.20.0
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63
+	google.golang.org/grpc v1.36.1
+	google.golang.org/protobuf v1.27.1
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
-	k8s.io/client-go v11.0.1-0.20190516230509-ae8359b20417+incompatible
+	k8s.io/client-go v0.21.0
 	k8s.io/kubernetes v1.21.0
 	k8s.io/mount-utils v0.21.0
 	k8s.io/utils v0.0.0-20210820185131-d34e5cb4466e
