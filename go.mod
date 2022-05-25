@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.16
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-beta2
-	github.com/IBM/ibmcloud-volume-vpc v1.0.1-beta1
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-beta2.0.20220525031147-c74948e37503
+	github.com/IBM/ibmcloud-volume-vpc v1.0.1-beta1.0.20220525032229-374e996a6178
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible
