@@ -68,16 +68,19 @@ func NewNodeMetadata(nodeName string, logger *zap.Logger) (NodeMetadata, error) 
 	}
 
 	nodeLabels := node.ObjectMeta.Labels
-	if len(nodeLabels[utils.NodeWorkerIDLabel]) == 0 || len(nodeLabels[utils.NodeRegionLabel]) == 0 || len(nodeLabels[utils.NodeZoneLabel]) == 0 {
-		errorMsg := fmt.Errorf("One or few required node label(s) is/are missing [%s, %s, %s]. Node Labels Found = [#%v]", utils.NodeWorkerIDLabel, utils.NodeRegionLabel, utils.NodeZoneLabel, nodeLabels) //nolint:golint
-		return nil, errorMsg
-	}
-
 	var workerID string
 	// In case of unmanaged cluster use label NodeInstanceIDLabel for workerID.
 	if os.Getenv(strings.ToUpper("IKS_ENABLED")) != "True" {
+		if len(nodeLabels[utils.NodeInstanceIDLabel]) == 0 || len(nodeLabels[utils.NodeRegionLabel]) == 0 || len(nodeLabels[utils.NodeZoneLabel]) == 0 {
+			errorMsg := fmt.Errorf("one or few required node label(s) is/are missing [%s, %s, %s]. Node Labels Found = [#%v]", utils.NodeInstanceIDLabel, utils.NodeRegionLabel, utils.NodeZoneLabel, nodeLabels)
+			return nil, errorMsg
+		}
 		workerID = nodeLabels[utils.NodeInstanceIDLabel]
 	} else {
+		if len(nodeLabels[utils.NodeWorkerIDLabel]) == 0 || len(nodeLabels[utils.NodeRegionLabel]) == 0 || len(nodeLabels[utils.NodeZoneLabel]) == 0 {
+			errorMsg := fmt.Errorf("one or few required node label(s) is/are missing [%s, %s, %s]. Node Labels Found = [#%v]", utils.NodeWorkerIDLabel, utils.NodeRegionLabel, utils.NodeZoneLabel, nodeLabels)
+			return nil, errorMsg
+		}
 		workerID = nodeLabels[utils.NodeWorkerIDLabel]
 	}
 
