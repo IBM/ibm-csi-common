@@ -45,7 +45,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 	}
 
 	configPath := filepath.Join(pwd, "..", "..", "test-fixtures", "slconfig.toml")
-	ibmCloudProvider, err := NewIBMCloudStorageProvider(configPath, logger)
+	ibmCloudProvider, err := NewIBMCloudStorageProvider(configPath, "test", logger)
 	assert.NotNil(t, err)
 	assert.Nil(t, ibmCloudProvider)
 }
