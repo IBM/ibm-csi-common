@@ -79,7 +79,7 @@ func NewIBMCloudStorageProvider(configPath string, clusterVolumeLabel string, lo
 		}
 		logger.Info("Fetched clusterInfo..")
 	} else {
-		conf.ClusterVolumeLabel = clusterVolumeLabel
+		conf.VPC.ClusterVolumeLabel = clusterVolumeLabel
 	}
 
 	// Update the CSRF  Token
