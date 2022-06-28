@@ -33,8 +33,8 @@ CONF_DIR="$(dirname "$CUR_DIR")"/conf
 
 SLEEP_TIME=60 # Seconds
 CLUSTER_STATE_TIMEOUT=39  # 30Mins
-WORKER_STATE_TIMEOUT=90   # 90Mins
-WORKER_PROVISION_TIMEOUT=30
+WORKER_STATE_TIMEOUT=180   # 180Mins
+WORKER_PROVISION_TIMEOUT=90
 
 # kubernetes / openshift
 K8S_PLATFORM="kubernetes"
@@ -437,7 +437,7 @@ function check_worker_state {
     workers_in_desiredstat=0
     cluster_name=$1
 
-    TIMEOUT=${WORKER_STATE_TIMEOUT:-90}
+    TIMEOUT=${WORKER_STATE_TIMEOUT:-180}
 
     echo "Info: [$cluster_name] Checking worker node state..."
 
