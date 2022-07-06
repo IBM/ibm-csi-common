@@ -267,7 +267,7 @@ func (icp *IBMCloudStorageProvider) UpdateAPIKey(logger *zap.Logger) error {
 	} else {
 		// If the retrieved API key is the same as previous one, return error
 		if vpcAPIKey == conf.VPC.G2APIKey {
-			logger.Error("API key is not reset")
+			logger.Error("API key is invalid")
 			return errors.New(messages.ErrAPIKeyNotFound)
 		}
 		newAPIkey = conf.VPC.G2APIKey
