@@ -134,7 +134,8 @@ export GO111MODULE=on
 go get -u github.com/onsi/ginkgo/ginkgo
 
 set +e
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-csi-ginkgo-log.txt
+#ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-csi-ginkgo-log.txt
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e | tee -a block-vpc-csi-ginkgo-log.txt
 rc=$?
 set -e
 if [[ $rc -eq 0 ]]; then

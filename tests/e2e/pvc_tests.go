@@ -494,6 +494,11 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 
 	It("should create a pod, write and read to it, take a volume snapshot, and create another pod from the snapshot", func() {
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
 		pod := testsuites.PodDetails{
 			// sync before taking a snapshot so that any cached data is written to the EBS volume
 			Cmd:      "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
@@ -538,62 +543,74 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 			},
 		}
 		test1.Run(cs, snapshotrcs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+			panic(err)
+		}
 
-                restoredPod2 := testsuites.PodDetails{
-                        Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
-                        Volumes: []testsuites.VolumeDetails{
-                                {
-                                        PVCName:       "ics-vol-5iops-snap-",
-                                        VolumeType:    "ibmc-vpc-block-5iops-tier",
-                                        FSType:        "ext4",
-                                        ClaimSize:     "10Gi",
-                                        ReclaimPolicy: &reclaimPolicy,
-                                        VolumeMount: testsuites.VolumeMountDetails{
-                                                NameGenerate:      "test-volume-",
-                                                MountPathGenerate: "/mnt/test-",
-                                        },
-                                },
-                        },
-                }
-                test2 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
-                        Pod:         pod,
-                        RestoredPod: restoredPod2,
-                        PodCheck: &testsuites.PodExecCheck{
-                                Cmd:              []string{"cat", "/mnt/test-1/data"},
-                                ExpectedString01: "hello world\n",
-                                ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
-                        },
-                }
-                test2.VolumeSizeLess(cs, snapshotrcs, ns)
-                restoredPod3 := testsuites.PodDetails{
-                        Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
-                        Volumes: []testsuites.VolumeDetails{
-                                {
-                                        PVCName:       "ics-vol-5iops-snap-",
-                                        VolumeType:    "ibmc-vpc-block-5iops-tier",
-                                        FSType:        "ext4",
-                                        ClaimSize:     "30Gi",
-                                        ReclaimPolicy: &reclaimPolicy,
-                                        VolumeMount: testsuites.VolumeMountDetails{
-                                                NameGenerate:      "test-volume-",
-                                                MountPathGenerate: "/mnt/test-",
-                                        },
-                                },
-                        },
-                }
-                test3 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
-                        Pod:         pod,
-                        RestoredPod: restoredPod3,
-                        PodCheck: &testsuites.PodExecCheck{
-                                Cmd:              []string{"cat", "/mnt/test-1/data"},
-                                ExpectedString01: "hello world\n",
-                                ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
-                        },
-                }
-          test3.Run(cs, snapshotrcs, ns)
+		restoredPod2 := testsuites.PodDetails{
+			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-5iops-snap-",
+					VolumeType:    "ibmc-vpc-block-5iops-tier",
+					FSType:        "ext4",
+					ClaimSize:     "10Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test2 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+			Pod:         pod,
+			RestoredPod: restoredPod2,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+		test2.VolumeSizeLess(cs, snapshotrcs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | CLAIM SIZE LESS | DELETE SNAPSHOT FOR WHICH SOURCE VOLUME DELETED: PASS\n"); err != nil {
+			panic(err)
+		}
+		restoredPod3 := testsuites.PodDetails{
+			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-5iops-snap-",
+					VolumeType:    "ibmc-vpc-block-5iops-tier",
+					FSType:        "ext4",
+					ClaimSize:     "30Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test3 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+			Pod:         pod,
+			RestoredPod: restoredPod3,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+		test3.Run(cs, snapshotrcs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | CLAIM SIZE MORE | DELETE SNAPSHOT: PASS\n"); err != nil {
+			panic(err)
+		}
 
 		// Snapshot for unattached volume
-	  test1.SnapShotForUnattached(cs, snapshotrcs, ns)
+		test1.SnapShotForUnattached(cs, snapshotrcs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION FOR UNATTACHED VOLUME MUST FAIL: PASS\n"); err != nil {
+			panic(err)
+		}
 	})
 })
 
