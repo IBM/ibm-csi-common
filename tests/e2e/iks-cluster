@@ -967,13 +967,11 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
     e2e_cluster_name="$cluster_name"
     export E2ETEST_CLUSTER_NAME="$cluster_name"
 
-    if [[ -z "$ADDON_VERSION" ]]; then
 	echo "Info: Installing addon $ADDON_VERSION"
         ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
         sleep 60
-        ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $ADDON_VERSION
+        ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version 5.0.0-beta
         sleep 30
-    fi
 else
     if [[ -z "$e2e_cluster_name" ]]; then
       echo -e "Error: Cluster name (e2e_cluster_name) not set!!!" >> $E2E_TEST_SETUP; exit 1
