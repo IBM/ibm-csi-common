@@ -542,6 +542,7 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
 			},
 		}
+		By("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | SAME CLAIM SIZE | DELETE SNAPSHOT")
 		test1.Run(cs, snapshotrcs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
@@ -572,6 +573,7 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
 			},
 		}
+		By("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | CLAIM SIZE LESS | DELETE SNAPSHOT FOR WHICH SOURCE VOLUME DELETED")
 		test2.VolumeSizeLess(cs, snapshotrcs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | CLAIM SIZE LESS | DELETE SNAPSHOT FOR WHICH SOURCE VOLUME DELETED: PASS\n"); err != nil {
 			panic(err)
@@ -601,12 +603,14 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
 			},
 		}
+		By("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | CLAIM SIZE MORE | DELETE SNAPSHOT: PASS")
 		test3.Run(cs, snapshotrcs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | CLAIM SIZE MORE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 
 		// Snapshot for unattached volume
+		By("VPC-BLK-CSI-TEST: SNAPSHOT CREATION FOR UNATTACHED VOLUME MUST FAIL")
 		test1.SnapShotForUnattached(cs, snapshotrcs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION FOR UNATTACHED VOLUME MUST FAIL: PASS\n"); err != nil {
 			panic(err)
