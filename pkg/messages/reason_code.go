@@ -21,6 +21,9 @@ const (
 	// MethodUnimplemented ...
 	MethodUnimplemented = "MethodUnimplemented"
 
+	// MethodUnsupported ...
+	MethodUnsupported = "MethodUnsupported"
+
 	// MissingVolumeName ...
 	MissingVolumeName = "MissingVolumeName"
 
