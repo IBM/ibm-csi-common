@@ -29,6 +29,12 @@ var messagesEn = map[string]Message{
 		Type:        codes.Unimplemented,
 		Action:      "Please do not use this method as its not implemented yet",
 	},
+	MethodUnsupported: {
+		Code:        MethodUnsupported,
+		Description: "'%s' CSI interface method is not supported",
+		Type:        codes.Unimplemented,
+		Action:      "Please do not use this method as its unsupported",
+	},
 	MissingVolumeName: {
 		Code:        MissingVolumeName,
 		Description: "Volume name not provided",
