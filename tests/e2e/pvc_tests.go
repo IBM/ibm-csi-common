@@ -462,3 +462,72 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 		}
 	})
 })
+
+var _ = Describe("[pvg-e2e] [snapshot] Dynamic Provisioning and Snapshot", func() {
+	f := framework.NewDefaultFramework("ics-e2e-snap")
+
+	var (
+		cs          clientset.Interface
+		snapshotrcs restclientset.Interface
+		ns          *v1.Namespace
+		secretKey   string
+	)
+
+
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
+		var err error
+		snapshotrcs, err = restClient(testsuites.SnapshotAPIGroup, testsuites.APIVersionv1)
+		if err != nil {
+			Fail(fmt.Sprintf("could not get rest clientset: %v", err))
+		}
+	})
+
+	It("should create a pod, write and read to it, take a volume snapshot, and create another pod from the snapshot", func() {
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		pod := testsuites.PodDetails{
+			// sync before taking a snapshot so that any cached data is written to the EBS volume
+			Cmd:      "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
+			CmdExits: false,
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-5iops-snap-",
+					VolumeType:    "ibmc-vpc-block-5iops-tier",
+					FSType:        "ext4",
+					ClaimSize:     "20Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		restoredPod1 := testsuites.PodDetails{
+			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-5iops-snap-",
+					VolumeType:    "ibmc-vpc-block-5iops-tier",
+					FSType:        "ext4",
+					ClaimSize:     "20Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test1 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+			Pod:         pod,
+			RestoredPod: restoredPod1,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+		By("VPC-BLK-CSI-TEST: SNAPSHOT CREATION | SAME CLAIM SIZE | DELETE SNAPSHOT")
+		test1.Run(cs, snapshotrcs, ns)
