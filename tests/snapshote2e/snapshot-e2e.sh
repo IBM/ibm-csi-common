@@ -15,6 +15,7 @@
 # limitations under the License.
 # *****************************************************************************/
 
+# error() - prints the error message passed to it, and exists from the script
 error() {
      if [[ $? != 0 ]]; then
          echo "$1"
@@ -22,16 +23,28 @@ error() {
      fi
 }
 
+# enableAddon() - disables the existing vpc-block-csi-driver addon and enables the 5.0 addon from which snapshot is supported.
 enableAddon() {
     ibmcloud ks cluster addon disable  vpc-block-csi-driver   -c $1
+    # waiting for addon to be disabled
     sleep 30s
-    
+
+    # Enable 5.0 vpc-block-csi-driver addon
+    # Fetching addon version
+    addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep 5.0 | awk '{print $2}')
+    error() "Unable to fetch vpc-block-csi-driver addon version"
+
+    # Enabling addon
+    ibmcloud ks cluster addon enable vpc-block-csi-driver   -c $1 --version $addonVersion
+    sleep 20s
 }
+
+# Print KUBECONFIG
+echo $KUBECONFIG
 
 #Get cluster name
 IN=$(kubectl config current-context)
 error "Unable to fetch kubectl config"
-
 IFS='/' read -ra CLUSTER_NAME <<< "$IN"
 echo "Cluster Name - $CLUSTER_NAME"
 
@@ -40,13 +53,30 @@ addon_version=$(ibmcloud ks cluster addon ls -c $CLUSTER_NAME | grep vpc-block-c
 error "Unable to fetch vpc-block-csi-driver addon version"
 echo "$addon_version"
 
-#Check if the addon version is 5.0
+#Check if the addon version is 5.0, if it is not disable the existing one, and enable 5.0+. 
 expected_version="5.0"
 if [[ "$addon_version" == *"$expected_version"* ]]; then
     echo "Expected addon version is enabled"
 else
     enableAddon $CLUSTER_NAME
 fi
+
+mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
+error "Unable to create src under GOPATH"
+cd $GOPATH/src
+git clone git@github.com:IBM/ibm-csi-common.git
+cd ibm-csi-common
+DIR="$(pwd)"
+echo "Present working directory: $DIR"
+
+echo "Starting snapshot basic e2e tests for vpc block storage"
+export E2E_TEST_RESULT=$GOPATH/src/ibm-csi-common/snapshote2e_test_result.log
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]"  ./tests/snapshote2e
+cat $E2E_TEST_RESULT
+echo "Finished snapshot basic e2e tests for vpc block storage"
+
+
+
 
 
 
