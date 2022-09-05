@@ -157,7 +157,7 @@ func TestFunc() func() {
 					execCmd = cmdLongLife
 					cmdExits = false
 					for n := range vols {
-						_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
+						_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns)
 						cleanupFuncs = append(cleanupFuncs, funcs...)
 					}
 				} else {

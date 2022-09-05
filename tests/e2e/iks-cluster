@@ -22,7 +22,6 @@ E2ETEST_CS_ZONE01=${E2ETEST_CS_ZONE01:-""}
 E2ETEST_CS_ZONE02=${E2ETEST_CS_ZONE02:-""}
 E2ETEST_CS_ZONE03=${E2ETEST_CS_ZONE03:-""}
 
-ADDON_VERSION=${ADDON_VERSION:-""}
 
 # Private VLAN Names for classic
 PRIV_VLAN_NAME="e2etestpriv"
@@ -966,7 +965,6 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
     if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) creation failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
     e2e_cluster_name="$cluster_name"
     export E2ETEST_CLUSTER_NAME="$cluster_name"
-
 else
     if [[ -z "$e2e_cluster_name" ]]; then
       echo -e "Error: Cluster name (e2e_cluster_name) not set!!!" >> $E2E_TEST_SETUP; exit 1
@@ -1010,11 +1008,6 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
    # test-bskdul0202h4kna269og-otgynzq4e2e-default-00000167   10.240.0.18   bx2.4x16   -       -        us-south-1   1.19.0_1514
    check_worker_state $cluster_name; rc=$?
    if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) worker status check failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
-        echo "Info: Installing addon $ADDON_VERSION"
-        ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
-        sleep 60
-        ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version 5.0.0-beta
-        sleep 30
 else
    # For exiting cluster list print the woker nodes list
    ibmcloud ks worker ls --cluster $cluster_name || true

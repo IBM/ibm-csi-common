@@ -19,14 +19,11 @@ package testsuites
 import (
 	"context"
 	"fmt"
-	restclientset "k8s.io/client-go/rest"
 	"math/rand"
 	"os/exec"
 	"strings"
 	"time"
 
-	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
-	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
@@ -35,7 +32,6 @@ import (
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
 	k8sDevDep "k8s.io/kubernetes/test/e2e/framework/deployment"
@@ -93,7 +89,7 @@ func NewHeadlessService(c clientset.Interface, name, namespace, labelSelctors st
 }
 
 func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns *v1.Namespace, servicename, command, storageClassName, volumeName, mountPath string, labels map[string]string, replicaCount int32) *TestStatefulsets {
-	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
+	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode)
 	generateName := "ics-e2e-tester-"
 	return &TestStatefulsets{
 		client:    c,
@@ -334,12 +330,6 @@ type TestStorageClass struct {
 	namespace    *v1.Namespace
 }
 
-type TestVolumeSnapshotClass struct {
-	client              restclientset.Interface
-	volumeSnapshotClass *volumesnapshotv1.VolumeSnapshotClass
-	namespace           *v1.Namespace
-}
-
 func NewTestStorageClass(c clientset.Interface, ns *v1.Namespace, sc *storagev1.StorageClass) *TestStorageClass {
 	return &TestStorageClass{
 		client:       c,
@@ -396,7 +386,6 @@ type TestPersistentVolumeClaim struct {
 	persistentVolume               *v1.PersistentVolume
 	persistentVolumeClaim          *v1.PersistentVolumeClaim
 	requestedPersistentVolumeClaim *v1.PersistentVolumeClaim
-	dataSource                     *v1.TypedLocalObjectReference
 }
 
 func NewTestPersistentVolumeClaim(
@@ -424,25 +413,6 @@ func NewTestPersistentVolumeClaim(
 		storageClass: sc,
 	}
 }
-func NewTestPersistentVolumeClaimWithDataSource(
-	c clientset.Interface, pvcName string, ns *v1.Namespace,
-	claimSize string, volumeMode VolumeMode, sc *storagev1.StorageClass, dataSource *v1.TypedLocalObjectReference) *TestPersistentVolumeClaim {
-	mode := v1.PersistentVolumeFilesystem
-	if volumeMode == Block {
-		mode = v1.PersistentVolumeBlock
-	}
-	By("Create tpvc with data source")
-	return &TestPersistentVolumeClaim{
-		name:         pvcName,
-		client:       c,
-		claimSize:    claimSize,
-		accessMode:   v1.ReadWriteOnce,
-		volumeMode:   mode,
-		namespace:    ns,
-		storageClass: sc,
-		dataSource:   dataSource,
-	}
-}
 
 func (t *TestPersistentVolumeClaim) Create() {
 	var err error
@@ -455,7 +425,7 @@ func (t *TestPersistentVolumeClaim) Create() {
 	_, err = t.client.StorageV1().StorageClasses().Get(context.Background(), storageClassName, metav1.GetOptions{})
 	framework.ExpectNoError(err)
 
-	t.requestedPersistentVolumeClaim = generatePVC(t.name, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
+	t.requestedPersistentVolumeClaim = generatePVC(t.name, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode)
 	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Create(context.Background(), t.requestedPersistentVolumeClaim, metav1.CreateOptions{})
 	framework.ExpectNoError(err)
 }
@@ -506,26 +476,10 @@ func (t *TestPersistentVolumeClaim) WaitForBound() v1.PersistentVolumeClaim {
 	return *t.persistentVolumeClaim
 }
 
-func (t *TestPersistentVolumeClaim) WaitForPending() v1.PersistentVolumeClaim {
-	var err error
-
-	By(fmt.Sprintf("waiting for PVC to be in phase %q", v1.ClaimPending))
-	time.Sleep(5 * time.Minute)
-	err = k8sDevPV.WaitForPersistentVolumeClaimPhase(v1.ClaimPending, t.client, t.namespace.Name, t.persistentVolumeClaim.Name, framework.Poll, framework.ClaimProvisionTimeout)
-	framework.ExpectNoError(err)
-
-	By("checking the PVC")
-	// Get new copy of the claim
-	t.persistentVolumeClaim, err = t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Get(context.Background(), t.persistentVolumeClaim.Name, metav1.GetOptions{})
-	framework.ExpectNoError(err)
-
-	return *t.persistentVolumeClaim
-}
-
 func generatePVC(name, namespace,
 	storageClassName, claimSize string,
 	accessMode v1.PersistentVolumeAccessMode,
-	volumeMode v1.PersistentVolumeMode, dataSource *v1.TypedLocalObjectReference) *v1.PersistentVolumeClaim {
+	volumeMode v1.PersistentVolumeMode) *v1.PersistentVolumeClaim {
 	var objMeta metav1.ObjectMeta
 	lastChar := name[len(name)-1:]
 	if lastChar == "-" {
@@ -554,15 +508,14 @@ func generatePVC(name, namespace,
 				},
 			},
 			VolumeMode: &volumeMode,
-			DataSource: dataSource,
 		},
 	}
 }
 
 func (t *TestPersistentVolumeClaim) Cleanup() {
 	By(fmt.Sprintf("deleting PVC [%s]", t.persistentVolumeClaim.Name))
+	framework.Logf("deleting PVC [%s/%s] using PV [%s]", t.namespace.Name, t.persistentVolumeClaim.Name, t.persistentVolume.Name)
 	err := k8sDevPV.DeletePersistentVolumeClaim(t.client, t.persistentVolumeClaim.Name, t.namespace.Name)
-	By("Triggered DeletePersistentVolumeClaim call")
 	framework.ExpectNoError(err)
 	// Wait for the PV to get deleted if reclaim policy is Delete. (If it's
 	// Retain, there's no use waiting because the PV won't be auto-deleted and
@@ -570,8 +523,7 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 	// attempts may fail, as the volume is still attached to a node because
 	// kubelet is slowly cleaning up the previous pod, however it should succeed
 	// in a couple of minutes.
-	if t.persistentVolume != nil && t.persistentVolume.Spec.PersistentVolumeReclaimPolicy == v1.PersistentVolumeReclaimDelete {
-		framework.Logf("deleting PVC [%s/%s] using PV [%s]", t.namespace.Name, t.persistentVolumeClaim.Name, t.persistentVolume.Name)
+	if t.persistentVolume.Spec.PersistentVolumeReclaimPolicy == v1.PersistentVolumeReclaimDelete {
 		By(fmt.Sprintf("waiting for claim's PV [%s] to be deleted", t.persistentVolume.Name))
 		err := k8sDevPV.WaitForPersistentVolumeDeleted(t.client, t.persistentVolume.Name, 5*time.Second, 10*time.Minute)
 		framework.ExpectNoError(err)
@@ -1009,113 +961,4 @@ func cleanupPodOrFail(client clientset.Interface, name, namespace string, dbginf
 
 func podLogs(client clientset.Interface, name, namespace string) ([]byte, error) {
 	return client.CoreV1().Pods(namespace).GetLogs(name, &v1.PodLogOptions{}).Do(context.Background()).Raw()
-}
-
-func NewTestVolumeSnapshotClass(c restclientset.Interface, ns *v1.Namespace, vsc *volumesnapshotv1.VolumeSnapshotClass) *TestVolumeSnapshotClass {
-	return &TestVolumeSnapshotClass{
-		client:              c,
-		volumeSnapshotClass: vsc,
-		namespace:           ns,
-	}
-}
-
-func (t *TestVolumeSnapshotClass) Create() {
-	By("creating a VolumeSnapshotClass")
-	var err error
-	t.volumeSnapshotClass, err = snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshotClasses().Create(context.TODO(), t.volumeSnapshotClass, metav1.CreateOptions{})
-	framework.ExpectNoError(err)
-}
-
-func (t *TestVolumeSnapshotClass) CreateSnapshot(pvc *v1.PersistentVolumeClaim) *volumesnapshotv1.VolumeSnapshot {
-	By("creating a VolumeSnapshot for " + pvc.Name)
-	snapshot := &volumesnapshotv1.VolumeSnapshot{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       VolumeSnapshotKind,
-			APIVersion: SnapshotAPIVersion,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "volume-snapshot-",
-			Namespace:    t.namespace.Name,
-		},
-		Spec: volumesnapshotv1.VolumeSnapshotSpec{
-			VolumeSnapshotClassName: &t.volumeSnapshotClass.Name,
-			Source: volumesnapshotv1.VolumeSnapshotSource{
-				PersistentVolumeClaimName: &pvc.Name,
-			},
-		},
-	}
-	snapshot, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Create(context.TODO(), snapshot, metav1.CreateOptions{})
-	framework.ExpectNoError(err)
-	return snapshot
-}
-
-func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSnapshot, snapFail bool) {
-	By("waiting for VolumeSnapshot to be ready to use - " + snapshot.Name)
-	err := wait.Poll(15*time.Second, 5*time.Minute, func() (bool, error) {
-		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(context.TODO(), snapshot.Name, metav1.GetOptions{})
-		if err != nil {
-			return false, fmt.Errorf("did not see ReadyToUse: %v", err)
-		}
-
-		if vs.Status == nil || vs.Status.ReadyToUse == nil {
-			return false, nil
-		}
-		return *vs.Status.ReadyToUse, nil
-	})
-	if snapFail == true {
-		framework.ExpectError(err)
-	} else {
-		framework.ExpectNoError(err)
-	}
-}
-
-func (t *TestVolumeSnapshotClass) DeleteSnapshot(vs *volumesnapshotv1.VolumeSnapshot) {
-	By("deleting a VolumeSnapshot " + vs.Name)
-	err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Delete(context.TODO(), vs.Name, metav1.DeleteOptions{})
-	framework.ExpectNoError(err)
-
-	err = t.waitForSnapshotDeleted(t.namespace.Name, vs.Name, 2*time.Second, 15*time.Minute)
-	framework.ExpectNoError(err)
-}
-
-func (t *TestVolumeSnapshotClass) Cleanup() {
-	framework.Logf("deleting VolumeSnapshotClass %s", t.volumeSnapshotClass.Name)
-	err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshotClasses().Delete(context.TODO(), t.volumeSnapshotClass.Name, metav1.DeleteOptions{})
-	framework.ExpectNoError(err)
-}
-
-func (t *TestVolumeSnapshotClass) waitForSnapshotDeleted(ns string, snapshotName string, poll, timeout time.Duration) error {
-	framework.Logf("Waiting up to %v for VolumeSnapshot %s to be removed", timeout, snapshotName)
-	c := snapshotclientset.New(t.client).SnapshotV1()
-	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
-		_, err := c.VolumeSnapshots(ns).Get(context.TODO(), snapshotName, metav1.GetOptions{})
-		if err != nil {
-			if apierrs.IsNotFound(err) {
-				framework.Logf("Snapshot %q in namespace %q doesn't exist in the system", snapshotName, ns)
-				return nil
-			}
-			framework.Logf("Failed to get snapshot %q in namespace %q, retrying in %v. Error: %v", snapshotName, ns, poll, err)
-		}
-	}
-	return fmt.Errorf("VolumeSnapshot %s is not removed from the system within %v", snapshotName, timeout)
-}
-
-func GetVolumeSnapshotClass(namespace string) *volumesnapshotv1.VolumeSnapshotClass {
-	provisioner := "vpc.block.csi.ibm.io"
-	generateName := fmt.Sprintf("%s-%s-dynamic-sc-", namespace, provisioner)
-	return getVolumeSnapshotClass(generateName, provisioner)
-}
-
-func getVolumeSnapshotClass(generateName string, provisioner string) *volumesnapshotv1.VolumeSnapshotClass {
-	return &volumesnapshotv1.VolumeSnapshotClass{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       VolumeSnapshotClassKind,
-			APIVersion: SnapshotAPIVersion,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: generateName,
-		},
-		Driver:         provisioner,
-		DeletionPolicy: volumesnapshotv1.VolumeSnapshotContentDelete,
-	}
 }

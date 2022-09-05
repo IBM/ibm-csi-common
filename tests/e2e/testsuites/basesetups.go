@@ -23,7 +23,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	restclientset "k8s.io/client-go/rest"
 )
 
 type PodDetails struct {
@@ -49,7 +48,6 @@ type VolumeDetails struct {
 	VolumeMount           VolumeMountDetails
 	VolumeDevice          VolumeDeviceDetails
 	pvc                   *TestPersistentVolumeClaim
-	DataSource            *DataSource
 }
 
 const (
@@ -58,10 +56,9 @@ const (
 )
 
 const (
-	VolumeSnapshotKind      = "VolumeSnapshot"
-	SnapshotAPIVersion      = "snapshot.storage.k8s.io/v1"
-	APIVersionv1            = "v1"
-	VolumeSnapshotClassKind = "VolumeSnapshotClass"
+	VolumeSnapshotKind = "VolumeSnapshot"
+	SnapshotAPIVersion = "snapshot.storage.k8s.io/v1alpha1"
+	APIVersionv1alpha1 = "v1alpha1"
 )
 
 var (
@@ -110,7 +107,7 @@ func (pod *PodDetails) SetupWithDynamicVolumes(client clientset.Interface, names
 	tpod := NewTestPod(client, namespace, pod.Cmd)
 	By("setting up the PVC for POD")
 	for n, v := range pod.Volumes {
-		tpvc, funcs := v.SetupDynamicPersistentVolumeClaim(client, namespace, false)
+		tpvc, funcs := v.SetupDynamicPersistentVolumeClaim(client, namespace)
 		cleanupFuncs = append(cleanupFuncs, funcs...)
 
 		if v.VolumeMode == Block {
@@ -177,7 +174,7 @@ func (pod *PodDetails) SetupDeployment(client clientset.Interface, namespace *v1
 	return tDeployment, cleanupFuncs
 }
 
-func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.Interface, namespace *v1.Namespace, pvcErrExpected bool) (*TestPersistentVolumeClaim, []func()) {
+func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.Interface, namespace *v1.Namespace) (*TestPersistentVolumeClaim, []func()) {
 	cleanupFuncs := make([]func(), 0)
 	By("setting up the PVC and PV")
 	//By(fmt.Sprintf("PVC: %q    NS: %q", volume.PVCName, namespace.Name))
@@ -187,29 +184,13 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 	storageClass.MountOptions = volume.MountOptions
 
 	var tpvc *TestPersistentVolumeClaim
-	if volume.DataSource != nil {
-		By("Setting up datasource in PVC")
-		dataSource := &v1.TypedLocalObjectReference{
-			Name:     volume.DataSource.Name,
-			Kind:     VolumeSnapshotKind,
-			APIGroup: &SnapshotAPIGroup,
-		}
-		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, volume.PVCName, namespace, volume.ClaimSize, volume.VolumeMode, &storageClass, dataSource)
-		By(fmt.Sprintf("%q", tpvc))
-	} else {
-		tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
-	}
+	tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
 	tpvc.Create()
 	cleanupFuncs = append(cleanupFuncs, tpvc.Cleanup)
 	// PV will not be ready until PVC is used in a pod when volumeBindingMode: WaitForFirstConsumer
 	if volume.VolumeBindingMode == nil || *volume.VolumeBindingMode == storagev1.VolumeBindingImmediate {
-		if pvcErrExpected == true {
-			By("PVC Creation should go to Pending state as volume size is less than source volume")
-			tpvc.WaitForPending()
-		} else {
-			tpvc.WaitForBound()
-			tpvc.ValidateProvisionedPersistentVolume()
-		}
+		tpvc.WaitForBound()
+		tpvc.ValidateProvisionedPersistentVolume()
 	}
 	volume.pvc = tpvc
 
@@ -232,13 +213,4 @@ func (pod *PodDetails) SetupStatefulset(client clientset.Interface, namespace *v
 
 	cleanupFuncs = append(cleanupFuncs, tStatefulset.Cleanup)
 	return tStatefulset, cleanupFuncs
-}
-
-func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Namespace) (*TestVolumeSnapshotClass, func()) {
-	By("setting up the VolumeSnapshotClass")
-	volumeSnapshotClass := GetVolumeSnapshotClass(namespace.Name)
-	tvsc := NewTestVolumeSnapshotClass(client, namespace, volumeSnapshotClass)
-	tvsc.Create()
-
-	return tvsc, tvsc.Cleanup
 }
