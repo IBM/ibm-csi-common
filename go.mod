@@ -14,6 +14,7 @@ require (
 	github.com/kubernetes-csi/external-snapshotter/client/v4 v4.2.0
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.5
+	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
