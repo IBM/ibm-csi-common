@@ -12,8 +12,8 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/kubernetes-csi/external-snapshotter/client/v4 v4.2.0
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.14.2
+	github.com/onsi/gomega v1.10.5
 	github.com/prometheus/client_golang v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
