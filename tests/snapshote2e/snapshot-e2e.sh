@@ -15,6 +15,13 @@
 # limitations under the License.
 # *****************************************************************************/
 
+# Pre requisites
+# 1. Golang must be installed and GOPATH must be set
+# 2. KUBECONFIG path must be set to a vpc gen2 cluster
+# 3. git must be installed
+# 4. ibmcloud command must be installed with 'ks' utility and should be logged into via CLI
+# 5. ginkgo cli needs to be installed 
+
 # error() - prints the error message passed to it, and exists from the script
 error() {
      if [[ $? != 0 ]]; then
@@ -25,14 +32,14 @@ error() {
 
 # enableAddon() - disables the existing vpc-block-csi-driver addon and enables the 5.0 addon from which snapshot is supported.
 enableAddon() {
-    ibmcloud ks cluster addon disable  vpc-block-csi-driver   -c $1
+    ibmcloud ks cluster addon disable  vpc-block-csi-driver -f -c $1
     # waiting for addon to be disabled
     sleep 30s
 
     # Enable 5.0 vpc-block-csi-driver addon
     # Fetching addon version
     addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep 5.0 | awk '{print $2}')
-    error() "Unable to fetch vpc-block-csi-driver addon version"
+    error "Unable to fetch vpc-block-csi-driver addon version"
 
     # Enabling addon
     ibmcloud ks cluster addon enable vpc-block-csi-driver   -c $1 --version $addonVersion
