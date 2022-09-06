@@ -149,7 +149,7 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [pods-seq] POD with Common Volumes(PVCs)
 			execCmd = cmdShotLife
 			cmdExits = true
 			for n := range vols {
-				_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns)
+				_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
 				cleanupFuncs = append(cleanupFuncs, funcs...)
 			}
 		} else {
@@ -308,7 +308,7 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [pods-simul] POD with Common Volumes(PVC
 			execCmd = cmdLongLife
 			cmdExits = false
 			for n := range vols {
-				_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns)
+				_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
 				cleanupFuncs = append(cleanupFuncs, funcs...)
 			}
 		} else {
