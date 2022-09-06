@@ -18,10 +18,11 @@
 # Pre requisites
 # 1. Golang must be installed and GOPATH must be set
 # 2. KUBECONFIG path must be set to a vpc gen2 cluster
-# 3. git must be installed
+# 3. git must be installed and be configured with the ssh key from where this script is running.
 # 4. ibmcloud command must be installed with 'ks' utility and should be logged into via CLI
 # 5. ginkgo cli needs to be installed 
 
+# Run the script - bash snapshot-e2e.sh
 # error() - prints the error message passed to it, and exists from the script
 error() {
      if [[ $? != 0 ]]; then
@@ -71,7 +72,8 @@ fi
 mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
 error "Unable to create src under GOPATH"
 cd $GOPATH/src
-git clone git@github.com:IBM/ibm-csi-common.git
+git clone git@github.com:IBM/ibm-csi-common.git -q -b snape2eguna
+touch /root/go/src/ibm-csi-common/snapshote2e_test_result.log
 cd ibm-csi-common
 DIR="$(pwd)"
 echo "Present working directory: $DIR"
