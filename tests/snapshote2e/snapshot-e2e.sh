@@ -20,7 +20,7 @@
 # 2. KUBECONFIG path must be set to a vpc gen2 cluster
 # 3. git must be installed and be configured with the ssh key from where this script is running.
 # 4. ibmcloud command must be installed with 'ks' utility and should be logged into via CLI
-# 5. ginkgo cli needs to be installed 
+# 5. ginkgo cli needs to be installed
 
 # Run the script - bash snapshot-e2e.sh
 # error() - prints the error message passed to it, and exists from the script

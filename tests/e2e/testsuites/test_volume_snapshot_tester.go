@@ -104,10 +104,10 @@ func (t *DynamicallyProvisionedVolumeSnapshotTest) VolumeSizeLess(client clients
 	By("Creating PersistentVolumeClaim from a Volume Snapshot")
 	_, rpvcCleanup := rvolume.SetupDynamicPersistentVolumeClaim(client, namespace, true)
 	// Delete snapshot for which volume is deleted | detached
-        defer tvsc.DeleteSnapshot(snapshot)
+	defer tvsc.DeleteSnapshot(snapshot)
 	for i := range pvcCleanup {
-                defer pvcCleanup[i]()
-        }
+		defer pvcCleanup[i]()
+	}
 	defer tpod.Cleanup()
 	for i := range rpvcCleanup {
 		defer rpvcCleanup[i]()
