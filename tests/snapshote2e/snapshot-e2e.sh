@@ -27,11 +27,11 @@
 error() {
      if [[ $? != 0 ]]; then
          echo "$1"
-         exit
+         exit 1
      fi
 }
 
-# enableAddon() - disables the existing vpc-block-csi-driver addon and enables the 5.0 addon from which snapshot is supported.
+# enableAddon() - disables the existing vpc-block-csi-driver addon and enables the 5.* addon from which snapshot is supported.
 enableAddon() {
     ibmcloud ks cluster addon disable  vpc-block-csi-driver -f -c $1
     # waiting for addon to be disabled
@@ -39,11 +39,11 @@ enableAddon() {
 
     # Enable 5.0 vpc-block-csi-driver addon
     # Fetching addon version
-    addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep 5.0 | awk '{print $2}')
+    addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep 5. | awk '{print $2}')
     error "Unable to fetch vpc-block-csi-driver addon version"
 
     # Enabling addon
-    ibmcloud ks cluster addon enable vpc-block-csi-driver   -c $1 --version $addonVersion
+    ibmcloud ks cluster addon enable vpc-block-csi-driver  -c $1 --version $addonVersion
     sleep 20s
 }
 
@@ -62,7 +62,8 @@ error "Unable to fetch vpc-block-csi-driver addon version"
 echo "Current vpc-block-csi-driver addon version - $addon_version"
 
 #Check if the addon version is 5.0, if it is not disable the existing one, and enable 5.0+. 
-expected_version="5.0"
+expected_version="5."
+# TODO - check if it can be compared as >= 5.
 if [[ "$addon_version" == *"$expected_version"* ]]; then
     echo "Expected addon version is enabled"
 else
@@ -78,13 +79,14 @@ cd ibm-csi-common
 DIR="$(pwd)"
 echo "Present working directory: $DIR"
 
+echo "Installing ginkgo"
+go install github.com/onsi/ginkgo/ginkgo@v1.16.4
+error "Error installating ginkgo"
 echo "Starting snapshot basic e2e tests for vpc block storage"
 export E2E_TEST_RESULT=$GOPATH/src/ibm-csi-common/snapshote2e_test_result.log
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]"  ./tests/snapshote2e
 cat $E2E_TEST_RESULT
 echo "Finished snapshot basic e2e tests for vpc block storage"
-
-
 
 
 
