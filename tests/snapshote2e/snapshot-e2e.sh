@@ -45,6 +45,15 @@ enableAddon() {
     # Enabling addon
     ibmcloud ks cluster addon enable vpc-block-csi-driver  -c $1 --version $addonVersion
     sleep 60s
+
+    # Check if controller server pod is up and running
+    kubectl get pods -n kube-system | grep ibm-vpc-block-csi-controller
+    if [[ $? != 0 ]]; then
+        error "Driver is not enabled"
+    fi
+
+    # List all pods in kube-system - if needed for debugging
+    kubectl get pods -n kube-system
 }
 
 # Print KUBECONFIG
