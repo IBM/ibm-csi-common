@@ -35,7 +35,7 @@ error() {
 enableAddon() {
     ibmcloud ks cluster addon disable  vpc-block-csi-driver -f -c $1
     # waiting for addon to be disabled
-    sleep 30s
+    sleep 60s
 
     # Enable 5.0 vpc-block-csi-driver addon
     # Fetching addon version
@@ -44,7 +44,7 @@ enableAddon() {
 
     # Enabling addon
     ibmcloud ks cluster addon enable vpc-block-csi-driver  -c $1 --version $addonVersion
-    sleep 20s
+    sleep 60s
 }
 
 # Print KUBECONFIG
@@ -61,7 +61,7 @@ addon_version=$(ibmcloud ks cluster addon ls -c $CLUSTER_NAME | grep vpc-block-c
 error "Unable to fetch vpc-block-csi-driver addon version"
 echo "Current vpc-block-csi-driver addon version - $addon_version"
 
-#Check if the addon version is 5.0, if it is not disable the existing one, and enable 5.0+. 
+#Check if the addon version is 5.+, if it is not disable the existing one, and enable 5.+. 
 expected_version="5."
 # TODO - check if it can be compared as >= 5.
 if [[ "$addon_version" == *"$expected_version"* ]]; then
@@ -74,10 +74,7 @@ mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
 error "Unable to create src under GOPATH"
 mkdir -p $GOPATH/src/ibm-csi-common
 rsync -az ./ibm-csi-common $GOPATH/src/
-cd $GOPATH/src
-#git clone git@github.com:IBM/ibm-csi-common.git -q -b snape2eguna
-#touch $GOPATH/src/ibm-csi-common/snapshote2e_test_result.log
-cd ibm-csi-common
+cd $GOPATH/src/ibm-csi-common
 DIR="$(pwd)"
 echo "Present working directory: $DIR"
 
