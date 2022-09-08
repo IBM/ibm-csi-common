@@ -20,7 +20,7 @@
 # 2. KUBECONFIG path must be set to a vpc gen2 cluster
 # 3. git must be installed and be configured with the ssh key from where this script is running.
 # 4. ibmcloud command must be installed with 'ks' utility and should be logged into via CLI
-# 5. ginkgo cli needs to be installed
+# 5. ginkgo cli needs to be installed - this is taken care of in the script as of now.
 
 # Run the script - bash snapshot-e2e.sh
 # error() - prints the error message passed to it, and exists from the script
@@ -72,20 +72,28 @@ fi
 
 mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
 error "Unable to create src under GOPATH"
+mkdir -p $GOPATH/src/ibm-csi-common
+rsync -az ./ibm-csi-common $GOPATH/src/
 cd $GOPATH/src
-git clone git@github.com:IBM/ibm-csi-common.git -q -b snape2eguna
-touch /root/go/src/ibm-csi-common/snapshote2e_test_result.log
+#git clone git@github.com:IBM/ibm-csi-common.git -q -b snape2eguna
+#touch $GOPATH/src/ibm-csi-common/snapshote2e_test_result.log
 cd ibm-csi-common
 DIR="$(pwd)"
 echo "Present working directory: $DIR"
 
 echo "Installing ginkgo"
+export PATH=$PATH:$GOPATH/bin
+export CGO_ENABLED=0
 go install github.com/onsi/ginkgo/ginkgo@v1.16.4
-error "Error installating ginkgo"
+error "Error installing ginkgo"
+
 echo "Starting snapshot basic e2e tests for vpc block storage"
+touch snapshote2e_test_result.log
 export E2E_TEST_RESULT=$GOPATH/src/ibm-csi-common/snapshote2e_test_result.log
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]"  ./tests/snapshote2e
 cat $E2E_TEST_RESULT
+
+export CGO_ENABLED=1
 echo "Finished snapshot basic e2e tests for vpc block storage"
 
 
