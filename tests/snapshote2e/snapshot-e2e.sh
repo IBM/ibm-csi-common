@@ -98,7 +98,7 @@ touch snapshote2e_test_result.log
 export E2E_TEST_RESULT=$GOPATH/src/ibm-csi-common/snapshote2e_test_result.log
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]"  ./tests/snapshote2e
 cat $E2E_TEST_RESULT
-
+rm -rf $GOPATH/src/ibm-csi-common
 export CGO_ENABLED=1
 echo "Finished snapshot basic e2e tests for vpc block storage"
 
