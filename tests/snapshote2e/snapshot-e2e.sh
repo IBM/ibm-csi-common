@@ -39,7 +39,7 @@ enableAddon() {
 
     # Enable 5.0 vpc-block-csi-driver addon
     # Fetching addon version
-    addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep 5. | awk '{print $2}')
+    addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep " 5." | awk '{print $2}')
     error "Unable to fetch vpc-block-csi-driver addon version"
 
     # Enabling addon
@@ -57,7 +57,7 @@ enableAddon() {
 }
 
 # Print KUBECONFIG
-echo "KUBCONFIG is set to $KUBECONFIG"
+echo "KUBECONFIG is set to $KUBECONFIG"
 
 #Get cluster name
 IN=$(kubectl config current-context)
@@ -73,7 +73,7 @@ echo "Current vpc-block-csi-driver addon version - $addon_version"
 #Check if the addon version is 5.+, if it is not disable the existing one, and enable 5.+. 
 expected_version="5."
 # TODO - check if it can be compared as >= 5.
-if [[ "$addon_version" == *"$expected_version"* ]]; then
+if [[ "$addon_version" == "$expected_version"* ]]; then
     echo "Expected addon version is enabled"
 else
     enableAddon $CLUSTER_NAME
