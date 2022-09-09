@@ -24,11 +24,52 @@
 
 # Run the script - bash snapshot-e2e.sh
 # error() - prints the error message passed to it, and exists from the script
+
+EXPECTED_VERSION=
+
 error() {
      if [[ $? != 0 ]]; then
          echo "$1"
          exit 1
      fi
+}
+
+# fetchExpectedVersion() fetches the addon version to be enabled
+fetchExpectedVersion() {
+        # Fetches all the addon versions after 4.+ into an array addonVersions
+        IFS=$'\n' read -r -d '' -a addonVersions < <( ibmcloud ks cluster addon versions | grep vpc-block-csi-driver  | awk '{print $2}' | grep -v "4." )
+
+        # Listing the addon versions for debugging purpose
+        echo "Existing addon versions"
+        echo ${addonVersions[@]}
+
+        # If there is only one addon version, we use that
+        if [[ "${#addonVersions[@]}" -eq 1 ]]; then
+                EXPECTED_VERSION=${addonVersions[0]}
+                return 0
+        fi
+
+        # Fetching the latest addon version
+        latest=0
+        for addonVersion in "${addonVersions[@]}";
+        do
+                # Ignoring if it is beta
+                if [[ "$addonVersion" == *"beta"* ]]; then
+                        continue
+                fi
+
+                # Parsing the version after 5.+
+                IFS=$'.' read -r -d '' -a version < <( echo "$addonVersion" )
+                if [[ ${version[1]} -ge latest ]]; then
+                        latest=${version[1]}
+                        EXPECTED_VERSION=$addonVersion
+                fi
+        done
+
+        if [[ "$EXPECTED_VERSION" == "" ]]; then
+            echo "Unable to fetch expected addon version"
+            return 1
+        fi
 }
 
 # enableAddon() - disables the existing vpc-block-csi-driver addon and enables the 5.* addon from which snapshot is supported.
@@ -37,13 +78,8 @@ enableAddon() {
     # waiting for addon to be disabled
     sleep 60s
 
-    # Enable 5.0 vpc-block-csi-driver addon
-    # Fetching addon version
-    addonVersion=$(ibmcloud ks cluster addon versions | grep vpc-block-csi-driver | grep " 5." | awk '{print $2}')
-    error "Unable to fetch vpc-block-csi-driver addon version"
-
     # Enabling addon
-    ibmcloud ks cluster addon enable vpc-block-csi-driver  -c $1 --version $addonVersion
+    ibmcloud ks cluster addon enable vpc-block-csi-driver  -c $1 --version $EXPECTED_VERSION
     sleep 60s
 
     # Check if controller server pod is up and running
@@ -70,10 +106,12 @@ addon_version=$(ibmcloud ks cluster addon ls -c $CLUSTER_NAME | grep vpc-block-c
 error "Unable to fetch vpc-block-csi-driver addon version"
 echo "Current vpc-block-csi-driver addon version - $addon_version"
 
+#Fetching expected addon version
+fetchExpectedVersion
+error "Unable to fetch expected addon version"
+
 #Check if the addon version is 5.+, if it is not disable the existing one, and enable 5.+. 
-expected_version="5."
-# TODO - check if it can be compared as >= 5.
-if [[ "$addon_version" == "$expected_version"* ]]; then
+if [[ "$addon_version" == "$EXPECTED_VERSION" ]]; then
     echo "Expected addon version is enabled"
 else
     enableAddon $CLUSTER_NAME
