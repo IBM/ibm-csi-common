@@ -153,7 +153,7 @@ var _ = Describe("[ics-e2e] [exec-mvmp] [pods-simul] Multiple POD with PVCs", fu
 				execCmd = cmdLongLife
 				cmdExits = false
 				for n := range vols {
-					_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns)
+					_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
 					cleanupFuncs = append(cleanupFuncs, funcs...)
 				}
 			} else {
