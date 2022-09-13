@@ -46,6 +46,10 @@ echo "Cluster Name - $CLUSTER_NAME"
 # Fetching pods in kube-system namespace to make sure, snapshot controller, and driver with sidecar is deployed.
 kubectl get pods -n kube-system
 
+# Checking if controller pod is up
+kubectl get pods -n kube-system | grep ibm-vpc-block-csi-controller
+error "Driver is not enabled"
+
 # Sync ibm-csi-common
 mkdir -p "$GOPATH/src" "$GOPATH/bin" && sudo chmod -R 777 "$GOPATH"
 error "Unable to create src under GOPATH"
