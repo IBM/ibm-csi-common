@@ -121,7 +121,7 @@ var messagesEn = map[string]Message{
 	},
 	EmptySnapshotID: {
 		Code:        EmptySnapshotID,
-		Description: "napshotID must be provided",
+		Description: "SnapshotID must be provided",
 		Type:        codes.InvalidArgument,
 		Action:      "Please provide snapshot ID for deletion",
 	},
