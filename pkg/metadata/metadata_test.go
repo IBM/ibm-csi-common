@@ -28,7 +28,8 @@ func TestNewNodeMetadata(t *testing.T) {
 	// Creating test logger
 	logger, teardown := cloudprovider.GetTestLogger(t)
 	defer teardown()
-	nodeMeta, err := NewNodeMetadata("mynode", logger)
+	nodeInfo := NodeInfoManager{NodeName: "mynode"}
+	nodeMeta, err := nodeInfo.NewNodeMetadata(logger)
 
 	// Error will be there as there is no kubernetes running
 	assert.NotNil(t, err)
