@@ -1043,7 +1043,8 @@ fi
 
 exportKubeConfig $cluster_name; rc=$?
 
-
+# From Jenkins there is option to mention addon version. 
+# So if value is not "default", disable and enable user specified version
 if [[ $e2e_addon_version != "default"  ]]; then
         echo "Info: Installing addon $ADDON_VERSION"
         ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
