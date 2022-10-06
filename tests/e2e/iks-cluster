@@ -225,7 +225,7 @@ function check_addon_pod_status {
       exit 1
     fi
     echo "$pod_name state == $pod_status  Sleeping 10 seconds"
-    sleep 10
+    sleep 30
   done
 }
 
@@ -1050,7 +1050,7 @@ if [[ $e2e_addon_version != "default"  ]]; then
         ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
         sleep 60
         ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $e2e_addon_version
-        sleep 10
+        sleep 30
 	check_addon_pod_status ibm-vpc-block-csi-controller
 fi
 set -x 
