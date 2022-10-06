@@ -135,9 +135,20 @@ go get -u github.com/onsi/ginkgo/ginkgo
 
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-csi-ginkgo-log.txt
-rc=$?
+rc1=$?
+echo "Exit status for basic volume test: $rc1"
+
+SNAP_ADDON_VERSION=5.0
+compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $SNAP_ADDON_VERSION)?1 : 0 }"`
+echo $compare
+if [[ $compare -eq 1 ]]; then
+	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e | tee -a block-vpc-csi-snapshot-log.txt
+	rc2=$?
+	echo "Exit status for snapshot test: $rc2"
+fi
+
 set -e
-if [[ $rc -eq 0 ]]; then
+if [[ $rc1 -eq 0 || $rc2 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
