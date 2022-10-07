@@ -138,7 +138,7 @@ ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-c
 rc1=$?
 echo "Exit status for basic volume test: $rc1"
 
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" | tee -a block-vpc-csi-volume-resize-ginkgo-log.txt
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e | tee -a block-vpc-csi-volume-resize-ginkgo-log.txt
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 
