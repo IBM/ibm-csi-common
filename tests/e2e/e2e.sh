@@ -154,7 +154,7 @@ if [[ $compare -eq 1 ]]; then
 fi
 
 set -e
-if [[ $rc1 -eq 0 && $rc2 -eq 0 ]]; then
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
