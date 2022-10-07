@@ -138,6 +138,10 @@ ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-c
 rc1=$?
 echo "Exit status for basic volume test: $rc1"
 
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e | tee -a block-vpc-csi-volume-resize-ginkgo-log.txt
+rc3=$?
+echo "Exit status for resize volume test: $rc3"
+
 set -x
 SNAP_ADDON_VERSION=5.0
 compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $SNAP_ADDON_VERSION)?1 : 0 }"`
@@ -149,7 +153,7 @@ if [[ $compare -eq 1 ]]; then
 fi
 
 set -e
-if [[ $rc1 -eq 0 && $rc2 -eq 0 ]]; then
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
