@@ -49,3 +49,9 @@
    ```
    ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[node-drain\] \[with-pods\]" ./tests/e2e
    ```
+
+## How to execute E2E for custom deployments for example we want to test for different sidecare or driver images?
+
+1. Upload the deployment files in format addonVersion_platform.yaml. For e.g. for testing 5.0 addon on openshift platform it will be 5.0_openshift.yaml
+
+2. Go to Jenkins job https://alchemy-containers-jenkins.swg-devops.com/job/Containers-Volumes/job/ibm-vpc-csi-block-e2e-custom-dep-2022/ and run job for different addon versions and cluster versions.
