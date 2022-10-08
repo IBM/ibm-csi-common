@@ -502,7 +502,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: '{{ DOCKER_REGISTRY }}/armada-master/ibm-vpc-block-csi-driver:v4.4.11'
+          image: registry.ng.bluemix.net/armada-master/ibm-vpc-block-csi-driver:v4.4.11
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
@@ -780,7 +780,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: '{{ DOCKER_REGISTRY }}/armada-master/ibm-vpc-block-csi-driver:v4.4.11'
+          image: registry.ng.bluemix.net/armada-master/ibm-vpc-block-csi-driver:v4.4.11
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
