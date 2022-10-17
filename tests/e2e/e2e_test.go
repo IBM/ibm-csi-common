@@ -33,7 +33,7 @@ func init() {
 	config.CopyFlags(config.Flags, flag.CommandLine)
 	framework.RegisterCommonFlags(flag.CommandLine)
 	framework.RegisterClusterFlags(flag.CommandLine)
-//	flag.Parse()
+	flag.Parse()
 	framework.AfterReadingAllFlags(&framework.TestContext)
 }
 
