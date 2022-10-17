@@ -18,7 +18,7 @@ package e2e
 import (
 	"fmt"
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

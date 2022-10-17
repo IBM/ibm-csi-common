@@ -22,7 +22,7 @@ import (
 
 	_ "testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/framework/config"
@@ -33,7 +33,7 @@ func init() {
 	config.CopyFlags(config.Flags, flag.CommandLine)
 	framework.RegisterCommonFlags(flag.CommandLine)
 	framework.RegisterClusterFlags(flag.CommandLine)
-	flag.Parse()
+//	flag.Parse()
 	framework.AfterReadingAllFlags(&framework.TestContext)
 }
 

@@ -131,7 +131,8 @@ echo "                  Path: `pwd`"
 # E2E Execution
 go clean -modcache
 export GO111MODULE=on
-go get -u github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/ginkgo/v2
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@latest
 
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-csi-ginkgo-log.txt

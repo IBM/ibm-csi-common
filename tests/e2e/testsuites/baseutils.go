@@ -19,15 +19,9 @@ package testsuites
 import (
 	"context"
 	"fmt"
-	restclientset "k8s.io/client-go/rest"
-	"math/rand"
-	"os/exec"
-	"strings"
-	"time"
-
 	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -37,11 +31,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
+	restclientset "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 	k8sDevDep "k8s.io/kubernetes/test/e2e/framework/deployment"
 	k8sDevPod "k8s.io/kubernetes/test/e2e/framework/pod"
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	utilpointer "k8s.io/utils/pointer"
+	"math/rand"
+	"os/exec"
+	"strings"
+	"time"
 )
 
 type TestSecret struct {
@@ -116,6 +116,12 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 						Labels: labels,
 					},
 					Spec: v1.PodSpec{
+						SecurityContext: &v1.PodSecurityContext{
+							SeccompProfile: &v1.SeccompProfile{
+								Type: v1.SeccompProfileTypeRuntimeDefault,
+							},
+							FSGroup: utilpointer.Int64(212),
+						},
 						Containers: []v1.Container{
 							{
 								Name:    "statefulset",
@@ -133,6 +139,12 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 										Name:      volumeName,
 										MountPath: mountPath,
 									},
+								},
+								SecurityContext: &v1.SecurityContext{
+									AllowPrivilegeEscalation: utilpointer.Bool(false),
+									RunAsNonRoot:             utilpointer.Bool(true),
+									RunAsUser:                utilpointer.Int64(212),
+									Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
 								},
 							},
 						},
@@ -628,6 +640,12 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 						Labels: map[string]string{"app": selectorValue},
 					},
 					Spec: v1.PodSpec{
+						SecurityContext: &v1.PodSecurityContext{
+							SeccompProfile: &v1.SeccompProfile{
+								Type: v1.SeccompProfileTypeRuntimeDefault,
+							},
+							FSGroup: utilpointer.Int64(212),
+						},
 						Containers: []v1.Container{
 							{
 								Name:    "ics-e2e-tester",
@@ -640,6 +658,12 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 										MountPath: mountPath,
 										ReadOnly:  readOnly,
 									},
+								},
+								SecurityContext: &v1.SecurityContext{
+									AllowPrivilegeEscalation: utilpointer.Bool(false),
+									RunAsNonRoot:             utilpointer.Bool(true),
+									RunAsUser:                utilpointer.Int64(212),
+									Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
 								},
 							},
 						},
@@ -768,11 +792,9 @@ func (t *TestDeployment) DeletePodAndWait() {
 		return
 	}
 	framework.Logf("Waiting for pod [%s/%s] to be fully deleted", t.namespace.Name, t.podName)
-	err = k8sDevPod.WaitForPodNoLongerRunningInNamespace(t.client, t.podName, t.namespace.Name)
+	err = k8sDevPod.WaitForPodNotFoundInNamespace(t.client, t.podName, t.namespace.Name, 60 * time.Second)
 	if err != nil {
-		if !apierrs.IsNotFound(err) {
 			framework.ExpectNoError(fmt.Errorf("pod [%s] error waiting for delete: %v", t.podName, err))
-		}
 	}
 }
 
@@ -842,6 +864,12 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 				Labels:       map[string]string{"app": "ics-vol-e2e"},
 			},
 			Spec: v1.PodSpec{
+				SecurityContext: &v1.PodSecurityContext{
+					SeccompProfile: &v1.SeccompProfile{
+						Type: v1.SeccompProfileTypeRuntimeDefault,
+					},
+					FSGroup: utilpointer.Int64(212),
+				},
 				Containers: []v1.Container{
 					{
 						Name:         "ics-e2e-tester",
@@ -849,6 +877,12 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 						Command:      []string{"/bin/sh"},
 						Args:         []string{"-c", command},
 						VolumeMounts: make([]v1.VolumeMount, 0),
+						SecurityContext: &v1.SecurityContext{
+							AllowPrivilegeEscalation: utilpointer.Bool(false),
+							RunAsNonRoot:             utilpointer.Bool(true),
+							RunAsUser:                utilpointer.Int64(212),
+							Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
+						},
 					},
 				},
 				RestartPolicy: v1.RestartPolicyNever,
