@@ -40,6 +40,7 @@ import (
 	utilpointer "k8s.io/utils/pointer"
 	"math/rand"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -620,6 +621,12 @@ type TestDeployment struct {
 }
 
 func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, pvc *v1.PersistentVolumeClaim, volumeName, mountPath string, readOnly bool) *TestDeployment {
+	nsDetail := GetNamespaceDetails(c, ns.Name)
+	idVal := int64(1000)
+	if nsDetail != nil && nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.supplemental-groups"] != "" && nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.uid-range"] != "" {
+		sgroups := strings.Split(nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.supplemental-groups"], "/")
+		idVal, _ = strconv.ParseInt(sgroups[0], 10, 64)
+	}
 	generateName := "ics-e2e-tester-"
 	selectorValue := fmt.Sprintf("%s%d", generateName, rand.Int())
 	replicas := int32(1)
@@ -644,7 +651,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 							SeccompProfile: &v1.SeccompProfile{
 								Type: v1.SeccompProfileTypeRuntimeDefault,
 							},
-							FSGroup: utilpointer.Int64(212),
+							FSGroup: utilpointer.Int64(idVal),
 						},
 						Containers: []v1.Container{
 							{
@@ -662,7 +669,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 								SecurityContext: &v1.SecurityContext{
 									AllowPrivilegeEscalation: utilpointer.Bool(false),
 									RunAsNonRoot:             utilpointer.Bool(true),
-									RunAsUser:                utilpointer.Int64(212),
+									RunAsUser:                utilpointer.Int64(idVal),
 									Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
 								},
 							},
@@ -792,9 +799,9 @@ func (t *TestDeployment) DeletePodAndWait() {
 		return
 	}
 	framework.Logf("Waiting for pod [%s/%s] to be fully deleted", t.namespace.Name, t.podName)
-	err = k8sDevPod.WaitForPodNotFoundInNamespace(t.client, t.podName, t.namespace.Name, 60 * time.Second)
+	err = k8sDevPod.WaitForPodNotFoundInNamespace(t.client, t.podName, t.namespace.Name, 60*time.Second)
 	if err != nil {
-			framework.ExpectNoError(fmt.Errorf("pod [%s] error waiting for delete: %v", t.podName, err))
+		framework.ExpectNoError(fmt.Errorf("pod [%s] error waiting for delete: %v", t.podName, err))
 	}
 }
 
@@ -1152,4 +1159,10 @@ func getVolumeSnapshotClass(generateName string, provisioner string) *volumesnap
 		Driver:         provisioner,
 		DeletionPolicy: volumesnapshotv1.VolumeSnapshotContentDelete,
 	}
+}
+
+func GetNamespaceDetails(c clientset.Interface, namespace string) *v1.Namespace {
+	ns, err := c.CoreV1().Namespaces().Get(context.TODO(), namespace, metav1.GetOptions{})
+	framework.ExpectNoError(err)
+	return ns
 }
