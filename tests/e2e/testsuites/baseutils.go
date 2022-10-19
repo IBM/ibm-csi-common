@@ -94,6 +94,12 @@ func NewHeadlessService(c clientset.Interface, name, namespace, labelSelctors st
 }
 
 func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns *v1.Namespace, servicename, command, storageClassName, volumeName, mountPath string, labels map[string]string, replicaCount int32) *TestStatefulsets {
+	nsDetail := GetNamespaceDetails(c, ns.Name)
+	idVal := int64(1000)
+	if nsDetail != nil && nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.supplemental-groups"] != "" && nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.uid-range"] != "" {
+		sgroups := strings.Split(nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.supplemental-groups"], "/")
+		idVal, _ = strconv.ParseInt(sgroups[0], 10, 64)
+	}
 	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
 	generateName := "ics-e2e-tester-"
 	return &TestStatefulsets{
@@ -121,7 +127,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 							SeccompProfile: &v1.SeccompProfile{
 								Type: v1.SeccompProfileTypeRuntimeDefault,
 							},
-							FSGroup: utilpointer.Int64(212),
+							FSGroup: utilpointer.Int64(idVal),
 						},
 						Containers: []v1.Container{
 							{
@@ -144,7 +150,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 								SecurityContext: &v1.SecurityContext{
 									AllowPrivilegeEscalation: utilpointer.Bool(false),
 									RunAsNonRoot:             utilpointer.Bool(true),
-									RunAsUser:                utilpointer.Int64(212),
+									RunAsUser:                utilpointer.Int64(idVal),
 									Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
 								},
 							},
@@ -860,6 +866,12 @@ func NewTestPodWithName(c clientset.Interface, ns *v1.Namespace, name, command s
 }
 
 func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPod {
+	nsDetail := GetNamespaceDetails(c, ns.Name)
+	idVal := int64(1000)
+	if nsDetail != nil && nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.supplemental-groups"] != "" && nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.uid-range"] != "" {
+		sgroups := strings.Split(nsDetail.ObjectMeta.Annotations["openshift.io/sa.scc.supplemental-groups"], "/")
+		idVal, _ = strconv.ParseInt(sgroups[0], 10, 64)
+	}
 	return &TestPod{
 		dumpDbgInfo: true,
 		dumpLog:     true,
@@ -875,7 +887,7 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 					SeccompProfile: &v1.SeccompProfile{
 						Type: v1.SeccompProfileTypeRuntimeDefault,
 					},
-					FSGroup: utilpointer.Int64(212),
+					FSGroup: utilpointer.Int64(idVal),
 				},
 				Containers: []v1.Container{
 					{
@@ -887,7 +899,7 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 						SecurityContext: &v1.SecurityContext{
 							AllowPrivilegeEscalation: utilpointer.Bool(false),
 							RunAsNonRoot:             utilpointer.Bool(true),
-							RunAsUser:                utilpointer.Int64(212),
+							RunAsUser:                utilpointer.Int64(idVal),
 							Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
 						},
 					},
