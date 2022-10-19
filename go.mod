@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.18
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.0.1-beta7
-	github.com/IBM/ibmcloud-volume-vpc v1.0.1-beta10
+	github.com/IBM/ibmcloud-volume-interface v1.0.1-beta7.0.20221019104038-29cfe7a7de55
+	github.com/IBM/ibmcloud-volume-vpc v1.0.1-beta7.0.20221019104315-1cd79a9e1dff
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -15,8 +15,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63
-	google.golang.org/grpc v1.36.1
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/grpc v1.47.0
+	google.golang.org/protobuf v1.28.1
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
@@ -29,8 +29,8 @@ require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/IBM-Cloud/ibm-cloud-cli-sdk v0.6.7 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.9.1 // indirect
-	github.com/IBM/secret-common-lib v1.0.3 // indirect
-	github.com/IBM/secret-utils-lib v1.0.2 // indirect
+	github.com/IBM/secret-common-lib v1.0.5-0.20221019084743-b7fe6c885a5a // indirect
+	github.com/IBM/secret-utils-lib v1.0.4-0.20221019084326-0a031b3c721c // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef // indirect
 	github.com/aws/aws-sdk-go v1.35.24 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.5 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
