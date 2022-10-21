@@ -618,7 +618,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: registry.ng.bluemix.net/armada-master/ibm-vpc-block-csi-driver:v5.0.0
+          image: ambikanair/ibm-vpc-block-csi-driver:csi-common
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
@@ -926,7 +926,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: registry.ng.bluemix.net/armada-master/ibm-vpc-block-csi-driver:v5.0.0
+          image: ambikanair/ibm-vpc-block-csi-driver:csi-common
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
