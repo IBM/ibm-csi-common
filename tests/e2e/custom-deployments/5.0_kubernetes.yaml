@@ -599,7 +599,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: ambikanair/ibm-vpc-block-csi-driver:csi-common
+          image: ambikanair/ibm-vpc-block-csi-driver:haelth
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
@@ -899,7 +899,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: ambikanair/ibm-vpc-block-csi-driver:csi-common
+          image: ambikanair/ibm-vpc-block-csi-driver:haelth
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
