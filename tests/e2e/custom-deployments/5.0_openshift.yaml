@@ -698,7 +698,7 @@ items:
             value: 20m
           - name: PROFILE_CAPACITY
             value: '1'
-          image: icr.io/obs/armada-storage-secret:v1.2.8
+          image: icr.io/obs/armada-storage-secret:v1.2.10 
           imagePullPolicy: Always
           name: storage-secret-sidecar
           resources:
@@ -969,7 +969,7 @@ items:
             value: 20m
           - name: PROFILE_CAPACITY
             value: '1'
-          image: icr.io/obs/armada-storage-secret:v1.2.8
+          image: icr.io/obs/armada-storage-secret:v1.2.10 
           imagePullPolicy: Always
           name: storage-secret-sidecar
           resources:
