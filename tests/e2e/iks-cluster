@@ -9,6 +9,7 @@
 # encoding: utf-8
 
 # E2ETEST_API_KEY=${E2ETEST_API_KEY:-"/Users/nkashyap/.bluemix/stg-stge2etest.key"}
+set -x
 E2E_TEST_SETUP="$EXECPATH/e2e-setup.out"
 
 default_IC_RES_GRP="vpc-e2e-test"
@@ -31,8 +32,8 @@ CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONF_DIR="$(dirname "$CUR_DIR")"/conf
 
 SLEEP_TIME=60 # Seconds
-CLUSTER_STATE_TIMEOUT=39  # 30Mins
-WORKER_STATE_TIMEOUT=90   # 90Mins
+CLUSTER_STATE_TIMEOUT=50  # 30Mins
+WORKER_STATE_TIMEOUT=90  # 90Mins
 WORKER_PROVISION_TIMEOUT=30
 
 # kubernetes / openshift
@@ -406,6 +407,7 @@ function cluster_create_vpc {
 }
 
 function check_cluster_state {
+    set -x
     if [[ $# -ne 1 ]]; then
         echo "${FUNCNAME[0]}: Invalida parameter. Provide cluster name"
         return 1
