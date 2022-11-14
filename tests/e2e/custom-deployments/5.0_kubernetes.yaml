@@ -18,7 +18,7 @@ items:
     annotations:
       razee.io/build-url: (( grab $BUILD_URL ))
       razee.io/source-url: (( grab $REPO_SOURCE_URL ))
-      version: (( grab $BUILD_VERSION || "dev" ))
+      version: 5.0.0_1441
     labels:
       addonmanager.kubernetes.io/mode: Reconcile
       app: ibm-vpc-block-csi-driver
