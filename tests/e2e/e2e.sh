@@ -146,11 +146,11 @@ set -x
 SNAP_ADDON_VERSION=5.0
 compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $SNAP_ADDON_VERSION)?1 : 0 }"`
 echo $compare
-if [[ $compare -eq 1 ]]; then
+#if [[ $compare -eq 1 ]]; then
 	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e -- -e2e-verify-service-account=false
 	rc2=$?
 	echo "Exit status for snapshot test: $rc2"
-fi
+#fi
 
 set -e
 if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 ]]; then
