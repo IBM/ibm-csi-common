@@ -578,7 +578,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.0
+          image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.6.0
           imagePullPolicy: Always
           lifecycle:
             preStop:
@@ -618,7 +618,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: ambikanair/ibm-vpc-block-csi-driver:pr
+          image: ambikanair/ibm-vpc-block-csi-driver:1.25
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
@@ -673,7 +673,7 @@ items:
             readOnly: true
         - args:
           - --csi-address=/csi/csi.sock
-          image: k8s.gcr.io/sig-storage/livenessprobe:v2.6.0
+          image: k8s.gcr.io/sig-storage/livenessprobe:v2.8.0
           name: liveness-probe
           resources:
             limits:
@@ -698,7 +698,7 @@ items:
             value: 20m
           - name: PROFILE_CAPACITY
             value: '1'
-          image: icr.io/obs/armada-storage-secret:v1.2.10 
+          image: icr.io/obs/armada-storage-secret:v1.2.10
           imagePullPolicy: Always
           name: storage-secret-sidecar
           resources:
@@ -796,7 +796,7 @@ items:
           - --csi-address=/csi/csi.sock
           - --timeout=900s
           - --leader-election=false
-          image: k8s.gcr.io/sig-storage/csi-snapshotter:v6.0.1
+          image: k8s.gcr.io/sig-storage/csi-snapshotter:v6.1.0
           imagePullPolicy: Always
           name: csi-snapshotter
           resources:
@@ -820,7 +820,7 @@ items:
           env:
           - name: ADDRESS
             value: /csi/csi.sock
-          image: k8s.gcr.io/sig-storage/csi-provisioner:v3.2.1
+          image: k8s.gcr.io/sig-storage/csi-provisioner:v3.3.0
           imagePullPolicy: Always
           name: csi-provisioner
           resources:
@@ -843,7 +843,7 @@ items:
           - --worker-threads=15
           - --kube-api-qps=5.0
           - --kube-api-burst=10
-          image: k8s.gcr.io/sig-storage/csi-attacher:v3.5.0
+          image: k8s.gcr.io/sig-storage/csi-attacher:v4.0.0
           imagePullPolicy: Always
           name: csi-attacher
           resources:
@@ -864,7 +864,7 @@ items:
           - --csi-address=/csi/csi.sock
           - --timeout=900s
           - --handle-volume-inuse-error=false
-          image: k8s.gcr.io/sig-storage/csi-resizer:v1.5.0
+          image: k8s.gcr.io/sig-storage/csi-resizer:v1.6.0
           imagePullPolicy: Always
           name: csi-resizer
           resources:
@@ -882,7 +882,7 @@ items:
             name: socket-dir
         - args:
           - --csi-address=/csi/csi.sock
-          image: k8s.gcr.io/sig-storage/livenessprobe:v2.6.0
+          image: k8s.gcr.io/sig-storage/livenessprobe:v2.8.0
           name: liveness-probe
           resources:
             limits:
@@ -926,7 +926,7 @@ items:
           envFrom:
           - configMapRef:
               name: ibm-vpc-block-csi-configmap
-          image: ambikanair/ibm-vpc-block-csi-driver:pr
+          image: ambikanair/ibm-vpc-block-csi-driver:1.25
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 5
