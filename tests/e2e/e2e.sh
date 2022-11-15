@@ -135,11 +135,11 @@ go get github.com/onsi/ginkgo/v2
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@latest
 
 set +e
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e | tee -a block-vpc-csi-ginkgo-log.txt
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?
 echo "Exit status for basic volume test: $rc1"
 
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e | tee -a block-vpc-csi-volume-resize-ginkgo-log.txt
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 
@@ -149,7 +149,7 @@ SNAP_ADDON_VERSION=5.0
 compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $SNAP_ADDON_VERSION)?1 : 0 }"`
 echo $compare
 if [[ $compare -eq 1 ]]; then
-	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e | tee -a block-vpc-csi-snapshot-log.txt
+	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e -- -e2e-verify-service-account=false
 	rc2=$?
 	echo "Exit status for snapshot test: $rc2"
 fi
