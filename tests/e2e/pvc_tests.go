@@ -17,6 +17,7 @@ package e2e
 
 import (
 	"fmt"
+	admissionapi "k8s.io/pod-security-admission/api"
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
@@ -38,7 +39,7 @@ var fpointer *os.File
 
 var _ = Describe("[ics-e2e] [sc] [with-deploy] Dynamic Provisioning for all SC with Deployment", func() {
 	f := framework.NewDefaultFramework("ics-e2e-deploy")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs        clientset.Interface
 		ns        *v1.Namespace
