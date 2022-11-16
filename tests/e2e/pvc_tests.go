@@ -138,7 +138,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Dynamic Provisioning for all SC w
 
 var _ = Describe("[ics-e2e] [sc] [with-pods] Dynamic Provisioning for all SC with PODs", func() {
 	f := framework.NewDefaultFramework("ics-e2e-pods")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs        clientset.Interface
 		ns        *v1.Namespace
@@ -288,7 +288,7 @@ var _ = Describe("[ics-e2e] [sc] [with-pods] Dynamic Provisioning for all SC wit
 
 var _ = Describe("[ics-e2e] [sc] [with-statefulset] Dynamic Provisioning using statefulsets", func() {
 	f := framework.NewDefaultFramework("ics-e2e-statefulsets")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs clientset.Interface
 		ns *v1.Namespace
@@ -347,7 +347,7 @@ var _ = Describe("[ics-e2e] [sc] [with-statefulset] Dynamic Provisioning using s
 
 var _ = Describe("[ics-e2e] [node-drain] [with-pods] Dynamic Provisioning using statefulsets", func() {
 	f := framework.NewDefaultFramework("ics-e2e-statefulsets")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs clientset.Interface
 		ns *v1.Namespace
@@ -406,7 +406,7 @@ var _ = Describe("[ics-e2e] [node-drain] [with-pods] Dynamic Provisioning using 
 
 var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", func() {
 	f := framework.NewDefaultFramework("ics-e2e-pods")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs        clientset.Interface
 		ns        *v1.Namespace
@@ -470,7 +470,7 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 
 var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func() {
 	f := framework.NewDefaultFramework("ics-e2e-snap")
-
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs          clientset.Interface
 		snapshotrcs restclientset.Interface
