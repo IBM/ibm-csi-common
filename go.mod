@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/IBM/ibmcloud-volume-interface v1.0.1-beta5
-	github.com/IBM/ibmcloud-volume-vpc v1.0.1-beta7
+	github.com/IBM/ibmcloud-volume-vpc v1.0.2-beta1
 	github.com/container-storage-interface/spec v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible
@@ -13,7 +13,6 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.5
-	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
