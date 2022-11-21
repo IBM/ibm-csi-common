@@ -76,6 +76,7 @@ func (f *FakeNodeMounter) PathExists(pathname string) (bool, error) {
 }
 
 // NewSafeFormatAndMount ...
-func (f *FakeNodeMounter) NewSafeFormatAndMount() *mount.SafeFormatAndMount {
-	return NewFakeSafeMounter()
+func (f *FakeNodeMounter) GetSafeFormatAndMount() *mount.SafeFormatAndMount {
+	return f.SafeFormatAndMount
+}
 }
