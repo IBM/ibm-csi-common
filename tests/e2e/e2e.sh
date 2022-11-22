@@ -129,10 +129,10 @@ echo "Running E2E for region: [$TEST_ENV]"
 echo "                  Path: `pwd`"
 
 # E2E Execution
-go clean -modcache
-export GO111MODULE=on
+#go clean -modcache
+#export GO111MODULE=on
 go get github.com/onsi/ginkgo/v2
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@latest
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@2.1.6
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?

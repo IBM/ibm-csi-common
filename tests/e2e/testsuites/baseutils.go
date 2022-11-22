@@ -768,7 +768,7 @@ func (t *TestDeployment) DeletePodAndWait() {
 		return
 	}
 	framework.Logf("Waiting for pod [%s/%s] to be fully deleted", t.namespace.Name, t.podName)
-	err = k8sDevPod.WaitForPodNotFoundInNamespace(t.client, t.podName, t.namespace.Namei, 60*time.Second)
+	err = k8sDevPod.WaitForPodNotFoundInNamespace(t.client, t.podName, t.namespace.Name, 60*time.Second)
 	if err != nil {
 		framework.ExpectNoError(fmt.Errorf("pod [%s] error waiting for delete: %v", t.podName, err))
 	}
