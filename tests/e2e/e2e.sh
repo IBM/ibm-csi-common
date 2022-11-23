@@ -131,8 +131,7 @@ echo "                  Path: `pwd`"
 # E2E Execution
 go clean -modcache
 export GO111MODULE=on
-go get -u github.com/onsi/ginkgo/ginkgo
-
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.1.6
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?

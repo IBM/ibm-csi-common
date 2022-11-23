@@ -27,7 +27,7 @@ import (
 
 	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -768,11 +768,9 @@ func (t *TestDeployment) DeletePodAndWait() {
 		return
 	}
 	framework.Logf("Waiting for pod [%s/%s] to be fully deleted", t.namespace.Name, t.podName)
-	err = k8sDevPod.WaitForPodNoLongerRunningInNamespace(t.client, t.podName, t.namespace.Name)
+	err = k8sDevPod.WaitForPodNotFoundInNamespace(t.client, t.podName, t.namespace.Name, 60*time.Second)
 	if err != nil {
-		if !apierrs.IsNotFound(err) {
-			framework.ExpectNoError(fmt.Errorf("pod [%s] error waiting for delete: %v", t.podName, err))
-		}
+		framework.ExpectNoError(fmt.Errorf("pod [%s] error waiting for delete: %v", t.podName, err))
 	}
 }
 
