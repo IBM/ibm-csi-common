@@ -161,7 +161,7 @@ func GetTestProvider(t *testing.T, logger *zap.Logger) (*IBMCloudStorageProvider
 		ProviderName:   "vpc-classic",
 		ProviderConfig: conf,
 		Registry:       registry,
-		ClusterInfo:    nil,
+		ClusterID:      "",
 	}
 	logger.Info("Successfully read provider configuration...")
 	return cloudProvider, nil
@@ -192,9 +192,4 @@ func (ficp *FakeIBMCloudStorageProvider) GetProviderSession(ctx context.Context,
 // GetConfig ...
 func (ficp *FakeIBMCloudStorageProvider) GetConfig() *config.Config {
 	return ficp.ProviderConfig
-}
-
-// GetClusterInfo ...
-func (ficp *FakeIBMCloudStorageProvider) GetClusterInfo() *utils.ClusterInfo {
-	return ficp.ClusterInfo
 }
