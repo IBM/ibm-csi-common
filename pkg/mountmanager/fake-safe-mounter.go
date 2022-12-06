@@ -79,3 +79,11 @@ func (f *FakeNodeMounter) PathExists(pathname string) (bool, error) {
 func (f *FakeNodeMounter) NewSafeFormatAndMount() *mount.SafeFormatAndMount {
 	return NewFakeSafeMounter()
 }
+
+// Resize returns boolean and error if any
+func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, error) {
+	if devicePath == "fake" {
+		return true, nil
+	}
+	return false, nil
+}
