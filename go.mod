@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.18
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.1.1-0.20221219064118-1af47553b16d
-	github.com/IBM/ibmcloud-volume-vpc v1.1.1-0.20221219064553-26d941f49b1d
+	github.com/IBM/ibmcloud-volume-interface v1.1.1
+	github.com/IBM/ibmcloud-volume-vpc v1.1.1
 	github.com/container-storage-interface/spec v1.6.0
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -30,8 +30,8 @@ require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/IBM-Cloud/ibm-cloud-cli-sdk v0.6.7 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.9.1 // indirect
-	github.com/IBM/secret-common-lib v1.1.1-0.20221219062640-e70d012f4d0f // indirect
-	github.com/IBM/secret-utils-lib v1.1.1-0.20221216092303-7080a26cfe71 // indirect
+	github.com/IBM/secret-common-lib v1.1.1 // indirect
+	github.com/IBM/secret-utils-lib v1.1.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef // indirect
