@@ -18,9 +18,9 @@ const (
 )
 
 type CBR struct {
-	VPC        []string
-	Address    []string
-	ServiceRef []string
+	VPC        []string `json:"VPC,omitempty"`        //The VPCs allowed in the zone. Input in the form 'value,value,...' where value is VPC CRN
+	Address    []string `json:"Address,omitempty"`    //The list of addresses in the zone. Only addresses of type 'ipAddress', 'ipRange', and 'subnet' are allowed in a comma delimited format.
+	ServiceRef []string `json:"ServiceRef,omitempty"` //The service refs in the zone. Input in the form 'value,value,...'
 }
 
 // CBRInterface ...
@@ -84,36 +84,11 @@ func (cbrInit *CBRInit) CreateCBRZone(name string, cbrInput CBR) (string, error)
 	// begin-create_zone
 	var addressIntf []contextbasedrestrictionsv1.AddressIntf
 	var vpcAddressModel *contextbasedrestrictionsv1.AddressVPC
-	var ipAddressModel *contextbasedrestrictionsv1.AddressIPAddress
-	var ipRangeAddressModel *contextbasedrestrictionsv1.AddressIPAddressRange
-	var subnetAddressModel *contextbasedrestrictionsv1.AddressSubnet
 	var serviceRefAddressModel *contextbasedrestrictionsv1.AddressServiceRef
 
 	if len(cbrInput.Address) != 0 {
 		for _, address := range cbrInput.Address {
-			if strings.Contains(address, "-") { //If it is address range
-				ipRangeAddressModel = &contextbasedrestrictionsv1.AddressIPAddressRange{
-					Type:  core.StringPtr("ipRange"),
-					Value: core.StringPtr(address),
-				}
-
-				addressIntf = append(addressIntf, ipRangeAddressModel)
-			} else if strings.Contains(address, "/") { //If it is subnet
-				subnetAddressModel = &contextbasedrestrictionsv1.AddressSubnet{
-					Type:  core.StringPtr("subnet"),
-					Value: core.StringPtr(address),
-				}
-
-				addressIntf = append(addressIntf, subnetAddressModel)
-			} else { //If it is IPAddress
-
-				ipAddressModel = &contextbasedrestrictionsv1.AddressIPAddress{
-					Type:  core.StringPtr("ipAddress"),
-					Value: core.StringPtr(address),
-				}
-
-				addressIntf = append(addressIntf, ipAddressModel)
-			}
+			addressIntf = append(addressIntf, getAddressIntf(address))
 		}
 	}
 
@@ -160,6 +135,34 @@ func (cbrInit *CBRInit) CreateCBRZone(name string, cbrInput CBR) (string, error)
 	zoneID := *zone.ID
 
 	return zoneID, nil
+}
+
+func getAddressIntf(address string) contextbasedrestrictionsv1.AddressIntf {
+
+	var ipAddressModel *contextbasedrestrictionsv1.AddressIPAddress
+	var ipRangeAddressModel *contextbasedrestrictionsv1.AddressIPAddressRange
+	var subnetAddressModel *contextbasedrestrictionsv1.AddressSubnet
+
+	if strings.Contains(address, "-") { //If it is address range
+		ipRangeAddressModel = &contextbasedrestrictionsv1.AddressIPAddressRange{
+			Type:  core.StringPtr("ipRange"),
+			Value: core.StringPtr(address),
+		}
+		return ipRangeAddressModel
+	} else if strings.Contains(address, "/") { //If it is subnet
+		subnetAddressModel = &contextbasedrestrictionsv1.AddressSubnet{
+			Type:  core.StringPtr("subnet"),
+			Value: core.StringPtr(address),
+		}
+		return subnetAddressModel
+	} else { //If it is IPAddress
+
+		ipAddressModel = &contextbasedrestrictionsv1.AddressIPAddress{
+			Type:  core.StringPtr("ipAddress"),
+			Value: core.StringPtr(address),
+		}
+		return ipAddressModel
+	}
 }
 
 func (cbrInit *CBRInit) CreateCBRRuleForContainerK8sService(zoneID string) (string, error) {
