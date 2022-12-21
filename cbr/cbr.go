@@ -150,7 +150,6 @@ func (cbrInit *CBRInit) CreateCBRZone(name string, cbrInput CBR) (string, error)
 
 	zone, _, err := cbrInit.contextBasedRestrictionsService.CreateZone(createZoneOptions)
 	if err != nil {
-		fmt.Println("err: %v", err)
 		return "", err
 	}
 
