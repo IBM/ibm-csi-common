@@ -105,10 +105,17 @@ func (f *FakeNodeMounterWithCustomActions) MakeFile(pathname string) error {
 
 // Resize returns boolean and error if any
 func (f *FakeNodeMounterWithCustomActions) Resize(devicePath string, deviceMountPath string) (bool, error) {
-	if devicePath == "fake" {
-		return true, nil
+	r := mount.NewResizeFs(f.GetSafeFormatAndMount().Exec)
+	needResize, err := r.NeedResize(devicePath, deviceMountPath)
+	if err != nil {
+		return false, err
 	}
-	return false, nil
+	if needResize {
+		if _, err := r.Resize(devicePath, deviceMountPath); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
 }
 
 // PathExists ...
@@ -149,15 +156,8 @@ func NewFakeSafeMounterWithCustomActions(actionList []testingexec.FakeCommandAct
 
 // Resize returns boolean and error if any
 func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (bool, error) {
-	r := mount.NewResizeFs(f.GetSafeFormatAndMount().Exec)
-	needResize, err := r.NeedResize(devicePath, deviceMountPath)
-	if err != nil {
-		return false, err
+	if devicePath == "fake" {
+		return true, nil
 	}
-	if needResize {
-		if _, err := r.Resize(devicePath, deviceMountPath); err != nil {
-			return false, err
-		}
-	}
-	return true, nil
+	return false, nil
 }
