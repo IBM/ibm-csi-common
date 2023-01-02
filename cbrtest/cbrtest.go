@@ -14,7 +14,7 @@ func main() {
 
 	var err error
 
-	cbrContext := cbr.NewCBRInterface("xxx", "xxx", "xxx")
+	cbrContext := cbr.NewStorageCBR("xxx", "xxx", "xxx")
 
 	cbrInput := cbr.CBR{
 		VPC: []string{"xxx",

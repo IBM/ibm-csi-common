@@ -48,15 +48,15 @@ type CBRInterface interface {
 	DeleteCBRRuleZone(ruleID string, zoneID string) error
 }
 
-// CBRInit ...
-type CBRInit struct {
+// StorageCBR ...
+type StorageCBR struct {
 	accountID                       string
 	resourceGroupID                 string
 	contextBasedRestrictionsService *contextbasedrestrictionsv1.ContextBasedRestrictionsV1
 }
 
 // NewCBRInterface ...
-func NewCBRInterface(apiKey string, accountID string, resourceGroupID string) CBRInterface {
+func NewStorageCBR(apiKey string, accountID string, resourceGroupID string) *StorageCBR {
 
 	contextBasedRestrictionsServiceOptions := &contextbasedrestrictionsv1.ContextBasedRestrictionsV1Options{
 		Authenticator: &core.IamAuthenticator{
@@ -71,14 +71,14 @@ func NewCBRInterface(apiKey string, accountID string, resourceGroupID string) CB
 		return nil
 	}
 
-	return &CBRInit{
+	return &StorageCBR{
 		accountID:                       accountID,
 		resourceGroupID:                 resourceGroupID,
 		contextBasedRestrictionsService: contextBasedRestrictionsService,
 	}
 }
 
-func (cbrInit *CBRInit) CreateCBRZone(name string, cbrInput CBR) (string, error) {
+func (storageCBR *StorageCBR) CreateCBRZone(name string, cbrInput CBR) (string, error) {
 	fmt.Println("\nCreateZone() result:")
 
 	// begin-create_zone
@@ -97,7 +97,7 @@ func (cbrInit *CBRInit) CreateCBRZone(name string, cbrInput CBR) (string, error)
 			serviceRefAddressModel = &contextbasedrestrictionsv1.AddressServiceRef{
 				Type: core.StringPtr("serviceRef"),
 				Ref: &contextbasedrestrictionsv1.ServiceRefValue{
-					AccountID:   core.StringPtr(cbrInit.accountID),
+					AccountID:   core.StringPtr(storageCBR.accountID),
 					ServiceName: core.StringPtr(serviceRef),
 				},
 			}
@@ -117,13 +117,13 @@ func (cbrInit *CBRInit) CreateCBRZone(name string, cbrInput CBR) (string, error)
 		}
 	}
 
-	createZoneOptions := cbrInit.contextBasedRestrictionsService.NewCreateZoneOptions()
+	createZoneOptions := storageCBR.contextBasedRestrictionsService.NewCreateZoneOptions()
 	createZoneOptions.SetName(name)
-	createZoneOptions.SetAccountID(cbrInit.accountID)
+	createZoneOptions.SetAccountID(storageCBR.accountID)
 	createZoneOptions.SetDescription("Zone-" + name)
 	createZoneOptions.SetAddresses(addressIntf)
 
-	zone, _, err := cbrInit.contextBasedRestrictionsService.CreateZone(createZoneOptions)
+	zone, _, err := storageCBR.contextBasedRestrictionsService.CreateZone(createZoneOptions)
 	if err != nil {
 		return "", err
 	}
@@ -165,35 +165,35 @@ func getAddressIntf(address string) contextbasedrestrictionsv1.AddressIntf {
 	}
 }
 
-func (cbrInit *CBRInit) CreateCBRRuleForContainerK8sService(zoneID string) (string, error) {
+func (storageCBR *StorageCBR) CreateCBRRuleForContainerK8sService(zoneID string) (string, error) {
 
-	ruleID, err := cbrInit.CreateCBRRule(zoneID, kubernetes_service)
-
-	return ruleID, err
-}
-
-func (cbrInit *CBRInit) CreateCBRRuleForISService(zoneID string) (string, error) {
-
-	ruleID, err := cbrInit.CreateCBRRule(zoneID, is_service)
+	ruleID, err := storageCBR.CreateCBRRule(zoneID, kubernetes_service)
 
 	return ruleID, err
 }
 
-func (cbrInit *CBRInit) CreateCBRRuleForKMSService(zoneID string) (string, error) {
+func (storageCBR *StorageCBR) CreateCBRRuleForISService(zoneID string) (string, error) {
 
-	ruleID, err := cbrInit.CreateCBRRule(zoneID, keyProtect_service)
-
-	return ruleID, err
-}
-
-func (cbrInit *CBRInit) CreateCBRRuleForCOSService(zoneID string) (string, error) {
-
-	ruleID, err := cbrInit.CreateCBRRule(zoneID, cos_service)
+	ruleID, err := storageCBR.CreateCBRRule(zoneID, is_service)
 
 	return ruleID, err
 }
 
-func (cbrInit *CBRInit) CreateCBRRule(zoneID string, serviceName string) (string, error) {
+func (storageCBR *StorageCBR) CreateCBRRuleForKMSService(zoneID string) (string, error) {
+
+	ruleID, err := storageCBR.CreateCBRRule(zoneID, keyProtect_service)
+
+	return ruleID, err
+}
+
+func (storageCBR *StorageCBR) CreateCBRRuleForCOSService(zoneID string) (string, error) {
+
+	ruleID, err := storageCBR.CreateCBRRule(zoneID, cos_service)
+
+	return ruleID, err
+}
+
+func (storageCBR *StorageCBR) CreateCBRRule(zoneID string, serviceName string) (string, error) {
 	fmt.Println("\nCreateRule() result:")
 	// begin-create_rule
 
@@ -210,7 +210,7 @@ func (cbrInit *CBRInit) CreateCBRRule(zoneID string, serviceName string) (string
 		Attributes: []contextbasedrestrictionsv1.ResourceAttribute{
 			{
 				Name:  core.StringPtr("accountId"),
-				Value: core.StringPtr(cbrInit.accountID),
+				Value: core.StringPtr(storageCBR.accountID),
 			},
 			{
 				Name:  core.StringPtr("serviceName"),
@@ -218,17 +218,17 @@ func (cbrInit *CBRInit) CreateCBRRule(zoneID string, serviceName string) (string
 			},
 			{
 				Name:  core.StringPtr("resourceGroupId"),
-				Value: core.StringPtr(cbrInit.resourceGroupID),
+				Value: core.StringPtr(storageCBR.resourceGroupID),
 			},
 		},
 	}
 
-	createRuleOptions := cbrInit.contextBasedRestrictionsService.NewCreateRuleOptions()
+	createRuleOptions := storageCBR.contextBasedRestrictionsService.NewCreateRuleOptions()
 	createRuleOptions.SetDescription(serviceName + " rule")
 	createRuleOptions.SetContexts([]contextbasedrestrictionsv1.RuleContext{*ruleContextModel})
 	createRuleOptions.SetResources([]contextbasedrestrictionsv1.Resource{*resourceModel})
 	createRuleOptions.SetEnforcementMode(contextbasedrestrictionsv1.CreateRuleOptionsEnforcementModeEnabledConst)
-	rule, _, err := cbrInit.contextBasedRestrictionsService.CreateRule(createRuleOptions)
+	rule, _, err := storageCBR.contextBasedRestrictionsService.CreateRule(createRuleOptions)
 	if err != nil {
 		return "", err
 	}
@@ -242,16 +242,16 @@ func (cbrInit *CBRInit) CreateCBRRule(zoneID string, serviceName string) (string
 	return ruleID, nil
 }
 
-func (cbrInit *CBRInit) DeleteCBRRuleZone(ruleID string, zoneID string) error {
+func (storageCBR *StorageCBR) DeleteCBRRuleZone(ruleID string, zoneID string) error {
 	var err error
 
 	if len(ruleID) != 0 {
 		// begin-delete_rule
-		deleteRuleOptions := cbrInit.contextBasedRestrictionsService.NewDeleteRuleOptions(
+		deleteRuleOptions := storageCBR.contextBasedRestrictionsService.NewDeleteRuleOptions(
 			ruleID,
 		)
 
-		response, err := cbrInit.contextBasedRestrictionsService.DeleteRule(deleteRuleOptions)
+		response, err := storageCBR.contextBasedRestrictionsService.DeleteRule(deleteRuleOptions)
 		if err != nil {
 			fmt.Printf("Error deleting rule : " + err.Error())
 			return err
@@ -267,11 +267,11 @@ func (cbrInit *CBRInit) DeleteCBRRuleZone(ruleID string, zoneID string) error {
 
 	if len(zoneID) != 0 {
 		// begin-delete_zone
-		deleteZoneOptions := cbrInit.contextBasedRestrictionsService.NewDeleteZoneOptions(
+		deleteZoneOptions := storageCBR.contextBasedRestrictionsService.NewDeleteZoneOptions(
 			zoneID,
 		)
 
-		response, err := cbrInit.contextBasedRestrictionsService.DeleteZone(deleteZoneOptions)
+		response, err := storageCBR.contextBasedRestrictionsService.DeleteZone(deleteZoneOptions)
 		if err != nil {
 			fmt.Printf("Error deleting rule : " + err.Error())
 			return err
