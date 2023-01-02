@@ -32,6 +32,7 @@ type Mounter interface {
 	MakeFile(path string) error
 	MakeDir(path string) error
 	PathExists(path string) (bool, error)
+	Resize(string, string) (bool, error)
 }
 
 // NodeMounter implements Mounter.
