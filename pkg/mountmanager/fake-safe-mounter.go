@@ -103,6 +103,14 @@ func (f *FakeNodeMounterWithCustomActions) MakeFile(pathname string) error {
 	return nil
 }
 
+// Resize returns boolean and error if any
+func (f *FakeNodeMounterWithCustomActions) Resize(devicePath string, deviceMountPath string) (bool, error) {
+	if devicePath == "fake" {
+		return true, nil
+	}
+	return false, nil
+}
+
 // PathExists ...
 func (f *FakeNodeMounterWithCustomActions) PathExists(pathname string) (bool, error) {
 	if pathname == "fake" {
