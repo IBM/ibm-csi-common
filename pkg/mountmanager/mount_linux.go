@@ -57,8 +57,8 @@ func (m *NodeMounter) PathExists(path string) (bool, error) {
 }
 
 // NewSafeFormatAndMount returns the new object of SafeFormatAndMount.
-func (m *NodeMounter) GetSafeFormatAndMount() *mount.SafeFormatAndMount {
-	return m.SafeFormatAndMount
+func (m *NodeMounter) NewSafeFormatAndMount() *mount.SafeFormatAndMount {
+	return newSafeMounter()
 }
 
 // Resize returns boolean and error if any

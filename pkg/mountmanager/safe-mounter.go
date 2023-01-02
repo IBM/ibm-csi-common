@@ -28,7 +28,7 @@ type mountInterface = mount.Interface
 type Mounter interface {
 	mountInterface
 
-	GetSafeFormatAndMount() *mount.SafeFormatAndMount
+	NewSafeFormatAndMount() *mount.SafeFormatAndMount
 	MakeFile(path string) error
 	MakeDir(path string) error
 	PathExists(path string) (bool, error)
