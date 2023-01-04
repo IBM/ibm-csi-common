@@ -62,8 +62,8 @@ github.com/IBM/go-sdk-core/v5 v5.9.1 h1:06pXbD9Rgmqqe2HA5YAeQbB4eYRRFgIoOT+Kh3cp
 github.com/IBM/go-sdk-core/v5 v5.9.1/go.mod h1:axE2JrRq79gIJTjKPBwV6gWHswvVptBjbcvvCPIxARM=
 github.com/IBM/ibmcloud-volume-interface v1.1.1 h1:RlwEj8bq+aASdb90Lng4rINMYR96/G6yUvyk/ATmptA=
 github.com/IBM/ibmcloud-volume-interface v1.1.1/go.mod h1:coaQ/FD5NRgFfaAnjkoxv+e6MNSl2UAeQwC38szQ5G8=
-github.com/IBM/ibmcloud-volume-vpc v1.1.1 h1:VAYrrE3pFSQTauW2s6wnwkkUhPvkTd0rsFl13u2OdF0=
-github.com/IBM/ibmcloud-volume-vpc v1.1.1/go.mod h1:M3ouKpMDAh2IRtUrVRHRSiwTUOVlC8vFUJsxkYTWNZM=
+github.com/IBM/ibmcloud-volume-vpc v1.1.2 h1:LbgRC/CQRptt6+lfg6k/LL2W2GyDNrxirzJXZtDY9ik=
+github.com/IBM/ibmcloud-volume-vpc v1.1.2/go.mod h1:M3ouKpMDAh2IRtUrVRHRSiwTUOVlC8vFUJsxkYTWNZM=
 github.com/IBM/secret-common-lib v1.1.1 h1:Ijm7lRnbChQzFtDKKwsUg9ojxQ2KFw06hD/P+bmso10=
 github.com/IBM/secret-common-lib v1.1.1/go.mod h1:XAMi3upx2DZRblj8UII+LRopY5lpW1sd3d/vs92DWoA=
 github.com/IBM/secret-utils-lib v1.1.1 h1:hipBsSa7FqWTI015BaAmxEwBIL2ZffGB6vrF4GfpYtI=
@@ -390,8 +390,6 @@ github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3I
 github.com/opencontainers/selinux v1.10.0 h1:rAiKF8hTcgLI3w0DHm6i0ylVVcOrlgR1kK99DRLDhyU=
 github.com/opencontainers/selinux v1.10.0/go.mod h1:2i0OySw99QjzBBQByd1Gr9gSjvuho1lHsJxIJ3gGbJI=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
-github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 h1:i5VIxp6QB8oWZ8IkK8zrDgeT6ORGIUeiN+61iETwJbI=
-github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0/go.mod h1:4xpMLz7RBWyB+ElzHu8Llua96TRCB3YwX+l5EP1wmHk=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
