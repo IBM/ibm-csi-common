@@ -63,7 +63,7 @@ func (m *NodeMounter) GetSafeFormatAndMount() *mount.SafeFormatAndMount {
 
 // Resize returns boolean and error if any
 func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, error) {
-	r := mount.NewResizeFs(m.NewSafeFormatAndMount().Exec)
+	r := mount.NewResizeFs(m.GetSafeFormatAndMount().Exec)
 	needResize, err := r.NeedResize(devicePath, deviceMountPath)
 	if err != nil {
 		return false, err
