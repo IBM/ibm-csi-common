@@ -26,6 +26,7 @@ import (
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider/fake"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
+	sp "github.com/IBM/secret-utils-lib/pkg/secret_provider"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
 	"go.uber.org/zap"
@@ -152,7 +153,8 @@ func GetTestProvider(t *testing.T, logger *zap.Logger) (*IBMCloudStorageProvider
 	}
 
 	// Prepare provider registry
-	registry, err := provider_util.InitProviders(vpcBlockConfig, logger)
+	spObject := new(sp.FakeSecretProvider)
+	registry, err := provider_util.InitProviders(vpcBlockConfig, spObject, logger)
 	if err != nil {
 		logger.Fatal("Error configuring providers", local.ZapError(err))
 	}
