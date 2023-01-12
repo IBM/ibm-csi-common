@@ -21,14 +21,13 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider/fake"
 	"github.com/IBM/ibmcloud-volume-interface/provider/local"
-	sp "github.com/IBM/secret-utils-lib/pkg/secret_provider"
 	provider_util "github.com/IBM/ibmcloud-volume-vpc/block/utils"
 	vpcconfig "github.com/IBM/ibmcloud-volume-vpc/block/vpcconfig"
+	sp "github.com/IBM/secret-utils-lib/pkg/secret_provider"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/net/context"
@@ -173,7 +172,7 @@ func GetTestProvider(t *testing.T, logger *zap.Logger) (*IBMCloudStorageProvider
 type FakeIBMCloudStorageProvider struct {
 	ProviderName   string
 	ProviderConfig *config.Config
-	ClusterInfo    *utils.ClusterInfo
+	ClusterID      string
 	fakeSession    *fake.FakeSession
 }
 
@@ -183,7 +182,7 @@ var _ CloudProviderInterface = &FakeIBMCloudStorageProvider{}
 func NewFakeIBMCloudStorageProvider(configPath string, logger *zap.Logger) (*FakeIBMCloudStorageProvider, error) {
 	return &FakeIBMCloudStorageProvider{ProviderName: "FakeIBMCloudStorageProvider",
 		ProviderConfig: &config.Config{VPC: &config.VPCProviderConfig{VPCBlockProviderName: "VPCFakeProvider"}},
-		ClusterInfo:    &utils.ClusterInfo{}, fakeSession: &fake.FakeSession{}}, nil
+		ClusterID:      "fake-clusterID", fakeSession: &fake.FakeSession{}}, nil
 }
 
 // GetProviderSession ...
@@ -194,4 +193,9 @@ func (ficp *FakeIBMCloudStorageProvider) GetProviderSession(ctx context.Context,
 // GetConfig ...
 func (ficp *FakeIBMCloudStorageProvider) GetConfig() *config.Config {
 	return ficp.ProviderConfig
+}
+
+// GetClusterID ...
+func (ficp *FakeIBMCloudStorageProvider) GetClusterID() string {
+	return ficp.ClusterID
 }
