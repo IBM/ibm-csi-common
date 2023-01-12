@@ -28,4 +28,5 @@ import (
 type CloudProviderInterface interface {
 	GetProviderSession(ctx context.Context, logger *zap.Logger) (provider.Session, error)
 	GetConfig() *config.Config
+	GetClusterID() string
 }
