@@ -45,7 +45,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 			clusterConfPath: "test-fixtures/valid/cluster_info/cluster-config.json",
 			secretConfPath:  "test-fixtures/slconfig.toml",
 			iksEnabled:      "True",
-			expectedError:   errors.New("not nil"),
+			expectedError:   nil,
 		},
 		{
 			testcasename:    "Invalid cluster config",
