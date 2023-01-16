@@ -18,6 +18,7 @@
 package ibmcloudprovider
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
@@ -49,7 +50,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 		},
 		{
 			testcasename:    "Invalid cluster config",
-			clusterConfPath: "test-fixtures/invalid/cluster_info/cluster-config.json",
+			clusterConfPath: "test-fixtures/invalid/cluster_info/non-exist.json",
 			secretConfPath:  "test-fixtures/slconfig.toml",
 			iksEnabled:      "True",
 			expectedError:   errors.New("not nil"),
@@ -77,14 +78,13 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 			if err != nil {
 				t.Errorf("Failed to get current working directory, test related to read config will fail, error: %v", err)
 			}
+
 			clusterConfPath := filepath.Join(pwd, "..", "..", testcase.clusterConfPath)
 			_ = k8s_utils.FakeCreateCM(kc, clusterConfPath)
-			if err != nil {
-				t.Errorf("Error creating cm, this test case might fail")
-			}
 
 			secretConfPath := filepath.Join(pwd, "..", "..", testcase.secretConfPath)
 			_ = k8s_utils.FakeCreateSecret(kc, "DEFAULT", secretConfPath)
+
 			os.Setenv("IKS_ENABLED", testcase.iksEnabled)
 			spObject := new(sp.FakeSecretProvider)
 			_, err = NewIBMCloudStorageProvider("test", kc, spObject, logger)
@@ -97,7 +97,6 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 	}
 }
 
-/*
 func TestNewFakeIBMCloudStorageProvider(t *testing.T) {
 	// Creating test logger
 	logger, teardown := GetTestLogger(t)
@@ -128,10 +127,9 @@ func TestNewFakeIBMCloudStorageProvider(t *testing.T) {
 	cloudProviderConfig := ibmFakeCloudProvider.GetConfig()
 	assert.NotNil(t, cloudProviderConfig)
 
-	clusterInfo := ibmFakeCloudProvider.GetClusterInfo()
-	assert.NotNil(t, clusterInfo)
+	clusterID := ibmFakeCloudProvider.GetClusterID()
+	assert.NotNil(t, clusterID)
 }
-*/
 
 func TestCorrectEndpointURL(t *testing.T) {
 	testCases := []struct {

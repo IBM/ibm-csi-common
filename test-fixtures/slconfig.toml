@@ -25,5 +25,5 @@
   vpc_api_generation = 1
 
 [IKS]
-  iks_enabled = false
+  iks_enabled = true
   iks_block_provider_name = "iks-vpc-classic"
