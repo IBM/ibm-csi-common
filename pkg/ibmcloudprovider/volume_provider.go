@@ -84,7 +84,6 @@ func NewIBMCloudStorageProvider(clusterVolumeLabel string, k8sClient k8s_utils.K
 		APIConfig:    conf.API,
 		ServerConfig: conf.Server,
 	}
-	k8sClient, _ := k8s_utils.FakeGetk8sClientSet(logger)
 	// Prepare provider registry
 	registry, err := provider_util.InitProviders(vpcBlockConfig, k8sClient, logger)
 	if err != nil {

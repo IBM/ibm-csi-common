@@ -20,7 +20,7 @@ package ibmcloudprovider
 import (
 	"bytes"
 	"testing"
-
+	"github.com/IBM/secret-utils-lib/pkg/k8s_utils"
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider/fake"
@@ -151,8 +151,8 @@ func GetTestProvider(t *testing.T, logger *zap.Logger) (*IBMCloudStorageProvider
 	}
 
 	// Prepare provider registry
-	spObject := new(sp.FakeSecretProvider)
-	registry, err := provider_util.InitProviders(vpcBlockConfig, spObject, logger)
+        k8sClient, _ := k8s_utils.FakeGetk8sClientSet(logger)
+	registry, err := provider_util.InitProviders(vpcBlockConfig, k8sClient, logger)
 	if err != nil {
 		logger.Fatal("Error configuring providers", local.ZapError(err))
 	}
