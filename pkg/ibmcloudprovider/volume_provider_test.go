@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/IBM/secret-utils-lib/pkg/k8s_utils"
-	sp "github.com/IBM/secret-utils-lib/pkg/secret_provider"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -86,8 +85,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 			_ = k8s_utils.FakeCreateSecret(kc, "DEFAULT", secretConfPath)
 
 			os.Setenv("IKS_ENABLED", testcase.iksEnabled)
-			spObject := new(sp.FakeSecretProvider)
-			_, err = NewIBMCloudStorageProvider("test", kc, spObject, logger)
+			_, err = NewIBMCloudStorageProvider("test", kc, logger)
 			if testcase.expectedError != nil {
 				assert.NotNil(t, err)
 			} else {
