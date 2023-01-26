@@ -44,7 +44,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 			testcasename:    "Successful initialization of cloud storage provider",
 			clusterConfPath: "test-fixtures/valid/cluster_info/cluster-config.json",
 			secretConfPath:  "test-fixtures/slconfig.toml",
-			iksEnabled:      "True",
+			iksEnabled:      "false",
 			expectedError:   nil,
 		},
 		{
@@ -72,7 +72,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.testcasename, func(t *testing.T) {
-			kc, _ := k8s_utils.FakeGetk8sClientSet(logger)
+			kc, _ := k8s_utils.FakeGetk8sClientSet()
 			pwd, err := os.Getwd()
 			if err != nil {
 				t.Errorf("Failed to get current working directory, test related to read config will fail, error: %v", err)
@@ -85,7 +85,7 @@ func TestNewIBMCloudStorageProvider(t *testing.T) {
 			_ = k8s_utils.FakeCreateSecret(kc, "DEFAULT", secretConfPath)
 
 			os.Setenv("IKS_ENABLED", testcase.iksEnabled)
-			_, err = NewIBMCloudStorageProvider("test", kc, logger)
+			_, err = NewIBMCloudStorageProvider("test", &kc, logger)
 			if testcase.expectedError != nil {
 				assert.NotNil(t, err)
 			} else {
