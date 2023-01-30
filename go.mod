@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/IBM/ibmcloud-volume-interface v1.1.2-0.20230129233420-af776646ee5b
-	github.com/IBM/ibmcloud-volume-vpc v1.1.3-0.20230130050227-3f8d710d7c66
+	github.com/IBM/ibmcloud-volume-vpc v1.1.3-0.20230130063650-62d1fd32f8ba
 	github.com/IBM/secret-utils-lib v1.1.2-0.20230129232900-2c013a1ff593
 	github.com/container-storage-interface/spec v1.6.0
 	github.com/gofrs/uuid v4.2.0+incompatible
