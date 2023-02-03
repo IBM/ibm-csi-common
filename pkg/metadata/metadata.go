@@ -20,7 +20,6 @@ package metadata
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
@@ -85,11 +84,17 @@ func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMet
 	}
 
 	var workerID string
-	// In case of unmanaged cluster use label NodeInstanceIDLabel for workerID.
-	if os.Getenv(strings.ToUpper("IKS_ENABLED")) != "True" {
+
+	// If the cluster is satellite, the machin-type label equals to UPI
+	// For a satellite cluster, we fetch the workerID from instance ID labals, which is updated by vpc-node-label-updater (init container)
+	// For managed and IPI cluster, we fetch the workerID from ProviderID in node spec.
+	if nodeLabels[utils.MachineTypeLabel] == utils.UPI {
 		workerID = nodeLabels[utils.NodeInstanceIDLabel]
 	} else {
-		workerID = nodeLabels[utils.NodeWorkerIDLabel]
+		workerID = fetchInstanceID(node.Spec.ProviderID)
+		if workerID == "" {
+			return nil, fmt.Errorf("Unable to fetch instance ID, node provider ID - %s", node.Spec.ProviderID)
+		}
 	}
 
 	return &nodeMetadataManager{
@@ -109,4 +114,21 @@ func (manager *nodeMetadataManager) GetRegion() string {
 
 func (manager *nodeMetadataManager) GetWorkerID() string {
 	return manager.workerID
+}
+
+// fetchInstanceID fetches instance ID of the node from the node provider ID.
+func fetchInstanceID(providerID string) string {
+	// ProviderID looks like: ibm://c468d88aqwerytytytfe0f379bf9///qwertyvvnrja55g/<instance-id>
+	// ibm://<account-id>///<clusterID>/<Instance-ID>
+	s := strings.Split(providerID, "///")
+	if len(s) != 2 {
+		return ""
+	}
+
+	s = strings.Split(s[1], "/")
+	if len(s) != 2 {
+		return ""
+	}
+
+	return s[1]
 }

@@ -64,6 +64,12 @@ const (
 	// NodeInstanceIDLabel VPC ID label attached to satellite host
 	NodeInstanceIDLabel = "ibm-cloud.kubernetes.io/vpc-instance-id"
 
+	// MachineTypeLabel is a node label is always seen for instances in satellite cluster
+	MachineTypeLabel = "ibm-cloud.kubernetes.io/machine-type"
+
+	// UPI is the expected value assigned to machine-type label on satellite cluster nodes
+	UPI = "upi"
+
 	// VolumeIDLabel ...
 	VolumeIDLabel = "volumeId"
 
