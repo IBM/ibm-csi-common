@@ -85,15 +85,15 @@ func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMet
 
 	var workerID string
 
-	// If the cluster is satellite, the machin-type label equals to UPI
-	// For a satellite cluster, we fetch the workerID from instance ID labals, which is updated by vpc-node-label-updater (init container)
-	// For managed and IPI cluster, we fetch the workerID from ProviderID in node spec.
+	// If the cluster is satellite, the machine-type label equals to UPI
+	// For a satellite cluster, workerID is fetched from vpc-instance-id node label, which is updated by the vpc-node-label-updater (init container)
+	// For managed and IPI cluster, workerID is fetched from the ProviderID in node spec.
 	if nodeLabels[utils.MachineTypeLabel] == utils.UPI {
 		workerID = nodeLabels[utils.NodeInstanceIDLabel]
 	} else {
 		workerID = fetchInstanceID(node.Spec.ProviderID)
 		if workerID == "" {
-			return nil, fmt.Errorf("Unable to fetch instance ID, node provider ID - %s", node.Spec.ProviderID)
+			return nil, fmt.Errorf("Unable to fetch instance ID from node provider ID - %s", node.Spec.ProviderID)
 		}
 	}
 
@@ -118,17 +118,11 @@ func (manager *nodeMetadataManager) GetWorkerID() string {
 
 // fetchInstanceID fetches instance ID of the node from the node provider ID.
 func fetchInstanceID(providerID string) string {
-	// ProviderID looks like: ibm://c468d88aqwerytytytfe0f379bf9///qwertyvvnrja55g/<instance-id>
-	// ibm://<account-id>///<clusterID>/<Instance-ID>
-	s := strings.Split(providerID, "///")
-	if len(s) != 2 {
+	// ProviderID looks like: ibm://<account-id>///<clusterID>/<instance-ID>
+	s := strings.Split(providerID, "/")
+	if len(s) != 7 {
 		return ""
 	}
 
-	s = strings.Split(s[1], "/")
-	if len(s) != 2 {
-		return ""
-	}
-
-	return s[1]
+	return s[6]
 }
