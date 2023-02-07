@@ -58,9 +58,6 @@ const (
 	// NodeRegionLabel Region Label attached to node
 	NodeRegionLabel = "failure-domain.beta.kubernetes.io/region"
 
-	// NodeWorkerIDLabel  worker ID label attached to node
-	NodeWorkerIDLabel = "ibm-cloud.kubernetes.io/worker-id"
-
 	// NodeInstanceIDLabel VPC ID label attached to satellite host
 	NodeInstanceIDLabel = "ibm-cloud.kubernetes.io/vpc-instance-id"
 

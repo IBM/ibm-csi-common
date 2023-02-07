@@ -78,19 +78,19 @@ func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMet
 	}
 
 	nodeLabels := node.ObjectMeta.Labels
-	if len(nodeLabels[utils.NodeWorkerIDLabel]) == 0 || len(nodeLabels[utils.NodeRegionLabel]) == 0 || len(nodeLabels[utils.NodeZoneLabel]) == 0 {
-		errorMsg := fmt.Errorf("One or few required node label(s) is/are missing [%s, %s, %s]. Node Labels Found = [#%v]", utils.NodeWorkerIDLabel, utils.NodeRegionLabel, utils.NodeZoneLabel, nodeLabels) //nolint:golint
+	if len(nodeLabels[utils.NodeRegionLabel]) == 0 || len(nodeLabels[utils.NodeZoneLabel]) == 0 {
+		errorMsg := fmt.Errorf("One or few required node label(s) is/are missing [%s, %s]. Node Labels Found = [#%v]", utils.NodeRegionLabel, utils.NodeZoneLabel, nodeLabels) //nolint:golint
 		return nil, errorMsg
 	}
 
 	var workerID string
 
 	// If the cluster is satellite, the machine-type label equals to UPI
-	// For a satellite cluster, workerID is fetched from vpc-instance-id node label, which is updated by the vpc-node-label-updater (init container)
-	// For managed and IPI cluster, workerID is fetched from the ProviderID in node spec.
 	if nodeLabels[utils.MachineTypeLabel] == utils.UPI {
+		// For a satellite cluster, workerID is fetched from vpc-instance-id node label, which is updated by the vpc-node-label-updater (init container)
 		workerID = nodeLabels[utils.NodeInstanceIDLabel]
 	} else {
+		// For managed and IPI cluster, workerID is fetched from the ProviderID in node spec.
 		workerID = fetchInstanceID(node.Spec.ProviderID)
 		if workerID == "" {
 			return nil, fmt.Errorf("Unable to fetch instance ID from node provider ID - %s", node.Spec.ProviderID)
@@ -116,9 +116,8 @@ func (manager *nodeMetadataManager) GetWorkerID() string {
 	return manager.workerID
 }
 
-// fetchInstanceID fetches instance ID of the node from the node provider ID.
+// fetchInstanceID fetches instance ID from the provider ID in node spec.
 func fetchInstanceID(providerID string) string {
-	// ProviderID looks like: ibm://<account-id>///<clusterID>/<instance-ID>
 	s := strings.Split(providerID, "/")
 	if len(s) != 7 {
 		return ""
