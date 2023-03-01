@@ -24,7 +24,7 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
 	. "github.com/onsi/ginkgo/v2"
@@ -218,7 +218,7 @@ func (t *TestStatefulsets) WaitForPodReady() {
 func (t *TestStatefulsets) Exec(command []string, expectedString string) {
 	for _, podname := range t.podName {
 		By("Statefulset Exec: executing cmd in pod")
-		_, err := framework.LookForStringInPodExec(t.namespace.Name, podname, command, expectedString, execTimeout)
+		_, err := e2eoutput.LookForStringInPodExec(t.namespace.Name, podname, command, expectedString, execTimeout)
 		framework.ExpectNoError(err)
 	}
 }
@@ -288,7 +288,7 @@ func (t *TestStatefulsets) uncordonNode() {
 
 func (t *TestStatefulsets) Cleanup() {
 	By("Statefulsets Cleanup: deleting Statefulset")
-	framework.DumpDebugInfo(t.client, t.namespace.Name)
+	e2eoutput.DumpDebugInfo(t.client, t.namespace.Name)
 	t.Logs()
 	framework.Logf("deleting Statefulset %q/%q", t.namespace.Name, t.statefulset.Name)
 	err := t.client.AppsV1().StatefulSets(t.namespace.Name).Delete(context.Background(), t.statefulset.Name, metav1.DeleteOptions{})
@@ -752,14 +752,14 @@ func (t *TestDeployment) WaitForPodReady() {
 func (t *TestDeployment) Exec(command []string, expectedString string) {
 	By("Deployment Exec: executing cmd in POD")
 	framework.Logf("executing cmd in POD [%s/%s]", t.namespace.Name, t.podName)
-	_, err := framework.LookForStringInPodExec(t.namespace.Name, t.podName, command, expectedString, execTimeout)
+	_, err := e2eoutput.LookForStringInPodExec(t.namespace.Name, t.podName, command, expectedString, execTimeout)
 	framework.ExpectNoError(err)
 }
 
 func (t *TestDeployment) DeletePodAndWait() {
 	By("Deployment DeletePodAndWait: deleting POD")
 	framework.Logf("deleting POD [%s/%s]", t.namespace.Name, t.podName)
-	framework.DumpDebugInfo(t.client, t.namespace.Name)
+	e2eoutput.DumpDebugInfo(t.client, t.namespace.Name)
 	err := t.client.CoreV1().Pods(t.namespace.Name).Delete(context.Background(), t.podName, metav1.DeleteOptions{})
 	if err != nil {
 		if !apierrs.IsNotFound(err) {
@@ -777,7 +777,7 @@ func (t *TestDeployment) DeletePodAndWait() {
 func (t *TestDeployment) Cleanup() {
 	By("Deployment Cleanup: deleting Deployment")
 	framework.Logf("deleting Deployment [%s/%s]", t.namespace.Name, t.deployment.Name)
-	framework.DumpDebugInfo(t.client, t.namespace.Name)
+	e2eoutput.DumpDebugInfo(t.client, t.namespace.Name)
 	t.Logs()
 	err := t.client.AppsV1().Deployments(t.namespace.Name).Delete(context.Background(), t.deployment.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
@@ -866,7 +866,7 @@ func (t *TestPod) Create() {
 func (t *TestPod) Delete() {
 	By("POD Delete: deleting POD")
 	framework.Logf("deleting POD [%s/%s]", t.namespace.Name, t.pod.Name)
-	framework.DumpDebugInfo(t.client, t.namespace.Name)
+	e2eoutput.DumpDebugInfo(t.client, t.namespace.Name)
 	err := t.client.CoreV1().Pods(t.namespace.Name).Delete(context.Background(), t.pod.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 }
@@ -874,7 +874,7 @@ func (t *TestPod) Delete() {
 func (t *TestPod) Exec(command []string, expectedString string) {
 	By("POD Exec: executing cmd in POD")
 	framework.Logf("executing cmd in POD [%s/%s]", t.namespace.Name, t.pod.Name)
-	_, err := framework.LookForStringInPodExec(t.namespace.Name, t.pod.Name, command, expectedString, execTimeout)
+	_, err := e2eoutput.LookForStringInPodExec(t.namespace.Name, t.pod.Name, command, expectedString, execTimeout)
 	framework.ExpectNoError(err)
 }
 
@@ -991,7 +991,7 @@ func (t *TestPod) Logs() {
 
 func cleanupPodOrFail(client clientset.Interface, name, namespace string, dbginfo, log bool) {
 	if dbginfo {
-		framework.DumpDebugInfo(client, namespace)
+		e2eoutput.DumpDebugInfo(client, namespace)
 	}
 	if log {
 		body, err := podLogs(client, name, namespace)
