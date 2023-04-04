@@ -378,6 +378,9 @@ function cluster_create_vpc {
     if [[ "$K8S_PLATFORM" == "openshift" ]]; then
         # OpenShift minimum 2 worker nodes are required
         worker_node_count=$WORKER_NODE_COUNT
+        if [[ "$e2e_env" == "prod" ]]; then
+            E2ETEST_IC_COS_INSTANCE="crn:v1:bluemix:public:cloud-object-storage:global:a/e242f140687cd68a8e037b26680e0f04:a15e0450-6de1-4c44-8ce0-804faceef026::"
+        fi
         ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $PRIMARY_ZONE \
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver --cos-instance "$E2ETEST_IC_COS_INSTANCE" \
 	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count; rc=$?
