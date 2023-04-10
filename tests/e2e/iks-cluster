@@ -941,7 +941,7 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
             versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep -oE "\b([0-9]{1,2}\.){2}[0-9]{1,2}\b" | sort))
         fi
         count=${#versions[@]}
-        kube_vers="${versions[$count]}"
+        kube_vers="${versions[$count - 1]}"
     elif [[ "$PLATFORM_VERSION" == "base" ]]; then
         if [[ "$K8S_PLATFORM" == "openshift" ]]; then
             versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep $K8S_PLATFORM | awk '{ print $1 }'))
