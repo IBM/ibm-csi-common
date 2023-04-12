@@ -948,7 +948,7 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
         else
             versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep -oE "\b([0-9]{1,2}\.){2}[0-9]{1,2}\b" | awk '{ print $1 }'))
         fi
-        kube_vers="${versions[1]}"
+        kube_vers="${versions[0]}"
     else
       kube_vers="$PLATFORM_VERSION"
     fi
