@@ -378,6 +378,11 @@ function cluster_create_vpc {
     if [[ "$K8S_PLATFORM" == "openshift" ]]; then
         # OpenShift minimum 2 worker nodes are required
         worker_node_count=$WORKER_NODE_COUNT
+        if [[ "$e2e_env" == "prod" ]]; then
+            E2ETEST_IC_COS_INSTANCE=$(ibmcloud resource service-instance e2e-test-roks  | grep "^ID:" | awk '{print $2}')
+        else
+            E2ETEST_IC_COS_INSTANCE=$(ibmcloud resource service-instance "Cloud Object Storage-rz"  | grep "^ID:" | awk '{print $2}')
+        fi
         ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $PRIMARY_ZONE \
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver --cos-instance "$E2ETEST_IC_COS_INSTANCE" \
 	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count; rc=$?
@@ -626,7 +631,7 @@ cmd_name="$0"
 usage_str="$cmd_name: Options:-
         -e <prod|stage> -d <cluster name> or
         -e <prod|stage> -c <exiting cluster name> or
-        -e <prod|stage> --fresh [-n <name tag> ] -k default|latest -p classic|vpc-gen2 -t k8s|ocp -r <region> [--mz] [--retain]"
+        -e <prod|stage> --fresh [-n <name tag> ] -k default|latest|base -p classic|vpc-gen2 -t k8s|ocp -r <region> [--mz] [--retain]"
 
 if [[ $# -lt 1 ]]; then
 	echo "$usage_str"
@@ -749,7 +754,7 @@ if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" ]]; then
 	exit 1
 fi
 
-if [[ "$e2e_kube_ver" != "default" && "$e2e_kube_ver" != "latest" && "$e2e_kube_ver" == "" ]]; then
+if [[ "$e2e_kube_ver" != "default" && "$e2e_kube_ver" != "latest" && "$e2e_kube_ver" != "base" && "$e2e_kube_ver" == "" ]]; then
 	echo -e "Error: Invalid option \"-k $e2e_kube_ver\"!!!" >> $E2E_TEST_SETUP
 	exit 1
 fi
@@ -925,7 +930,7 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
         echo "Info: Second Vlan: Private: [$SECOND_PRIV_VLAN] / [$SECOND_ZONE]"
     fi
     echo "Info: K8S Platforn: [$K8S_PLATFORM], Platform version: [$PLATFORM_VERSION]"
-
+    set -x
     ibmcloud ks versions --show-version $K8S_PLATFORM
     if [[ "$PLATFORM_VERSION" == "default" ]]; then
         kube_vers=$(ibmcloud ks versions --show-version $K8S_PLATFORM | grep $PLATFORM_VERSION | awk '{ print $1 }')
@@ -937,6 +942,13 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
         fi
         count=${#versions[@]}
         kube_vers="${versions[$count - 1]}"
+    elif [[ "$PLATFORM_VERSION" == "base" ]]; then
+        if [[ "$K8S_PLATFORM" == "openshift" ]]; then
+            versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep $K8S_PLATFORM | awk '{ print $1 }'))
+        else
+            versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep -oE "\b([0-9]{1,2}\.){2}[0-9]{1,2}\b" | awk '{ print $1 }'))
+        fi
+        kube_vers="${versions[0]}"
     else
       kube_vers="$PLATFORM_VERSION"
     fi
