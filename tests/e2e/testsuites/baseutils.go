@@ -18,13 +18,15 @@ package testsuites
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	restclientset "k8s.io/client-go/rest"
 	"math/rand"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
-	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
+
+	"github.com/IBM/ibmcloud-storage-cbr/cbr"
 	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
 	. "github.com/onsi/ginkgo/v2"
@@ -37,9 +39,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
+	restclientset "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 	k8sDevDep "k8s.io/kubernetes/test/e2e/framework/deployment"
 	k8sDevPod "k8s.io/kubernetes/test/e2e/framework/pod"
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
 	imageutils "k8s.io/kubernetes/test/utils/image"
 )
@@ -1116,4 +1120,34 @@ func getVolumeSnapshotClass(generateName string, provisioner string) *volumesnap
 		Driver:         provisioner,
 		DeletionPolicy: volumesnapshotv1.VolumeSnapshotContentDelete,
 	}
+}
+
+func GetCBRContext() *cbr.StorageCBR {
+	apikey := os.Getenv("APIKEY")
+	rgroup := os.Getenv("RESOURCEGROUP")
+	accountId := os.Getenv("ACCOUNTID")
+	//cbr Create
+	return cbr.NewStorageCBR(apikey, accountId, rgroup)
+}
+
+func CreateZoneRules(cbrlib *cbr.StorageCBR, ruletype, zoneID string) (string, error) {
+	if ruletype == "is" {
+		ruleis, err := cbrlib.CreateCBRRuleForISService(zoneID)
+		if err != nil {
+			fmt.Printf("Error creating rule: " + err.Error())
+			return "", err
+		}
+		return ruleis, nil
+	}
+	if ruletype == "ks8" {
+		ruleiks, err := cbrlib.CreateCBRRuleForContainerK8sService(zoneID)
+		if err != nil {
+			fmt.Printf("Error creating rule: " + err.Error())
+			return "", err
+		}
+		return ruleiks, nil
+	}
+
+	//ADD for KMS
+	return "", errors.New("rule type mismatch")
 }
