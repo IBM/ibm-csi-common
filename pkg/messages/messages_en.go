@@ -315,13 +315,13 @@ var messagesEn = map[string]Message{
 		Code:        SubnetIDListNotFound,
 		Description: "Cluster subnet list 'vpc_subnet_ids' is not defined",
 		Type:        codes.FailedPrecondition,
-		Action:      "Please check if there exists configmap 'ibm-cloud-provider-data' and the property 'vpc_subnet_ids' contains any subnet entries. Please use 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'",
+		Action:      "Please check if there exists configmap 'ibm-cloud-provider-data' and the property 'vpc_subnet_ids' contains any subnet entries. Please check 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'",
 	},
 	SubnetFindFailed: {
 		Code:        SubnetFindFailed,
 		Description: "A subnet with the specified zone '%s' and available cluster subnet list '%s' could not be found.",
 		Type:        codes.FailedPrecondition,
-		Action:      "Please check if the property 'vpc_subnet_ids' contains valid subnetIds. Please use 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'.Please check 'BackendError' tag for more details",
+		Action:      "Please check if the property 'vpc_subnet_ids' contains valid subnetIds. Please check 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'.Please check 'BackendError' tag for more details",
 	},
 }
 
