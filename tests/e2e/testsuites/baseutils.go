@@ -1049,17 +1049,17 @@ func (t *TestVolumeSnapshotClass) CreateSnapshot(pvc *v1.PersistentVolumeClaim) 
 
 func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSnapshot, snapFail bool) {
 	By("waiting for VolumeSnapshot to be ready to use - " + snapshot.Name)
-	err := wait.Poll(15*time.Second, 10*time.Minute, func() (bool, error) {
-		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(context.TODO(), snapshot.Name, metav1.GetOptions{})
+	err := wait.PollUntilContextTimeout(context.Background(), 15*time.Second, 5*time.Minute, false, func(ctx context.Context) (bool, error) {
+		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(ctx, snapshot.Name, metav1.GetOptions{})
 		if err != nil {
-			return false, fmt.Errorf("did not see ReadyToUse: %v", err)
+			return false, fmt.Errorf("did not see ReadyToUse: %w", err)
 		}
 
 		if vs.Status == nil || vs.Status.ReadyToUse == nil {
 			return false, nil
 		}
 		return *vs.Status.ReadyToUse, nil
-	})
+		})
 	if snapFail == true {
 		framework.ExpectError(err)
 	} else {
