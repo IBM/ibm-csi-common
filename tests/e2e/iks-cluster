@@ -214,7 +214,7 @@ function check_addon_pod_status {
   pod_name=$1
   while true; do
     attempts=$((attempts+1))
-    pod_status=$(kubectl get sts -n kube-system | grep "$pod_name"| awk '{print $2}')
+    pod_status=$(kubectl get deployment -n kube-system | grep "$pod_name"| awk '{print $2}')
     if [   "$pod_status" = "1/1" ]; then
       echo "$pod_name is  running ."
       break
@@ -1070,7 +1070,7 @@ if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) export kube con
 if [[ -n "$e2e_var_exports" ]]; then
     echo "KUBECONFIG=$KUBECONFIG" >> $e2e_var_exports
     if [[ "$IC_PROVIDER" =~ ^vpc- ]]; then
-	addon_version=$(kubectl get sts -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
+	addon_version=$(kubectl get deployment -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
         echo "CLUSTER_ADDON_VER=$addon_version" >> $e2e_var_exports
     fi
 fi
