@@ -169,7 +169,7 @@ var _ = Describe("[ics-e2e] [sc] [with-pods] Dynamic Provisioning for all SC wit
 	})
 
 	It("with 5iops sc: should create a pvc & pv, pod resources, write and read to volume", func() {
-		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false"}}}`
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
 		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
 		if labelerr != nil {
 			panic(labelerr)
