@@ -18,6 +18,7 @@
 package mountmanager
 
 import (
+	"go.uber.org/zap"
 	mount "k8s.io/mount-utils"
 	exec "k8s.io/utils/exec"
 	testExec "k8s.io/utils/exec/testing"
@@ -27,6 +28,11 @@ import (
 // FakeNodeMounter ...
 type FakeNodeMounter struct {
 	*mount.SafeFormatAndMount
+}
+
+// MountEITBasedFileShare implements Mounter.
+func (*FakeNodeMounter) MountEITBasedFileShare(logger *zap.Logger, stagingTargetPath string, targetPath string, fsType string, requestID string) error {
+	return nil
 }
 
 // NewFakeNodeMounter ...
@@ -85,6 +91,11 @@ func (f *FakeNodeMounter) GetSafeFormatAndMount() *mount.SafeFormatAndMount {
 type FakeNodeMounterWithCustomActions struct {
 	*mount.SafeFormatAndMount
 	actionList []testingexec.FakeCommandAction
+}
+
+// MountEITBasedFileShare implements Mounter.
+func (*FakeNodeMounterWithCustomActions) MountEITBasedFileShare(logger *zap.Logger, stagingTargetPath string, targetPath string, fsType string, requestID string) error {
+	return nil
 }
 
 // NewFakeNodeMounterWithCustomActions ...
