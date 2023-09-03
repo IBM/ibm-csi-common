@@ -18,6 +18,7 @@
 package mountmanager
 
 import (
+	"go.uber.org/zap"
 	mount "k8s.io/mount-utils"
 	exec "k8s.io/utils/exec"
 )
@@ -28,6 +29,7 @@ type mountInterface = mount.Interface
 type Mounter interface {
 	mountInterface
 
+	MountEITBasedFileShare(logger *zap.Logger, stagingTargetPath string, targetPath string, fsType string, requestID string) error
 	GetSafeFormatAndMount() *mount.SafeFormatAndMount
 	MakeFile(path string) error
 	MakeDir(path string) error
