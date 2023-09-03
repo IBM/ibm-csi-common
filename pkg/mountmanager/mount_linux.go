@@ -66,7 +66,7 @@ func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTarge
 	req, err := http.NewRequest("POST", urlPath, strings.NewReader(payload))
 	if err != nil {
 		ctxLogger.Error("Failed to create EIT based request. Failed wth error.")
-		return nil, fmt.Errorf("Failed to create EIT based request. Failed wth error: %w", err)
+		return fmt.Errorf("Failed to create EIT based request. Failed wth error: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	response, err := client.Do(req)
@@ -74,20 +74,21 @@ func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTarge
 		ctxLogger.Error("Failed to send EIT based request. Failed with error.")
 		//TODO: Add retry logic to continuously send request with 5 sec delay. Is it really required?
 		// Can we make a systemctl call from here to the local system?
-		return nil, fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
+		return fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
 	}
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		ctxLogger.Error("Error reading response.")
-		return nil, err
+		return err
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Mount failed. Error: %s. ResponseCode: %v", string(body), response.StatusCode)
+		return fmt.Errorf("Mount failed. Error: %s. ResponseCode: %v", string(body), response.StatusCode)
 	}
 
 	ctxLogger.Info("Mount passed.", zap.String("Response:", string(body)), zap.Any("StatusCode:", response.StatusCode))
+	return nil
 }
 
 // MakeFile creates an empty file.
