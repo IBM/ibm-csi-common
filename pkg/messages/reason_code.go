@@ -144,6 +144,9 @@ const (
 	// CreateMountTargetFailed ...
 	CreateMountTargetFailed = "CreateMountTargetFailed"
 
+	// MountTargetFailed ...
+	MountTargetFailed = "MountTargetFailed"
+
 	// ListVolumesFailed ...
 	ListVolumesFailed = "ListVolumesFailed"
 

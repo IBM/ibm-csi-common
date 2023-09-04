@@ -275,6 +275,12 @@ var messagesEn = map[string]Message{
 		Type:        codes.Internal,
 		Action:      "Please check if volume is used by POD properly",
 	},
+	MountTargetFailed: {
+		Code:        MountTargetFailed,
+		Description: "Failed to mount target. StagingTargetPath: '%q' , TargetPath: '%q'",
+		Type:        codes.Internal,
+		Action:      "Check backend logs to confirm mount status.",
+	},
 	ListVolumesFailed: {
 		Code:        ListVolumesFailed,
 		Description: "Failed to list volumes",
