@@ -79,12 +79,12 @@ func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTarge
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		ctxLogger.Error("Error reading response.")
+		ctxLogger.Error("Error reading response from server")
 		return err
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Mount failed. Error: %s. ResponseCode: %v", string(body), response.StatusCode)
+		return fmt.Errorf("Response from server %s.\nResponseCode: %v", string(body), response.StatusCode)
 	}
 
 	ctxLogger.Info("Mount passed.", zap.String("Response:", string(body)), zap.Any("StatusCode:", response.StatusCode))
