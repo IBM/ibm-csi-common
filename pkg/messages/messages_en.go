@@ -311,6 +311,24 @@ var messagesEn = map[string]Message{
 		Type:        codes.FailedPrecondition,
 		Action:      "Please check if there is any error in POD describe related with volume attach",
 	},
+	SubnetIDListNotFound: {
+        Code:        SubnetIDListNotFound,
+        Description: "Cluster subnet list 'vpc_subnet_ids' is not defined",
+        Type:        codes.FailedPrecondition,
+        Action:      "Please check if configmap 'ibm-cloud-provider-data' exists and if the property 'vpc_subnet_ids' contains any subnet entries. Run the command 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'",
+    },
+    SubnetFindFailed: {
+        Code:        SubnetFindFailed,
+        Description: "A subnet with the specified zone '%s' and available cluster subnet list '%s' could not be found.",
+        Type:        codes.FailedPrecondition,
+        Action:      "Please check if the property 'vpc_subnet_ids' contains valid subnetIds. Please check 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'.Please check 'BackendError' tag for more details",
+    },
+    SecurityGroupFindFailed: {
+        Code:        SecurityGroupFindFailed,
+        Description: "A SecurityGroup with the specified name '%s' could not be found.",
+        Type:        codes.FailedPrecondition,
+        Action:      "Run 'ibmcloud is sgs' to list available securityGroups in your account. Please check 'BackendError' tag for more details",
+    },
 }
 
 // InitMessages ...
