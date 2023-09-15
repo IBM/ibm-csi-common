@@ -1083,7 +1083,7 @@ if [[ -n "$e2e_var_exports" ]]; then
     echo "KUBECONFIG=$KUBECONFIG" >> $e2e_var_exports
     if [[ "$IC_PROVIDER" =~ ^vpc- ]]; then
         addon_version=$(kubectl get sts -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
-        if [[ $? != "0" ]];
+        if [[ $? != "0" ]]; then
            addon_version=$(kubectl get deployment -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
         fi
         echo "CLUSTER_ADDON_VER=$addon_version" >> $e2e_var_exports
