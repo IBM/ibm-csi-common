@@ -167,7 +167,4 @@ const (
 
 	// SubnetFindFailed ...
 	SubnetFindFailed = "SubnetFindFailed"
-			
-	// SecurityGroupFindFailed ...
-	SecurityGroupFindFailed = "SecurityGroupFindFailed"
 )

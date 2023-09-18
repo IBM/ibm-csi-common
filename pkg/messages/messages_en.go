@@ -323,12 +323,6 @@ var messagesEn = map[string]Message{
         Type:        codes.FailedPrecondition,
         Action:      "Please check if the property 'vpc_subnet_ids' contains valid subnetIds. Please check 'kubectl get configmap ibm-cloud-provider-data -n kube-system -o yaml'.Please check 'BackendError' tag for more details",
     },
-    SecurityGroupFindFailed: {
-        Code:        SecurityGroupFindFailed,
-        Description: "A SecurityGroup with the specified name '%s' could not be found.",
-        Type:        codes.FailedPrecondition,
-        Action:      "Run 'ibmcloud is sgs' to list available securityGroups in your account. Please check 'BackendError' tag for more details",
-    },
 }
 
 // InitMessages ...
