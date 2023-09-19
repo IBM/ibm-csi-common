@@ -68,7 +68,7 @@ PLATFORM_kubernetes="k8s"
 PLATFORM_openshift="ocp"
 
 PRIMARY_ZONE_ID="01"	# ZONE_vpc_gen2_01 / ZONE_classic_01
-SECOND_ZONE_ID="02"	# ZONE_vpc_gen2_03 / ZONE_classic_03
+SECOND_ZONE_ID="02"	# ZONE_vpc_gen2_02 / ZONE_classic_02
 
 CLUSTER_NAME_SUFFIX="e2etest"
 
@@ -392,8 +392,8 @@ function cluster_create_vpc {
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver \
 	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count; rc=$?
     else
-        ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $SECOND_ZONE \
-            --vpc-id $VPC_ID --subnet-id $SECD_SUBNET_ID --version $kube_ver \
+        ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $PRIMARY_ZONE \
+            --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver \
             --flavor bz2.8x32 --workers $worker_node_count --operating-system UBUNTU_18_S390X; rc=$?
     fi
     if [[ $rc -ne 0 ]]; then set +x;  return 1; fi
