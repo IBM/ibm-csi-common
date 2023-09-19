@@ -153,9 +153,11 @@ echo $compare
 if [[ $compare -eq 1 ]]; then
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
 	rc4=$?
+	echo "Exit status for default attach-volume test: $rc4"
 
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[config\]" ./tests/e2e
 	rc5=$?
+	echo "Exit status for configmap related attach-volume test: $rc5"
 fi
 
 set -e
