@@ -188,6 +188,8 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 	})
 
 	It("Verify volume attachment with 4 volumes is failure.", func() {
+                UpdateVolumeAttachmentLimit(cs, "3")
+                time.Sleep(650 * time.Second)
 		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
 		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
 		if labelerr != nil {
