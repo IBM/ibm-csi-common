@@ -137,23 +137,29 @@ ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-servi
 rc1=$?
 echo "Exit status for basic volume test: $rc1"
 
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e -- -e2e-verify-service-account=false
+rc2=$?
+echo "Exit status for snapshot test: $rc2"
+
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 
 
 set -x
-SNAP_ADDON_VERSION=5.0
-compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $SNAP_ADDON_VERSION)?1 : 0 }"`
+VA_ADDON_VERSION=5.2
+compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $VA_ADDON_VERSION)?1 : 0 }"`
 echo $compare
 if [[ $compare -eq 1 ]]; then
-	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e -- -e2e-verify-service-account=false
-	rc2=$?
-	echo "Exit status for snapshot test: $rc2"
+	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
+	rc4=$?
+
+	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[config\]" ./tests/e2e
+	rc5=$?
 fi
 
 set -e
-if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 ]]; then
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
