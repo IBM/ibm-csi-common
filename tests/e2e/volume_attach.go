@@ -241,7 +241,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 									},
 									{
 										Name:      "volume-4",
-										MountPath: "/data/volume-3",
+										MountPath: "/data/volume-4",
 									},
 								},
 							},
