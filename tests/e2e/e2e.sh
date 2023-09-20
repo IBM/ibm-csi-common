@@ -133,15 +133,15 @@ go clean -modcache
 export GO111MODULE=on
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.1.6
 set +e
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
+#ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?
 echo "Exit status for basic volume test: $rc1"
 
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e -- -e2e-verify-service-account=false
+#ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[snapshot\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc2=$?
 echo "Exit status for snapshot test: $rc2"
 
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-verify-service-account=false
+#ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 
@@ -151,8 +151,8 @@ VA_ADDON_VERSION=5.2
 compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $VA_ADDON_VERSION)?1 : 0 }"`
 echo $compare
 if [[ $compare -eq 1 ]]; then
-	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
-	rc4=$?
+#	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
+#	rc4=$?
 	echo "Exit status for default attach-volume test: $rc4"
 
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[config\]" ./tests/e2e

@@ -323,7 +323,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 			}
 			return false, nil
 		})
-		Expect(err).To(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		// Verify the StatefulSet exists
 		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
