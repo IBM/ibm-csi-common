@@ -148,7 +148,7 @@ echo "Exit status for resize volume test: $rc3"
 
 set -x
 VA_ADDON_VERSION=5.2
-compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $VA_ADDON_VERSION)?1 : 0 }"`
+compare=`echo | awk "{ print ($CLUSTER_ADDON_VER == $VA_ADDON_VERSION)?1 : 0 }"`
 echo $compare
 if [[ $compare -eq 1 ]]; then
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
