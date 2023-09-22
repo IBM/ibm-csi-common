@@ -719,6 +719,12 @@ key="$1"
 	shift
 	shift
 	;;
+ 
+       --worker-count)
+        WORKER_NODE_COUNT="$2"
+        shift
+        shift
+        ;;
 
 	-n |--name)
 	e2e_name_tag="$2"
