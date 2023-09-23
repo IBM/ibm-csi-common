@@ -22,6 +22,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -31,12 +32,14 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	admissionapi "k8s.io/pod-security-admission/api"
 	"os"
+	"strconv"
 	"time"
 )
 
 const (
 	addonConfigMap = "addon-vpc-block-csi-driver-configmap"
 	configMapNs    = "kube-system"
+	customSCName   = "custom-sc"
 )
 
 var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", func() {
@@ -58,7 +61,18 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 		ns = f.Namespace
 	})
 
-	It("Configmap Parameter is set to 3. Verify volume attachment with 3 volumes is success.", func() {
+	It("Configmap Parameter is set to 3. Verify volume attachment scenarios", func() {
+		By("VOLUME ATTACHMENT WITH 3 VOLUMES")
+		CreateStorageClass(customSCName, cs)
+		// Defer the deletion of the StorageClass object.
+		defer func() {
+			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), customSCName, metav1.DeleteOptions{}); err != nil {
+				panic(err)
+			}
+		}()
+		for i := 0; i < 4; i++ {
+			CreatePVC("pvc-"+strconv.Itoa(i), ns.Name, cs)
+		}
 		UpdateVolumeAttachmentLimit(cs, "3")
 		time.Sleep(650 * time.Second)
 		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
@@ -73,8 +87,6 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 		defer fpointer.Close()
 		statefulSetName := "test-statefulset"
 		replicas := int32(1)
-
-		// Define StatefulSet
 		statefulSet := &apps.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      statefulSetName,
@@ -97,7 +109,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 								Image:   "nginx",
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
-								VolumeMounts: []corev1.VolumeMount{
+								VolumeMounts: []v1.VolumeMount{
 									{
 										Name:      "volume-1",
 										MountPath: "/data/volume-1",
@@ -113,44 +125,29 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 								},
 							},
 						},
-					},
-				},
-				VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-1",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+						Volumes: []corev1.Volume{
+							{
+								Name: "volume-1",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-0",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-2",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-2",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-1",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-3",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-3",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-2",
+									},
 								},
 							},
 						},
@@ -158,13 +155,8 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 				},
 			},
 		}
-		// Create the StatefulSet
 		statefulSet, err := cs.AppsV1().StatefulSets(ns.Name).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		defer func() {
-			err := cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-		}()
 
 		// Wait for the StatefulSet to be ready
 		err = wait.PollImmediate(5*time.Second, 2*time.Minute, func() (bool, error) {
@@ -182,42 +174,31 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 		// Verify the StatefulSet exists
 		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
+		err = cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
+		Expect(err).NotTo(HaveOccurred())
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: VOLUME_ATTACHMENT_LIMIT SET TO 3 && ATTACHED VOLUMES 3: PASS\n"); err != nil {
 			panic(err)
 		}
-	})
 
-	It("Verify volume attachment with 4 volumes is failure.", func() {
-                UpdateVolumeAttachmentLimit(cs, "3")
-                time.Sleep(650 * time.Second)
-		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
-		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
-		if labelerr != nil {
-			panic(labelerr)
-		}
-		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
-		}
-		defer fpointer.Close()
-		statefulSetName := "test-statefulset"
-		replicas := int32(1)
+		By("VOLUME ATTACHMENT WITH 4 VOLUMES")
+		statefulSet2 := "test-statefulset-two"
+		replicas = int32(1)
 
 		// Define StatefulSet
-		statefulSet := &apps.StatefulSet{
+		statefulSet = &apps.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      statefulSetName,
+				Name:      statefulSet2,
 				Namespace: ns.Name,
 			},
 			Spec: apps.StatefulSetSpec{
 				Replicas:    &replicas,
-				ServiceName: statefulSetName,
+				ServiceName: statefulSet2,
 				Selector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{"app": statefulSetName},
+					MatchLabels: map[string]string{"app": statefulSet2},
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{"app": statefulSetName},
+						Labels: map[string]string{"app": statefulSet2},
 					},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{
@@ -246,57 +227,37 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 								},
 							},
 						},
-					},
-				},
-				VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-1",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+						Volumes: []corev1.Volume{
+							{
+								Name: "volume-1",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-0",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-2",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-2",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-1",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-3",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-3",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-2",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-4",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-4",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-3",
+									},
 								},
 							},
 						},
@@ -305,16 +266,12 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 			},
 		}
 		// Create the StatefulSet
-		statefulSet, err := cs.AppsV1().StatefulSets(ns.Name).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
+		statefulSet, err = cs.AppsV1().StatefulSets(ns.Name).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		defer func() {
-			err := cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-		}()
 
 		// Wait for the StatefulSet to be ready
-		err = wait.PollImmediate(5*time.Second, 2*time.Minute, func() (bool, error) {
-			ss, err := cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
+		err = wait.PollImmediate(20*time.Second, 5*time.Minute, func() (bool, error) {
+			ss, err := cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSet2, metav1.GetOptions{})
 			if err != nil {
 				return false, err
 			}
@@ -326,7 +283,9 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 		Expect(err).To(HaveOccurred())
 
 		// Verify the StatefulSet exists
-		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
+		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSet2, metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		err = cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: VOLUME_ATTACHMENT_LIMIT SET TO 3 && ATTACHED VOLUMES 4: PASS\n"); err != nil {
 			panic(err)
@@ -354,7 +313,18 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 		ns = f.Namespace
 	})
 
-	It("Create 12 volumes and verify attachment is success in default scenario without any change in configmap", func() {
+	It("Verify volume attachment without any change in configmap", func() {
+		By("DEFAULT VOLUME ATTACHMENT WITH 12 VOLUMES")
+		CreateStorageClass(customSCName, cs)
+		// Defer the deletion of the StorageClass object.
+		defer func() {
+			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), customSCName, metav1.DeleteOptions{}); err != nil {
+				panic(err)
+			}
+		}()
+		for i := 0; i < 13; i++ {
+			CreatePVC("pvc-"+strconv.Itoa(i), ns.Name, cs)
+		}
 		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
 		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
 		if labelerr != nil {
@@ -443,161 +413,101 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 								},
 							},
 						},
-					},
-				},
-				VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-1",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+						Volumes: []corev1.Volume{
+							{
+								Name: "volume-1",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-0",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-2",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-2",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-1",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-3",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-3",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-2",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-4",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-4",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-3",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-5",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-5",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-4",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-6",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-6",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-5",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-7",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-7",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-6",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-8",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-8",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-7",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-9",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-9",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-8",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-10",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-10",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-9",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-11",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-11",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-10",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-12",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-12",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-11",
+									},
 								},
 							},
 						},
@@ -608,10 +518,6 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 		// Create the StatefulSet
 		statefulSet, err := cs.AppsV1().StatefulSets(ns.Name).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		defer func() {
-			err := cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-		}()
 
 		// Wait for the StatefulSet to be ready
 		err = wait.PollImmediate(5*time.Second, 2*time.Minute, func() (bool, error) {
@@ -629,60 +535,32 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 		// Verify the StatefulSet exists
 		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
+		err = cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
+		Expect(err).NotTo(HaveOccurred())
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: DEFAULT VOLUME ATTACHMENT WITH 12 VOLUMES: PASS\n"); err != nil {
 			panic(err)
 		}
-	})
 
-})
-var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [13-volumes]", func() {
-	f := framework.NewDefaultFramework("ics-e2e-pods")
-	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
-	var (
-		cs        clientset.Interface
-		ns        *v1.Namespace
-		secretKey string
-	)
+		By("DEFAULT VOLUME ATTACHMENT WITH 13 VOLUMES")
 
-	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
-	if secretKey == "" {
-		secretKey = defaultSecret
-	}
-
-	BeforeEach(func() {
-		cs = f.ClientSet
-		ns = f.Namespace
-	})
-
-	It("Create 13 volumes and verify attachment is failure in default scenario without any change in configmap", func() {
-		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
-		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
-		if labelerr != nil {
-			panic(labelerr)
-		}
-		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
-		}
-		defer fpointer.Close()
-		statefulSetName := "test-statefulset"
-		replicas := int32(1)
+		statefulSetTwo := "test-statefulset-two"
+		replicas = int32(1)
 
 		// Define StatefulSet
-		statefulSet := &apps.StatefulSet{
+		statefulSet = &apps.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      statefulSetName,
+				Name:      statefulSetTwo,
 				Namespace: ns.Name,
 			},
 			Spec: apps.StatefulSetSpec{
 				Replicas:    &replicas,
-				ServiceName: statefulSetName,
+				ServiceName: statefulSetTwo,
 				Selector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{"app": statefulSetName},
+					MatchLabels: map[string]string{"app": statefulSetTwo},
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{"app": statefulSetName},
+						Labels: map[string]string{"app": statefulSetTwo},
 					},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{
@@ -747,174 +625,109 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [13-volumes]", f
 								},
 							},
 						},
-					},
-				},
-				VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-1",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+						Volumes: []corev1.Volume{
+							{
+								Name: "volume-1",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-0",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-2",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-2",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-1",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-3",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-3",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-2",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-4",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-4",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-3",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-5",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-5",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-4",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-6",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-6",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-5",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-7",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-7",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-6",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-8",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-8",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-7",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-9",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-9",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-8",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-10",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-10",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-9",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-11",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-11",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-10",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-12",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-12",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-11",
+									},
 								},
 							},
-						},
-					},
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "volume-13",
-						},
-						Spec: corev1.PersistentVolumeClaimSpec{
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceStorage: resource.MustParse("1Gi"),
+							{
+								Name: "volume-13",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: "pvc-12",
+									},
 								},
 							},
 						},
@@ -923,16 +736,12 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [13-volumes]", f
 			},
 		}
 		// Create the StatefulSet
-		statefulSet, err := cs.AppsV1().StatefulSets(ns.Name).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
+		statefulSet, err = cs.AppsV1().StatefulSets(ns.Name).Create(context.TODO(), statefulSet, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		defer func() {
-			err := cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-		}()
 
 		// Wait for the StatefulSet to be ready
 		err = wait.PollImmediate(5*time.Second, 2*time.Minute, func() (bool, error) {
-			ss, err := cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
+			ss, err := cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetTwo, metav1.GetOptions{})
 			if err != nil {
 				return false, err
 			}
@@ -944,7 +753,9 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [13-volumes]", f
 		Expect(err).To(HaveOccurred())
 
 		// Verify the StatefulSet exists
-		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetName, metav1.GetOptions{})
+		_, err = cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSetTwo, metav1.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		err = cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: DEFAULT VOLUME ATTACHMENT WITH 13 VOLUMES: PASS\n"); err != nil {
 			panic(err)
@@ -965,4 +776,63 @@ func UpdateVolumeAttachmentLimit(client clientset.Interface, limit string) bool 
 	}
 	return true
 
+}
+
+func CreatePVC(pvcName string, namespace string, cs clientset.Interface) {
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespace,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			StorageClassName: &customSCName,
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteOnce,
+			},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceName(corev1.ResourceStorage): resource.MustParse("10Gi"),
+					//corev1.ResourceStorage: resource.MustParse("10Gi"),
+				},
+			},
+		},
+	}
+
+	// Create the PVC
+	_, err := cs.CoreV1().PersistentVolumeClaims(namespace).Create(context.TODO(), pvc, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
+	err = wait.PollImmediate(5*time.Second, 60*time.Second, func() (bool, error) {
+		updatedPVC, err := cs.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), pvcName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		return updatedPVC.Status.Phase == v1.ClaimBound, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func CreateStorageClass(scName string, cs clientset.Interface) {
+	// Create a StorageClass object.
+	var zone = os.Getenv("E2E_ZONE")
+	storageClass := &storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: scName,
+		},
+		Provisioner: "vpc.block.csi.ibm.io",
+		Parameters: map[string]string{
+			"profile":                   "5iops-tier",
+			"zone":                      zone,
+			"csi.storage.k8s.io/fstype": "ext4",
+			"billingType":               "hourly",
+		},
+	}
+	// Create the StorageClass object.
+	_, err = cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
 }

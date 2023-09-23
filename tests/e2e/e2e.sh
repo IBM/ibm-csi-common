@@ -53,6 +53,8 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+export E2E_ZONE=$REGION-1
+
 if [[ "$IC_LOGIN" == "true" ]]; then
 	echo "Kube Config already exported!!!"
 fi
@@ -148,7 +150,8 @@ echo "Exit status for resize volume test: $rc3"
 
 set -x
 VA_ADDON_VERSION=5.2
-compare=`echo | awk "{ print ($CLUSTER_ADDON_VER >= $VA_ADDON_VERSION)?1 : 0 }"`
+CLUSTER_ADDON_MAJOR=$(echo "$CLUSTER_ADDON_VER" | awk -F'.' '{print $1"."$2}')
+compare=`echo | awk "{ print ($CLUSTER_ADDON_MAJOR >= $VA_ADDON_VERSION)?1 : 0 }"`
 echo $compare
 if [[ $compare -eq 1 ]]; then
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
