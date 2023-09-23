@@ -21,7 +21,6 @@ import (
 	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -109,7 +108,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 								Image:   "nginx",
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
-								VolumeMounts: []v1.VolumeMount{
+								VolumeMounts: []corev1.VolumeMount{
 									{
 										Name:      "volume-1",
 										MountPath: "/data/volume-1",
@@ -270,7 +269,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 		Expect(err).NotTo(HaveOccurred())
 
 		// Wait for the StatefulSet to be ready
-		err = wait.PollImmediate(20*time.Second, 5*time.Minute, func() (bool, error) {
+		err = wait.PollImmediate(5*time.Second, 2*time.Minute, func() (bool, error) {
 			ss, err := cs.AppsV1().StatefulSets(ns.Name).Get(context.TODO(), statefulSet2, metav1.GetOptions{})
 			if err != nil {
 				return false, err
