@@ -46,7 +46,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs        clientset.Interface
-		ns        *v1.Namespace
+		ns        *corev1.Namespace
 		secretKey string
 	)
 
@@ -298,7 +298,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
 		cs        clientset.Interface
-		ns        *v1.Namespace
+		ns        *corev1.Namespace
 		secretKey string
 	)
 
@@ -778,6 +778,7 @@ func UpdateVolumeAttachmentLimit(client clientset.Interface, limit string) bool 
 }
 
 func CreatePVC(pvcName string, namespace string, cs clientset.Interface) {
+	customSCName := "custom-sc"
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      pvcName,
@@ -807,7 +808,7 @@ func CreatePVC(pvcName string, namespace string, cs clientset.Interface) {
 		if err != nil {
 			return false, err
 		}
-		return updatedPVC.Status.Phase == v1.ClaimBound, nil
+		return updatedPVC.Status.Phase == corev1.ClaimBound, nil
 	})
 	if err != nil {
 		panic(err)
