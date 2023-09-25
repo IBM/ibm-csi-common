@@ -99,7 +99,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Dynamic Provisioning for all SC w
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: 5iops SC DEPLOYMENT Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: 5IOPS SC DEPLOYMENT TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -143,7 +143,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Dynamic Provisioning for all SC w
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: GP SC DEPLOYMENT Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: GP SC DEPLOYMENT TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -210,7 +210,7 @@ var _ = Describe("[ics-e2e] [sc] [with-pods] Dynamic Provisioning for all SC wit
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: 5iops SC POD Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: 5IOPS SC POD TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -256,7 +256,7 @@ var _ = Describe("[ics-e2e] [sc] [with-pods] Dynamic Provisioning for all SC wit
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: GP SC POD Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: GP SC POD TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -307,7 +307,7 @@ var _ = Describe("[ics-e2e] [sc] [with-pods] Dynamic Provisioning for all SC wit
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: Custom SC Pod Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -371,7 +371,7 @@ var _ = Describe("[ics-e2e] [sc] [with-statefulset] Dynamic Provisioning using s
 			ServiceName:  service.Name,
 		}
 		test.Run(cs, ns, false)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: With Statefulsets: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: WITH STATEFULSETS: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -435,7 +435,7 @@ var _ = Describe("[ics-e2e] [node-drain] [with-pods] Dynamic Provisioning using 
 			ServiceName:  service.Name,
 		}
 		test.Run(cs, ns, true)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: Cordon and Drain Node: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CORDON AND DRAIN NODE: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -504,7 +504,7 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 			ExpandedSize:   1900,
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: 5iops SC POD Test and resize volume: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: 5IOPS SC POD TEST AND RESIZE VOLUME: PASS\n"); err != nil {
 			panic(err)
 		}
 	})

@@ -286,7 +286,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 		Expect(err).NotTo(HaveOccurred())
 		err = cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: VOLUME_ATTACHMENT_LIMIT SET TO 3 && ATTACHED VOLUMES 4: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: VOLUME_ATTACHMENT_LIMIT SET TO 3 && ATTACHING VOLUMES 4 MUST FAIL: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -756,7 +756,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 		Expect(err).NotTo(HaveOccurred())
 		err = cs.AppsV1().StatefulSets(ns.Name).Delete(context.TODO(), statefulSet.Name, metav1.DeleteOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: DEFAULT VOLUME ATTACHMENT WITH 13 VOLUMES: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: DEFAULT VOLUME ATTACHMENT WITH 13 VOLUMES MUST FAIL: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
