@@ -287,6 +287,12 @@ var messagesEn = map[string]Message{
 		Type:        codes.Unavailable,
 		Action:      "This exit status might indicate mount-helper-utility is not running.",
 	},
+	UnresponsiveMountHelperContainerUtility: {
+		Code:        UnresponsiveMountHelperContainerUtility,
+		Description: "Failed to mount target because unable to make connection to mount helper container service.",
+		Type:        codes.Unavailable,
+		Action:      "Restart the CSI node-server pod to enable mount-helper-container service",
+	},
 	MetadataServiceNotEnabled: {
 		Code:        MetadataServiceNotEnabled,
 		Description: "Failed to mount target.",

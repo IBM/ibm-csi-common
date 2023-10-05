@@ -23,7 +23,6 @@ package mountmanager
 import (
 	"errors"
 
-	"go.uber.org/zap"
 	mount "k8s.io/mount-utils"
 )
 
@@ -55,6 +54,6 @@ func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, e
 }
 
 // MountEITBasedFileShare ...
-func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTargetPath string, targetPath string, fsType string, requestID string) error {
+func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
 	return nil
 }

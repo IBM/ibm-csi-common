@@ -150,6 +150,9 @@ const (
 	// UnresponsiveMountHelperUtility ...
 	UnresponsiveMountHelperUtility = "UnresponsiveMountHelperUtility"
 
+	// UnresponsiveMountHelperContainerUtility ...
+	UnresponsiveMountHelperContainerUtility = "UnresponsiveMountHelperContainerUtility"
+
 	// MetadataServiceNotEnabled ...
 	MetadataServiceNotEnabled = "MetadataServiceNotEnabled"
 
