@@ -275,11 +275,29 @@ var messagesEn = map[string]Message{
 		Type:        codes.Internal,
 		Action:      "Please check if volume is used by POD properly",
 	},
-	MountTargetFailed: {
-		Code:        MountTargetFailed,
-		Description: "Failed to mount target. StagingTargetPath: '%q' , TargetPath: '%q'",
+	MountingTargetFailed: {
+		Code:        MountingTargetFailed,
+		Description: "Failed to mount target.",
 		Type:        codes.Internal,
 		Action:      "Check backend logs to confirm mount status.",
+	},
+	UnresponsiveMountHelperUtility: {
+		Code:        UnresponsiveMountHelperUtility,
+		Description: "Failed to mount target.",
+		Type:        codes.Unavailable,
+		Action:      "This exit status might indicate mount-helper-utility is not running.",
+	},
+	MetadataServiceNotEnabled: {
+		Code:        MetadataServiceNotEnabled,
+		Description: "Failed to mount target.",
+		Type:        codes.Internal,
+		Action:      "Please check if metadata service is enabled for the cluster.",
+	},
+	MountHelperCertificatesMissing: {
+		Code:        MountHelperCertificatesMissing,
+		Description: "Failed to mount target.",
+		Type:        codes.Internal,
+		Action:      "Mount-helper utility certificates missing/expired. Please report to dev team",
 	},
 	ListVolumesFailed: {
 		Code:        ListVolumesFailed,

@@ -29,7 +29,6 @@ import (
 	"os"
 	"strings"
 
-	"go.uber.org/zap"
 	mount "k8s.io/mount-utils"
 )
 
@@ -41,7 +40,7 @@ const (
 )
 
 // MountEITBasedFileShare mounts EIT based FileShare on host system
-func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTargetPath string, targetPath string, fsType string, requestID string) error {
+func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
 	// Create payload
 	payload := fmt.Sprintf(`{"stagingTargetPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, stagingTargetPath, targetPath, fsType, requestID)
 
@@ -65,13 +64,11 @@ func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTarge
 	//Create POST request
 	req, err := http.NewRequest("POST", urlPath, strings.NewReader(payload))
 	if err != nil {
-		ctxLogger.Error("Failed to create EIT based request. Failed wth error.")
 		return fmt.Errorf("Failed to create EIT based request. Failed wth error: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	response, err := client.Do(req)
 	if err != nil {
-		ctxLogger.Error("Failed to send EIT based request. Failed with error.")
 		//TODO: Add retry logic to continuously send request with 5 sec delay. Is it really required?
 		// Can we make a systemctl call from here to the local system?
 		return fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
@@ -79,15 +76,12 @@ func (m *NodeMounter) MountEITBasedFileShare(ctxLogger *zap.Logger, stagingTarge
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		ctxLogger.Error("Error reading response from server")
 		return err
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response from server %s.\nResponseCode: %v", string(body), response.StatusCode)
+		return fmt.Errorf("Response from mount-helper-container server: %s ,ResponseCode: %v", string(body), response.StatusCode)
 	}
-
-	ctxLogger.Info("Mount passed.", zap.String("Response:", string(body)), zap.Any("StatusCode:", response.StatusCode))
 	return nil
 }
 
