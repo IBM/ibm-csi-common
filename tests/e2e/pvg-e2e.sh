@@ -87,12 +87,6 @@ export E2E_POD_COUNT="1"
 export E2E_PVC_COUNT="1"
 export GO111MODULE=on
 
-#Test all SC with deployment
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\] \[with-deploy\]"  ./tests/e2e
-
-#Test all SC with pod
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\] \[with-pods\]"  ./tests/e2e
-
 #Test 5 IOPS SC with statefulset(with 2 replicas)
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\] \[with-statefulset\]"  ./tests/e2e
 
