@@ -156,6 +156,9 @@ const (
 	// MetadataServiceNotEnabled ...
 	MetadataServiceNotEnabled = "MetadataServiceNotEnabled"
 
+	// MountHelperCertificatesExpired ...
+	MountHelperCertificatesExpired = "MountHelperCertificatesExpired"
+
 	// MountHelperCertificatesMissing ...
 	MountHelperCertificatesMissing = "MountHelperCertificatesMissing"
 

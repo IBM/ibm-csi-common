@@ -29,6 +29,8 @@ type Mounter interface {
 	mountInterface
 
 	MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error
+	UmountEITBasedFileShare(targetPath string, requestID string) error
+	DebugLogsEITBasedFileShare(requestID string) error
 	GetSafeFormatAndMount() *mount.SafeFormatAndMount
 	MakeFile(path string) error
 	MakeDir(path string) error

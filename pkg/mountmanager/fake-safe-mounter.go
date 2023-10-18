@@ -36,6 +36,16 @@ func (*FakeNodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetP
 	return nil
 }
 
+// UmountEITBasedFileShare ...
+func (*FakeNodeMounter) UmountEITBasedFileShare(targetPath string, requestID string) error {
+	return nil
+}
+
+// DebugLogsEITBasedFileShare...
+func (*FakeNodeMounter) DebugLogsEITBasedFileShare(requestID string) error {
+	return nil
+}
+
 // NewFakeNodeMounter ...
 func NewFakeNodeMounter() Mounter {
 	//Have to make changes here to pass the Mock functions
@@ -99,6 +109,16 @@ type FakeNodeMounterWithCustomActions struct {
 
 // MountEITBasedFileShare implements Mounter.
 func (*FakeNodeMounterWithCustomActions) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
+	return nil
+}
+
+// UmountEITBasedFileShare ...
+func (*FakeNodeMounterWithCustomActions) UmountEITBasedFileShare(targetPath string, requestID string) error {
+	return nil
+}
+
+// DebugLogsEITBasedFileShare...
+func (*FakeNodeMounterWithCustomActions) DebugLogsEITBasedFileShare(requestID string) error {
 	return nil
 }
 

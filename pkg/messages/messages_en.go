@@ -299,11 +299,17 @@ var messagesEn = map[string]Message{
 		Type:        codes.Internal,
 		Action:      "Please check if metadata service is enabled for the cluster.",
 	},
+	MountHelperCertificatesExpired: {
+		Code:        MountHelperCertificatesExpired,
+		Description: "Failed to mount target.",
+		Type:        codes.Internal,
+		Action:      "Mount-helper utility certificates expired. Please check if metadata service is enabled. If not please enable it or else report issue to IKS team.",
+	},
 	MountHelperCertificatesMissing: {
 		Code:        MountHelperCertificatesMissing,
 		Description: "Failed to mount target.",
 		Type:        codes.Internal,
-		Action:      "Mount-helper utility certificates missing/expired. Please report to dev team",
+		Action:      "Mount-helper utility certificates missing. Please create a ticket for dev team.",
 	},
 	ListVolumesFailed: {
 		Code:        ListVolumesFailed,

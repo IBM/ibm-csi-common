@@ -35,52 +35,46 @@ import (
 const (
 	//socket path
 	defaultSocketPath = "/tmp/mysocket.sock"
-	// url
-	urlPath = "http://unix/api/mount"
+	// mount url
+	urlMountPath = "http://unix/api/mount"
+	// umount url
+	urlUmountPath = "http://unix/api/umount"
+	// debug url
+	urlDebugPath = "http://unix/api/debugLogs"
 )
 
 // MountEITBasedFileShare mounts EIT based FileShare on host system
 func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
 	// Create payload
 	payload := fmt.Sprintf(`{"stagingTargetPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, stagingTargetPath, targetPath, fsType, requestID)
+	err := createMountHelperContainerRequest(payload, urlMountPath)
 
-	// Get socket path
-	socketPath := os.Getenv("SOCKET_PATH")
-	if socketPath == "" {
-		socketPath = defaultSocketPath
-	}
-	// Create a custom dialer function for Unix socket connection
-	dialer := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		return net.Dial("unix", socketPath)
-	}
-
-	// Create an HTTP client with the Unix socket transport
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: dialer,
-		},
-	}
-
-	//Create POST request
-	req, err := http.NewRequest("POST", urlPath, strings.NewReader(payload))
-	if err != nil {
-		return fmt.Errorf("Failed to create EIT based request. Failed wth error: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	response, err := client.Do(req)
-	if err != nil {
-		//TODO: Add retry logic to continuously send request with 5 sec delay. Is it really required?
-		// Can we make a systemctl call from here to the local system?
-		return fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
-	}
-	defer response.Body.Close()
-	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response from mount-helper-container server: %s ,ResponseCode: %v", string(body), response.StatusCode)
+// UmountEITBasedFileShare unmounts EIT based FileShare from host system
+func (m *NodeMounter) UmountEITBasedFileShare(targetPath string, requestID string) error {
+	// Create payload
+	payload := fmt.Sprintf(`{"targetPath":"%s","requestID":"%s"}`, targetPath, requestID)
+	err := createMountHelperContainerRequest(payload, urlUmountPath)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// DebugLogsEITBasedFileShare collects mount-helper-container logs which might be useful for debugging in case of unknown mount failure.
+func (m *NodeMounter) DebugLogsEITBasedFileShare(requestID string) error {
+	// Create payload
+	payload := fmt.Sprintf(`{"requestID":"%s"}`, requestID)
+	err := createMountHelperContainerRequest(payload, urlDebugPath)
+
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -133,4 +127,47 @@ func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, e
 		}
 	}
 	return true, nil
+}
+
+// createMountHelperContainerRequest creates a request to mount-helper-container server over UNIX socket and returns errors if any.
+func createMountHelperContainerRequest(payload string, url string) error {
+	// Get socket path
+	socketPath := os.Getenv("SOCKET_PATH")
+	if socketPath == "" {
+		socketPath = defaultSocketPath
+	}
+	// Create a custom dialer function for Unix socket connection
+	dialer := func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return net.Dial("unix", socketPath)
+	}
+
+	// Create an HTTP client with the Unix socket transport
+	client := &http.Client{
+		Transport: &http.Transport{
+			DialContext: dialer,
+		},
+	}
+
+	//Create POST request
+	req, err := http.NewRequest("POST", url, strings.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("Failed to create EIT based umount request. Failed wth error: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	response, err := client.Do(req)
+	if err != nil {
+		//TODO: Add retry logic to continuously send request with 5 sec delay. Is it really required?
+		// Can we make a systemctl call from here to the local system?
+		return fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
+	}
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Response from mount-helper-container server: %s ,ResponseCode: %v", string(body), response.StatusCode)
+	}
+	return nil
 }

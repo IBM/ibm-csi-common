@@ -57,3 +57,13 @@ func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, e
 func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
 	return nil
 }
+
+// UmountEITBasedFileShare ...
+func (m *NodeMounter) UmountEITBasedFileShare(targetPath string, requestID string) error {
+	return nil
+}
+
+// DebugLogsEITBasedFileShare...
+func (m *NodeMounter) DebugLogsEITBasedFileShare(requestID string) error {
+	return nil
+}
