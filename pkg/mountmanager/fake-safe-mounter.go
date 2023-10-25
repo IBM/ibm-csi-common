@@ -171,8 +171,8 @@ func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
 func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
 	mountpoint := []mount.MountPoint{
 		{
-			Device: "valid-devicePath",
-			Path: "valid-vol-path",
+			Device: "some/path",
+			Path: "some/path",
 		},
 	}
 	return mountpoint, nil
