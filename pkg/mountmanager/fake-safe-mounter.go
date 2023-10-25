@@ -174,6 +174,10 @@ func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
 			Device: "some/target",
 			Path: "some/staging",
 		},
+		{
+			Device: "some/target,
+			Path: "some/path",
+		},
 	}
 	return mountpoint, nil
 }
