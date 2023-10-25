@@ -19,7 +19,7 @@ EXIT_CODE=0
 NAMESPACE="ics-e2e"
 BASEDIR=$(dirname "$0")
 
-STATEFULSETSPEC="./tests/e2e/scripts/statefulset-test/specs/vpc/ics-e2e-tester-statefulset.yaml"
+STATEFULSETSPEC="./tests/_file/scripts/statefulset-test/specs/vpc/ics-e2e-tester-statefulset.yaml"
 PODTIMES=()
 PVLIST=""
 

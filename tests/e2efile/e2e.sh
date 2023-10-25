@@ -133,11 +133,11 @@ go clean -modcache
 export GO111MODULE=on
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.1.6
 set +e
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2efile -- -e2e-verify-service-account=false
 rc1=$?
 echo "Exit status for basic volume test: $rc1"
 
-ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-verify-service-account=false
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2efile -- -e2e-verify-service-account=false
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 

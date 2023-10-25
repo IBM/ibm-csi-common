@@ -15,9 +15,9 @@
 
 5. Test DP2 profile with deployment
    ```
-   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\] \[with-deploy\]"  ./tests/e2e_file
+   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\] \[with-deploy\]"  ./tests/e2efile
    ```
 6. Test volume expansion
    ```
-   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]"  ./tests/e2e_file
+   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]"  ./tests/e2efile
    ```

@@ -110,7 +110,7 @@ func WaitForPvToResize(c clientset.Interface, ns *v1.Namespace, pvName string, d
 func WaitForFileSystemToResize(t *TestPod, expectedOut int64, timeout time.Duration, interval time.Duration) error {
 	By(fmt.Sprintf("Waiting up to %v for filesystem in namespace to be resized", timeout))
 	for start := time.Now(); time.Since(start) < timeout; time.Sleep(interval) {
-		out, err := exec.Command("kubectl", fmt.Sprintf("--kubeconfig=%s", os.Getenv("KUBECONFIG")), "exec", t.pod.Name, fmt.Sprintf("--namespace=%s", t.pod.Namespace), "--", "/bin/sh", "-c", "df -h /mnt/test-1 | grep test-1 | awk -F' ' '{ print $2 }'").CombinedOutput()
+		out, err := exec.Command("kubectl", fmt.Sprintf("--kubeconfig=%s", os.Getenv("KUBECONFIG")), "exec", t.pod.Name, fmt.Sprintf("--namespace=%s", t.pod.Namespace), "--", "/bin/sh", "-c", "df -h /mnt/test-1 | grep test-1 | awk -F' ' '{ print $1 }'").CombinedOutput()
 		if err != nil {
 			return err
 		} else {
@@ -121,6 +121,7 @@ func WaitForFileSystemToResize(t *TestPod, expectedOut int64, timeout time.Durat
 				return err
 			}
 			if updatedSizeInt64, ok := updatedSize.AsInt64(); ok {
+				fmt.Println("updatedSizeInt64", updatedSizeInt64)
 				updatedSizeG := updatedSizeInt64 / (1000 * 1000 * 1000)
 				fmt.Println(updatedSizeG, "GB")
 				if updatedSizeG >= expectedOut {

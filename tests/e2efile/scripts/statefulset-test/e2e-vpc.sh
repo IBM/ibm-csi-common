@@ -60,12 +60,12 @@ rm -f $E2E_TEST_RESULT
 rm -f $E2E_TEST_SETUP
 
 if [[ "$IC_LOGIN" == "true" ]]; then
-	# ./tests/e2e/setup.sh
+	# ./tests/e2efile/setup.sh
 	echo "Kube Config already exported!!!"
 fi
 
 if [[ "$IC_LOGIN" != "true" ]]; then
-    CONFIGPATH="./tests/e2e/scripts/statefulset-test/kube-config/vpc"
+    CONFIGPATH="./tests/e2efile/scripts/statefulset-test/kube-config/vpc"
     CWDIR=$(pwd)
 
     if [[ ! -e ${CONFIGPATH}/kube-config-${REGION}.tar ]]; then
@@ -77,11 +77,11 @@ if [[ "$IC_LOGIN" != "true" ]]; then
     	echo -e "VPC-FILE-CSI-TEST: Statefulset test: FAILED" > $E2E_TEST_RESULT
     	exit 1
     fi
-    if [[ ! -e ./tests/e2e/scripts/statefulset-test/${TESTSCRIPT}  ]]; then
+    if [[ ! -e ./tests/e2efile/scripts/statefulset-test/${TESTSCRIPT}  ]]; then
     	echo "********** E2E Statefulset Test Details **********" > $E2E_TEST_SETUP
     	echo -e "StartTime   : $(date "+%F-%T")" >> $E2E_TEST_SETUP
     	echo -e "Error       : Setup failed" >> $E2E_TEST_SETUP
-    	echo -e "Error       : Testscript not found ./tests/e2e/scripts/statefulset-test/${TESTSCRIPT}" >> $E2E_TEST_SETUP
+    	echo -e "Error       : Testscript not found ./tests/e2efile/scripts/statefulset-test/${TESTSCRIPT}" >> $E2E_TEST_SETUP
     	echo -e "Error       : Unbale to execute e2e test!" >> $E2E_TEST_SETUP
     	echo -e "VPC-FILE-CSI-TEST: Statefulset test: FAILED" > $E2E_TEST_RESULT
     	exit 1
@@ -156,9 +156,9 @@ set +e
 # check mandatory variables
 echo "Running E2E for region: [$TEST_ENV]"
 echo "                  Path: `pwd`"
-chmod 755 ./tests/e2e/scripts/statefulset-test/${TESTSCRIPT}
-echo "Info: ./tests/e2e/scripts/statefulset-test/${TESTSCRIPT}"
-./tests/e2e/scripts/statefulset-test/${TESTSCRIPT} | tee -a $E2E_TEST_RESULT
+chmod 755 ./tests/e2efile/scripts/statefulset-test/${TESTSCRIPT}
+echo "Info: ./tests/e2efile/scripts/statefulset-test/${TESTSCRIPT}"
+./tests/e2efile/scripts/statefulset-test/${TESTSCRIPT} | tee -a $E2E_TEST_RESULT
 grep  'VPC-FILE-CSI-TEST: Statefulset test: FAILED'; rc=$?
 if [[ $rc -eq 0 ]]; then
 	exit 1

@@ -405,9 +405,6 @@ func NewTestPersistentVolumeClaim(
 	volumeMode VolumeMode, sc *storagev1.StorageClass) *TestPersistentVolumeClaim {
 
 	mode := v1.PersistentVolumeFilesystem
-	if volumeMode == File {
-		mode = v1.PersistentVolumeFile
-	}
 
 	pvcAccessMode := v1.ReadWriteMany
 	if accessmode != nil {
@@ -428,9 +425,7 @@ func NewTestPersistentVolumeClaimWithDataSource(
 	c clientset.Interface, pvcName string, ns *v1.Namespace,
 	claimSize string, volumeMode VolumeMode, sc *storagev1.StorageClass, dataSource *v1.TypedLocalObjectReference) *TestPersistentVolumeClaim {
 	mode := v1.PersistentVolumeFilesystem
-	if volumeMode == File {
-		mode = v1.PersistentVolumeFile
-	}
+	
 	By("Create tpvc with data source")
 	return &TestPersistentVolumeClaim{
 		name:         pvcName,

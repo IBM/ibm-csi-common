@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package e2e
+package e2efile
 
 import (
 	"context"
 	"fmt"
-	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
+	"github.com/IBM/ibm-csi-common/tests/e2efile/testsuites"
 	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -164,7 +164,7 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 			},
 			// ExpandVolSize is in Gi i.e, 40Gi
 			ExpandVolSizeG: 40,
-			ExpandedSize:   37,
+			ExpandedSize:   40,
 		}
 		test.Run(cs, ns)
 		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: dp2 SC POD Test and resize volume: PASS\n"); err != nil {
