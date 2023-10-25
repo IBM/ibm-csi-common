@@ -161,3 +161,19 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 	}
 	return false, nil
 }
+
+// IsLikelyNotMountPoint ...
+func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
+    return true, nil
+}
+
+// List() ...
+func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
+	mountpoint := []mount.MountPoint{
+		{
+			Device: "/tmp/csi/tmp/csi/target/target",
+			Path: "/tmp/csi/tmp/csi/target/target",
+		},
+	}
+	return mountpoint, nil
+}
