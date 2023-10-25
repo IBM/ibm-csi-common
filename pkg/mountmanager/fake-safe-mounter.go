@@ -164,7 +164,7 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 
 // IsLikelyNotMountPoint ...
 func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
-    return true, nil
+    return false, nil
 }
 
 // List() ...
