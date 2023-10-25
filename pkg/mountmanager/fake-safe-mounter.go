@@ -39,8 +39,8 @@ func NewFakeNodeMounter() Mounter {
 // NewFakeSafeMounter ...
 func NewFakeSafeMounter() *mount.SafeFormatAndMount {
 	fakeMounter := &mount.FakeMounter{MountPoints: []mount.MountPoint{{
-		Device: "valid-devicePath",
-		Path:   "valid-vol-path",
+		Device: "some/target",
+		Path:   "some/target",
 		Type:   "ext4",
 		Opts:   []string{"defaults"},
 		Freq:   1,
