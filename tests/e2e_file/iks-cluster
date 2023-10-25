@@ -214,8 +214,8 @@ function check_addon_pod_status {
   pod_name=$1
   while true; do
     attempts=$((attempts+1))
-    pod_status=$(kubectl get sts -n kube-system | grep "$pod_name"| awk '{print $2}')
-    if [   "$pod_status" = "1/1" ]; then
+    pod_status_deployment=$(kubectl get deployment -n kube-system | grep "$pod_name"| awk '{print $2}')
+    if [[ "$pod_status_deployment" == "2/2" ]]; then
       echo "$pod_name is  running ."
       break
     fi
