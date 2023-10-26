@@ -217,13 +217,13 @@ function check_addon_pod_status {
     pod_status_deployment=$(kubectl get deployment -n kube-system | grep "$pod_name"| awk '{print $2}')
     if [[ "$pod_status_deployment" == "2/2" ]]; then
       echo "$pod_name is  running ."
-      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: PASSED" >> $E2E_TEST_SETUP;
+      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: PASSED" >> $E2E_TEST_RESULT;
       break
     fi
     if [[ $attempts -gt 30 ]]; then
       echo "$pod_name  not running well."
       kubectl get pods -n kube-system| awk "/$pod_name-/"
-      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: FAILED" >> $E2E_TEST_SETUP;
+      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: FAILED" >> $E2E_TEST_RESULT;
       exit 1
     fi
     echo "$pod_name state == $pod_status  Sleeping 10 seconds"
