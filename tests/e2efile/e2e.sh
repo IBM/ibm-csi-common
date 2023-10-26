@@ -100,7 +100,7 @@ if [[ $rc -ne 0 ]]; then
 	echo "***************************************************" >> $E2E_TEST_SETUP
 else
 	echo "***************************************************" >> $E2E_TEST_SETUP
-    DRIVER_DETAILS=$(kubectl get pods -n kube-system ibm-vpc-file-csi-controller-0 -o jsonpath="{range .spec.containers[*]}{.name}:{.image}{'\n'}"); rc=$?
+    DRIVER_DETAILS=$(kubectl get deployment -n kube-system ibm-vpc-file-csi-controller -o jsonpath="{range .spec.template.spec.containers[*]}{.name}:{.image}{'\n'}"); rc=$?
 	echo -e "\nDRIVER DETAILS = $DRIVER_DETAILS" >> $E2E_TEST_SETUP
 	echo "***************************************************" >> $E2E_TEST_SETUP
 fi
