@@ -111,6 +111,11 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 	var (
 		cs        clientset.Interface
 		ns        *v1.Namespace
+		cleanupFuncs []func()
+		volList      []testsuites.VolumeDetails
+		cmdLongLife  string
+		maxPVC  int
+		maxPOD      int
 		secretKey string
 	)
 
@@ -119,9 +124,32 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 		secretKey = defaultSecret
 	}
 
+	maxPOD = 4
 	BeforeEach(func() {
 		cs = f.ClientSet
 		ns = f.Namespace
+		cleanupFuncs = make([]func(), 0)
+
+		//cmdShotLife = "df -h; echo 'hello world' > /mnt/test-1/data && grep 'hello world' /mnt/test-1/data"
+		cmdLongLife = "df -h; echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done"
+
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		accessMode := v1.ReadWriteOnce
+
+		volList = []testsuites.VolumeDetails{
+			{
+				PVCName:       "ics-vol-dp2-",
+				VolumeType:    "ibmc-vpc-file-dp2",
+				AccessMode:    &accessMode,
+				ClaimSize:     "15Gi",
+				ReclaimPolicy: &reclaimPolicy,
+				MountOptions:  []string{"rw"},
+				VolumeMount: testsuites.VolumeMountDetails{
+					NameGenerate:      "test-volume-",
+					MountPathGenerate: "/mnt/test-",
+				},
+			},
+		}
 	})
 
 	It("with dp2 sc: should create a pvc &pv with RWO mode , deployment resources, write and read to volume, delete the pod, write and read to volume again", func() {
@@ -130,42 +158,60 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 		if labelerr != nil {
 			panic(labelerr)
 		}
-		reclaimPolicy := v1.PersistentVolumeReclaimDelete
-		accessMode := v1.ReadWriteOnce
+
 		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}
 		defer fpointer.Close()
 
-		pod := testsuites.PodDetails{
-			Cmd:      "echo 'hello world' >> /mnt/test-1/data && while true; do sleep 2; done",
-			CmdExits: false,
-			Volumes: []testsuites.VolumeDetails{
-				{
-					PVCName:       "ics-vol-dp2-",
-					VolumeType:    "ibmc-vpc-file-dp2",
-					AccessMode:    &accessMode,
-					FSType:        "ext4",
-					ClaimSize:     "15Gi",
-					ReclaimPolicy: &reclaimPolicy,
-					MountOptions:  []string{"rw"},
-					VolumeMount: testsuites.VolumeMountDetails{
-						NameGenerate:      "test-volume-",
-						MountPathGenerate: "/mnt/test-",
-					},
-				},
-			},
+		var execCmd string
+		var cmdExits bool
+		var vols []testsuites.VolumeDetails
+		var pods []testsuites.PodDetails
+
+		maxPVC = 1
+		vollistLen := len(volList)
+		fmt.Println("vollistLen", vollistLen)
+		vols = make([]testsuites.VolumeDetails, 0)
+		xi := 0
+		for i := 0; vollistLen > 0 && i < maxPVC; i++ {
+			if xi >= vollistLen {
+				xi = 0
+			}
+			vol := volList[xi]
+			vols = append(vols, vol)
+			xi = xi + 1
 		}
-		test := testsuites.DynamicallyProvisioneDeployWithVolWRTest{
-			Pod: pod,
-			PodCheck: &testsuites.PodExecCheck{
-				Cmd:              []string{"cat", "/mnt/test-1/data"},
-				ExpectedString01: "hello world\n",
-				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
-			},
+		
+
+		// Create PVC
+		execCmd = cmdLongLife
+		cmdExits = false
+		for n := range vols {
+			_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
+			cleanupFuncs = append(cleanupFuncs, funcs...)
 		}
-		test.Run(cs, ns)
+	
+		for i := range cleanupFuncs {
+			defer cleanupFuncs[i]()
+		}
+		
+		pods = make([]testsuites.PodDetails, 0)
+		for i := 0; i < maxPOD; i++ {
+			pod := testsuites.PodDetails{
+				Cmd:      execCmd,
+				CmdExits: cmdExits,
+				Volumes:  vols,
+			}
+			pods = append(pods, pod)
+		}
+		test := testsuites.DynamicallyProvisioneMultiPodWithVolTest{
+			Pods:     pods,
+			PodCheck: nil,
+		}
+
+		test.RunAsync(cs, ns)
 		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING PVC WITH RWO MODE : PASS\n"); err != nil {
 			panic(err)
 		}
