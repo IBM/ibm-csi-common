@@ -1069,7 +1069,7 @@ if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) export kube con
 if [[ -n "$e2e_var_exports" ]]; then
     echo "KUBECONFIG=$KUBECONFIG" >> $e2e_var_exports
     if [[ "$IC_PROVIDER" =~ ^vpc- ]]; then
-	addon_version=$(kubectl get sts -n kube-system ibm-vpc-file-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
+	addon_version=$(kubectl get deployment -n kube-system ibm-vpc-file-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
         echo "CLUSTER_ADDON_VER=$addon_version" >> $e2e_var_exports
     fi
 fi
