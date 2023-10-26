@@ -10,7 +10,6 @@
 
 # E2ETEST_API_KEY=${E2ETEST_API_KEY:-"/Users/nkashyap/.bluemix/stg-stge2etest.key"}
 E2E_TEST_SETUP="$EXECPATH/e2e-setup.out"
-E2E_TEST_RESULT="$EXECPATH/e2e-test.out"
 
 default_IC_RES_GRP="vpc-e2e-test"
 default_IC_COS_INSTANCE="crn:v1:staging:public:cloud-object-storage:global:a/8ee729d7f903db130b00257d91b6977f:a5ecf8b4-36b5-47e4-9f21-caf77ec2868e::"
@@ -218,13 +217,13 @@ function check_addon_pod_status {
     pod_status_deployment=$(kubectl get deployment -n kube-system | grep "$pod_name"| awk '{print $2}')
     if [[ "$pod_status_deployment" == "2/2" ]]; then
       echo "$pod_name is  running ."
-      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: PASSED" >> $E2E_TEST_RESULT;
+      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: PASSED" >> $E2E_TEST_SETUP
       break
     fi
     if [[ $attempts -gt 30 ]]; then
       echo "$pod_name  not running well."
       kubectl get pods -n kube-system| awk "/$pod_name-/"
-      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: FAILED" >> $E2E_TEST_RESULT;
+      echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: FAILED" >> $E2E_TEST_SETUP
       exit 1
     fi
     echo "$pod_name state == $pod_status  Sleeping 10 seconds"
