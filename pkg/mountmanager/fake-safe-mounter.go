@@ -166,7 +166,7 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 
 // IsLikelyNotMountPoint ...
 func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
-	if file == "/invalid-volPath" {
+	if file == "/invalid-volPath" || file == "fake-volPath" {
 		return true, errors.New("Path doesn't exist")
 	}
 	return false, nil
