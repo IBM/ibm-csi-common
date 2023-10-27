@@ -94,14 +94,14 @@ err_msg2=""
 DRIVER_PODS=$(kubectl get pods -n kube-system | grep 'ibm-vpc-file-csi-controlle' | grep 'Running'); rc=$?
 if [[ $rc -ne 0 ]]; then
     err_msg1="Error       : Controller not active"
-	echo "***************************************************" >> $E2E_TEST_SETUP
 	echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: FAILED" >> $E2E_TEST_SETUP
+	echo "***************************************************" >> $E2E_TEST_SETUP
 	DRIVER_DETAILS=$(kubectl describe pod -n kube-system ibm-vpc-file-csi-controller | sed -n '/Events/,$p'); 
 	echo -e "\nDRIVER DETAILS = $DRIVER_DETAILS" >> $E2E_TEST_SETUP
 	echo "***************************************************" >> $E2E_TEST_SETUP
 else
-	echo "***************************************************" >> $E2E_TEST_SETUP
 	echo -e "VPC-FILE-CSI-TEST: VERIFYING VPC FILE CSI DRIVER HEALTH: PASSED" >> $E2E_TEST_SETUP
+	echo "***************************************************" >> $E2E_TEST_SETUP
     DRIVER_DETAILS=$(kubectl get deployment -n kube-system ibm-vpc-file-csi-controller -o jsonpath="{range .spec.template.spec.containers[*]}{.name}:{.image}{'\n'}"); rc=$?
 	echo -e "\nDRIVER DETAILS = $DRIVER_DETAILS" >> $E2E_TEST_SETUP
 	echo "***************************************************" >> $E2E_TEST_SETUP
