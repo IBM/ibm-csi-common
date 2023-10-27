@@ -18,6 +18,8 @@
 package mountmanager
 
 import (
+	"errors"
+
 	mount "k8s.io/mount-utils"
 	exec "k8s.io/utils/exec"
 	testExec "k8s.io/utils/exec/testing"
@@ -164,7 +166,10 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 
 // IsLikelyNotMountPoint ...
 func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
-    return false, nil
+	if file == "/invalid-volPath" {
+		return true, errors.New("Path doesn't exist")
+	}
+	return false, nil
 }
 
 // List() ...
@@ -172,11 +177,11 @@ func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
 	mountpoint := []mount.MountPoint{
 		{
 			Device: "some/target",
-			Path: "some/target",
+			Path:   "some/target",
 		},
 		{
 			Device: "some/path",
-			Path: "some/path",
+			Path:   "some/path",
 		},
 	}
 	return mountpoint, nil
