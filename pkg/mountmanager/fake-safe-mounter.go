@@ -19,6 +19,8 @@ package mountmanager
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	mount "k8s.io/mount-utils"
 	exec "k8s.io/utils/exec"
@@ -170,6 +172,17 @@ func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
 		return true, errors.New("Path doesn't exist")
 	}
 	return false, nil
+}
+
+// Mount
+func (f *FakeNodeMounter) Mount(source, target, _ string, _ []string) error {
+	if strings.Contains(source, "error_mount") {
+		return fmt.Errorf("fake Mount: source error")
+	} else if strings.Contains(target, "error_mount") {
+		return fmt.Errorf("fake Mount: target error")
+	}
+
+	return nil
 }
 
 // List() ...
