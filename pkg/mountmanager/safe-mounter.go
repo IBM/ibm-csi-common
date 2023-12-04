@@ -25,8 +25,6 @@ import (
 type mountInterface = mount.Interface
 
 // Mounter is the interface implemented by Mounter
-//
-//go:generate counterfeiter -o fakes/fakeMounter.go --fake-name FakeMounter . Mounter
 type Mounter interface {
 	mountInterface
 
