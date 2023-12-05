@@ -18,6 +18,8 @@ package e2efile
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/IBM/ibm-csi-common/tests/e2efile/testsuites"
 	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
@@ -31,7 +33,6 @@ import (
 	restclientset "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 	admissionapi "k8s.io/pod-security-admission/api"
-	"os"
 )
 
 const defaultSecret = ""
@@ -109,14 +110,14 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 	f := framework.NewDefaultFramework("ics-e2e-deploy")
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var (
-		cs        clientset.Interface
-		ns        *v1.Namespace
+		cs           clientset.Interface
+		ns           *v1.Namespace
 		cleanupFuncs []func()
 		volList      []testsuites.VolumeDetails
 		cmdLongLife  string
-		maxPVC  int
-		maxPOD      int
-		secretKey string
+		maxPVC       int
+		maxPOD       int
+		secretKey    string
 	)
 
 	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
@@ -183,7 +184,6 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 			vols = append(vols, vol)
 			xi = xi + 1
 		}
-		
 
 		// Create PVC
 		execCmd = cmdLongLife
@@ -192,11 +192,11 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 			_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
 			cleanupFuncs = append(cleanupFuncs, funcs...)
 		}
-	
+
 		for i := range cleanupFuncs {
 			defer cleanupFuncs[i]()
 		}
-		
+
 		pods = make([]testsuites.PodDetails, 0)
 		for i := 0; i < maxPOD; i++ {
 			pod := testsuites.PodDetails{
@@ -280,7 +280,7 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 			ExpandedSize:   40,
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING PVC EXPANSION BY USING DEPLOYMENT: PASSED\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING PVC EXPANSION BY USING DEPLOYMENT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})

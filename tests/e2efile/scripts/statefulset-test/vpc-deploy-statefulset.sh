@@ -319,7 +319,7 @@ if [[ $EXIT_CODE -ne 0 ]]; then
 	echo "VPC-FILE-CSI-TEST: Statefulset test: FAILED"
 	exit $EXIT_CODE
 else
-	echo "VPC-FILE-CSI-TEST: Statefulset test: PASSED"
+	echo "VPC-FILE-CSI-TEST: Statefulset test: PASS"
 fi
 doCleanup $EXIT_CODE; EXIT_CODE=$?
 if [[ $EXIT_CODE -ne 0 ]]; then
