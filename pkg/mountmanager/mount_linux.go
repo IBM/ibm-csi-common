@@ -36,11 +36,11 @@ const (
 	//socket path
 	defaultSocketPath = "/tmp/mysocket.sock"
 	// mount url
-	urlMountPath = "http://unix/api/mount"
+	urlMountPath = "http:/unix/api/mount"
 	// umount url
-	urlUmountPath = "http://unix/api/umount"
+	urlUmountPath = "http:/unix/api/umount"
 	// debug url
-	urlDebugPath = "http://unix/api/debugLogs"
+	urlDebugPath = "http:/unix/api/debugLogs"
 )
 
 // MountEITBasedFileShare mounts EIT based FileShare on host system
