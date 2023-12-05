@@ -19,6 +19,11 @@ package testsuites
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"os/exec"
+	"strings"
+	"time"
+
 	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
 	. "github.com/onsi/ginkgo/v2"
@@ -29,19 +34,17 @@ import (
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	restclientset "k8s.io/client-go/rest"
-	"k8s.io/kubernetes/test/e2e/framework"
+	framework "k8s.io/kubernetes/test/e2e/framework"
+	k8sDevStat "k8s.io/kubernetes/test/e2e/framework/daemonset"
 	k8sDevDep "k8s.io/kubernetes/test/e2e/framework/deployment"
 	k8sDevPod "k8s.io/kubernetes/test/e2e/framework/pod"
 	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
 	imageutils "k8s.io/kubernetes/test/utils/image"
-	"math/rand"
-	"os/exec"
-	"strings"
-	"time"
 )
 
 type TestSecret struct {
@@ -68,6 +71,13 @@ type TestStatefulsets struct {
 	namespace   *v1.Namespace
 	statefulset *apps.StatefulSet
 	podName     []string
+}
+
+type TestDaemonsets struct {
+	client    clientset.Interface
+	namespace *v1.Namespace
+	daemonset *apps.DaemonSet
+	podName   []string
 }
 
 func NewSecret(c clientset.Interface, name, ns, iops, tags, encrypt, encryptKey, stype string) *TestSecret {
@@ -142,6 +152,112 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 		},
 	}
 
+}
+
+func (t *TestPersistentVolumeClaim) NewTestDaemonset(c clientset.Interface, ns *v1.Namespace, pvc *v1.PersistentVolumeClaim, command, storageClassName, volumeName, mountPath string, labels map[string]string) *TestDaemonsets {
+	generateName := "ics-e2e-tester-"
+	return &TestDaemonsets{
+		client:    c,
+		namespace: ns,
+		daemonset: &apps.DaemonSet{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: generateName,
+			},
+			Spec: apps.DaemonSetSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: labels,
+				},
+				Template: v1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: labels,
+					},
+					Spec: v1.PodSpec{
+						Containers: []v1.Container{
+							{
+								Name:    "daemonset",
+								Image:   imageutils.GetE2EImage(imageutils.Nginx),
+								Command: []string{"/bin/sh"},
+								Args:    []string{"-c", command},
+								Ports: []v1.ContainerPort{
+									{
+										Name:          "http",
+										ContainerPort: int32(8080),
+									},
+								},
+								VolumeMounts: []v1.VolumeMount{
+									{
+										Name:      volumeName,
+										MountPath: mountPath,
+									},
+								},
+							},
+						},
+						Volumes: []v1.Volume{
+							{
+								Name: volumeName,
+								VolumeSource: v1.VolumeSource{
+									PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+										ClaimName: pvc.Name,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+}
+
+func (t *TestDaemonsets) Logs() {
+	for _, podname := range t.podName {
+		body, err := podLogs(t.client, podname, t.namespace.Name)
+		if err != nil {
+			framework.Logf("Error getting logs for pod %s: %v", podname, err)
+		} else {
+			framework.Logf("Pod %s has the following logs: %s", podname, body)
+		}
+	}
+}
+
+func (t *TestDaemonsets) Create() {
+	var err error
+	t.daemonset, err = t.client.AppsV1().DaemonSets(t.namespace.Name).Create(context.Background(), t.daemonset, metav1.CreateOptions{})
+	framework.ExpectNoError(err)
+	By("DaemonSet checking: Slpeeing for 2 mins to make sure pods are up and running ")
+	time.Sleep(2 * time.Minute)
+	present, err := k8sDevStat.CheckPresentOnNodes(t.client, t.daemonset, t.namespace.Name, 1)
+	if !present {
+		framework.Logf("CheckPresentOnNodes on failed")
+	}
+}
+
+func (t *TestDaemonsets) WaitForPodReady() {
+	var err error
+	By("DaemonSet running: Checking if All Pods are running ")
+
+	for _, podname := range t.podName {
+		err = k8sDevPod.WaitForPodCondition(t.client, t.namespace.Name, podname, failedConditionDescription, slowPodStartTimeout, podRunningCondition)
+		framework.ExpectNoError(err)
+	}
+}
+
+func (t *TestDaemonsets) Exec(command []string, expectedString string) {
+	for _, podname := range t.podName {
+		By("DaemonSet Exec: executing cmd in pod")
+		_, err := e2eoutput.LookForStringInPodExec(t.namespace.Name, podname, command, expectedString, execTimeout)
+		framework.ExpectNoError(err)
+	}
+}
+
+func (t *TestDaemonsets) Cleanup() {
+	By("DaemonSets Cleanup: deleting DaemonSet")
+	e2eoutput.DumpDebugInfo(t.client, t.namespace.Name)
+	t.Logs()
+	framework.Logf("deleting Daemonset %q/%q", t.namespace.Name, t.daemonset.Name)
+	err := t.client.AppsV1().DaemonSets(t.namespace.Name).Delete(context.Background(), t.daemonset.Name, metav1.DeleteOptions{})
+	framework.ExpectNoError(err)
 }
 
 func (h *TestHeadlessService) Create() v1.Service {

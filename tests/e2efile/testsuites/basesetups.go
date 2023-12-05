@@ -229,6 +229,31 @@ func (pod *PodDetails) SetupStatefulset(client clientset.Interface, namespace *v
 	return tStatefulset, cleanupFuncs
 }
 
+func (pod *PodDetails) SetupDaemonset(client clientset.Interface, namespace *v1.Namespace, serviceName string, labels map[string]string) (*TestDaemonsets, []func()) {
+	cleanupFuncs := make([]func(), 0)
+	volume := pod.Volumes[0]
+	storageClass := storagev1.StorageClass{}
+	storageClass.Name = volume.VolumeType
+	storageClass.ReclaimPolicy = volume.ReclaimPolicy
+	storageClass.MountOptions = volume.MountOptions
+
+	By("Setting up PVC values")
+	tpvc := NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
+	tpvc.Create()
+	tpvc.WaitForBound()
+	tpvc.ValidateProvisionedPersistentVolume()
+	cleanupFuncs = append(cleanupFuncs, tpvc.Cleanup)
+
+	By("Setting up the DaemonSet")
+	tDaemonset := tpvc.NewTestDaemonset(client, namespace, tpvc.persistentVolumeClaim, pod.Cmd,
+		storageClass.Name,
+		fmt.Sprintf("%s%d", volume.VolumeMount.NameGenerate, 1),
+		fmt.Sprintf("%s%d", volume.VolumeMount.MountPathGenerate, 1), labels)
+
+	cleanupFuncs = append(cleanupFuncs, tDaemonset.Cleanup)
+	return tDaemonset, cleanupFuncs
+}
+
 func CreateVolumeSnapshotClass(client restclientset.Interface, namespace *v1.Namespace) (*TestVolumeSnapshotClass, func()) {
 	By("setting up the VolumeSnapshotClass")
 	volumeSnapshotClass := GetVolumeSnapshotClass(namespace.Name)

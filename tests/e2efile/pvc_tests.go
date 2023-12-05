@@ -218,6 +218,68 @@ var _ = Describe("[ics-e2e] [sc] [rwo] [with-deploy] Dynamic Provisioning for ib
 	})
 })
 
+var _ = Describe("[ics-e2e] [sc] [with-daemonset] Dynamic Provisioning using daemonsets", func() {
+	f := framework.NewDefaultFramework("ics-e2e-daemonsets")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	var (
+		cs clientset.Interface
+		ns *v1.Namespace
+	)
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
+	})
+	It("With 5iops sc: should creat daemonset resources, write and read to volume", func() {
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		headlessService := testsuites.NewHeadlessService(cs, "ics-e2e-service-", ns.Name, "test")
+		service := headlessService.Create()
+		defer headlessService.Cleanup()
+
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		pod := testsuites.PodDetails{
+			Cmd: "echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-dp2-",
+					VolumeType:    "ibmc-vpc-file-dp2",
+					FSType:        "ext4",
+					ClaimSize:     "20Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+
+		test := testsuites.DaemonsetWithVolWRTest{
+			Pod: pod,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+			},
+			Labels:      service.Labels,
+			ServiceName: service.Name,
+		}
+		test.Run(cs, ns, false)
+		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING MULTI-ZONE/MULTI-NODE READ/WRITE BY USING DAEMONSET : PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+})
+
 var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", func() {
 	f := framework.NewDefaultFramework("ics-e2e-pods")
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
