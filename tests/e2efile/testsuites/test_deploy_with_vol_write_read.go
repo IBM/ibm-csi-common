@@ -26,12 +26,13 @@ import (
 // Testing if the Pod can write and read to mounted volumes
 // Deleting a pod, and again testing if the Pod can write and read to mounted volumes
 type DynamicallyProvisioneDeployWithVolWRTest struct {
-	Pod      PodDetails
-	PodCheck *PodExecCheck
+	Pod          PodDetails
+	PodCheck     *PodExecCheck
+	ReplicaCount int32
 }
 
 func (t *DynamicallyProvisioneDeployWithVolWRTest) Run(client clientset.Interface, namespace *v1.Namespace) {
-	tDeployment, cleanup := t.Pod.SetupDeployment(client, namespace)
+	tDeployment, cleanup := t.Pod.SetupDeployment(client, namespace, t.ReplicaCount)
 	// defer must be called here for resources not get removed before using them
 	for i := range cleanup {
 		defer cleanup[i]()

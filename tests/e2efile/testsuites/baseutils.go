@@ -718,10 +718,9 @@ type TestDeployment struct {
 	podName    string
 }
 
-func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, pvc *v1.PersistentVolumeClaim, volumeName, mountPath string, readOnly bool) *TestDeployment {
+func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, pvc *v1.PersistentVolumeClaim, volumeName, mountPath string, readOnly bool, replicaCount int32) *TestDeployment {
 	generateName := "ics-e2e-tester-"
 	selectorValue := fmt.Sprintf("%s%d", generateName, rand.Int())
-	replicas := int32(1)
 	return &TestDeployment{
 		client:    c,
 		namespace: ns,
@@ -730,7 +729,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 				GenerateName: generateName,
 			},
 			Spec: apps.DeploymentSpec{
-				Replicas: &replicas,
+				Replicas: &replicaCount,
 				Selector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{"app": selectorValue},
 				},

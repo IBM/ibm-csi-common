@@ -145,7 +145,7 @@ func (pod *PodDetails) SetupDeploymentWithMultiVol(client clientset.Interface, n
 	return tDeployment, cleanupFuncs
 }
 
-func (pod *PodDetails) SetupDeployment(client clientset.Interface, namespace *v1.Namespace) (*TestDeployment, []func()) {
+func (pod *PodDetails) SetupDeployment(client clientset.Interface, namespace *v1.Namespace, replicaCount int32) (*TestDeployment, []func()) {
 	cleanupFuncs := make([]func(), 0)
 	volume := pod.Volumes[0]
 
@@ -166,7 +166,7 @@ func (pod *PodDetails) SetupDeployment(client clientset.Interface, namespace *v1
 		tpvc.persistentVolumeClaim,
 		fmt.Sprintf("%s%d", volume.VolumeMount.NameGenerate, 1),
 		fmt.Sprintf("%s%d", volume.VolumeMount.MountPathGenerate, 1),
-		volume.VolumeMount.ReadOnly)
+		volume.VolumeMount.ReadOnly, replicaCount)
 
 	cleanupFuncs = append(cleanupFuncs, tDeployment.Cleanup)
 	return tDeployment, cleanupFuncs
