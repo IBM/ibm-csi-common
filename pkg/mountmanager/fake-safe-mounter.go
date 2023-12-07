@@ -138,6 +138,11 @@ func (f *FakeNodeMounterWithCustomActions) GetSafeFormatAndMount() *mount.SafeFo
 	return f.SafeFormatAndMount
 }
 
+// ResizeFileShare ...
+func (m *FakeNodeMounterWithCustomActions) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {
+	return true, nil
+}
+
 func NewFakeSafeMounterWithCustomActions(actionList []testingexec.FakeCommandAction) *mount.SafeFormatAndMount {
 	var fakeExec exec.Interface = &testingexec.FakeExec{
 		//DisableScripts: false,
