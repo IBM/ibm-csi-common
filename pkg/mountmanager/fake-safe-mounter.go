@@ -214,3 +214,8 @@ func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
 	}
 	return mountpoint, nil
 }
+
+// ResizeFileShare ...
+func (m *FakeNodeMounter) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {
+	return true, nil
+}
