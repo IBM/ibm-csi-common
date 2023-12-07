@@ -52,3 +52,8 @@ func (m *NodeMounter) GetSafeFormatAndMount() *mount.SafeFormatAndMount {
 func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, error) {
 	return true, errors.New("not implemented")
 }
+
+// Resize returns boolean and error if any
+func (m *NodeMounter) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {
+	return true, errors.New("not implemented")
+}
