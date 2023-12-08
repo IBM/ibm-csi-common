@@ -43,8 +43,8 @@ func NewFakeNodeMounter() Mounter {
 // NewFakeSafeMounter ...
 func NewFakeSafeMounter() *mount.SafeFormatAndMount {
 	fakeMounter := &mount.FakeMounter{MountPoints: []mount.MountPoint{{
-		Device: "some/target",
-		Path:   "some/staging",
+		Device: "valid-devicePath",
+		Path:   "valid-vol-path",
 		Type:   "ext4",
 		Opts:   []string{"defaults"},
 		Freq:   1,
@@ -174,6 +174,7 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 	return false, nil
 }
 
+/*
 // IsLikelyNotMountPoint ...
 func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
 	if file == "/invalid-volPath" || file == "fake-volPath" {
@@ -184,6 +185,7 @@ func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
 	}
 	return false, nil
 }
+*/
 
 // Mount
 func (f *FakeNodeMounter) Mount(source, target, _ string, _ []string) error {
@@ -205,6 +207,7 @@ func (f *FakeNodeMounter) Unmount(target string) error {
 	return nil
 }
 
+/*
 // List() ...
 func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
 	mountpoint := []mount.MountPoint{
@@ -219,6 +222,7 @@ func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
 	}
 	return mountpoint, nil
 }
+*/
 
 // ResizeFileShare ...
 func (m *FakeNodeMounter) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {

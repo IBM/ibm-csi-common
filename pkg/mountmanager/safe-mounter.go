@@ -34,8 +34,8 @@ type Mounter interface {
 	PathExists(path string) (bool, error)
 	Resize(string, string) (bool, error)
 	List() ([]mount.MountPoint, error)
-	IsLikelyNotMountPoint(file string) (bool, error)
-	ResizeFileShare(string, string) (bool, error)
+	//IsLikelyNotMountPoint(file string) (bool, error)
+	//ResizeFileShare(string, string) (bool, error)
 }
 
 // NodeMounter implements Mounter.
