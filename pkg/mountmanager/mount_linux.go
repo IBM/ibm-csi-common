@@ -75,12 +75,3 @@ func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, e
 	}
 	return true, nil
 }
-
-// ResizeFileShare ...
-func (m *NodeMounter) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {
-	r := mount.NewResizeFs(mounter.GetSafeFormatAndMount().Exec)
-	if _, err := r.Resize(devicePath, deviceMountPath); err != nil {
-		return false, err
-	}
-	return true, nil
-}

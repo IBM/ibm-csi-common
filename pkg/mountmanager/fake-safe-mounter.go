@@ -138,11 +138,6 @@ func (f *FakeNodeMounterWithCustomActions) GetSafeFormatAndMount() *mount.SafeFo
 	return f.SafeFormatAndMount
 }
 
-// ResizeFileShare ...
-func (m *FakeNodeMounterWithCustomActions) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {
-	return true, nil
-}
-
 func NewFakeSafeMounterWithCustomActions(actionList []testingexec.FakeCommandAction) *mount.SafeFormatAndMount {
 	var fakeExec exec.Interface = &testingexec.FakeExec{
 		//DisableScripts: false,
@@ -174,19 +169,6 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 	return false, nil
 }
 
-/*
-// IsLikelyNotMountPoint ...
-func (f *FakeNodeMounter) IsLikelyNotMountPoint(file string) (bool, error) {
-	if file == "/invalid-volPath" || file == "fake-volPath" {
-		return true, errors.New("Path doesn't exist")
-	}
-	if file == "fake-volPath-1" {
-		return true, nil
-	}
-	return false, nil
-}
-*/
-
 // Mount
 func (f *FakeNodeMounter) Mount(source, target, _ string, _ []string) error {
 	if strings.Contains(source, "error_mount") {
@@ -205,26 +187,4 @@ func (f *FakeNodeMounter) Unmount(target string) error {
 	}
 
 	return nil
-}
-
-/*
-// List() ...
-func (f *FakeNodeMounter) List() ([]mount.MountPoint, error) {
-	mountpoint := []mount.MountPoint{
-		{
-			Device: "some/target",
-			Path:   "some/target",
-		},
-		{
-			Device: "some/path",
-			Path:   "some/path",
-		},
-	}
-	return mountpoint, nil
-}
-*/
-
-// ResizeFileShare ...
-func (m *FakeNodeMounter) ResizeFileShare(devicePath string, deviceMountPath string) (bool, error) {
-	return true, nil
 }
