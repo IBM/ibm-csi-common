@@ -19,8 +19,6 @@ package mountmanager
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 
 	mount "k8s.io/mount-utils"
 	exec "k8s.io/utils/exec"
@@ -169,6 +167,7 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 	return false, nil
 }
 
+/*
 // Mount
 func (f *FakeNodeMounter) Mount(source, target, _ string, _ []string) error {
 	if strings.Contains(source, "error_mount") {
@@ -178,4 +177,4 @@ func (f *FakeNodeMounter) Mount(source, target, _ string, _ []string) error {
 	}
 
 	return nil
-}
+}*/
