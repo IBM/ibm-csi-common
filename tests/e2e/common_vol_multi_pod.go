@@ -21,7 +21,9 @@ import (
 	"strconv"
 
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
+	"github.com/IBM/ibmcloud-storage-cbr/cbr"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -34,18 +36,14 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [pods-seq] POD with Common Volumes(PVCs)
 		volList      []testsuites.VolumeDetails
 		cmdShotLife  string
 		//cmdLongLife  string
-		withPVC bool
-		maxPVC  int
-		maxPOD  int
-		fw      *framework.Framework
-		ns      *v1.Namespace
+		//withPVC bool
+		maxPVC int
+		maxPOD int
+		fw     *framework.Framework
+		ns     *v1.Namespace
 	)
 
-	withPVC = true
-	envOpt := os.Getenv("E2E_NOPVC")
-	if envOpt == "yes" {
-		withPVC = false
-	}
+	//withPVC = true
 
 	maxPOD = 1
 	podCount := os.Getenv("E2E_POD_COUNT")
@@ -128,10 +126,12 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [pods-seq] POD with Common Volumes(PVCs)
 
 	It("should create multiple pods in sequence with common PVC(s), write and read to volume", func() {
 		By("create multiple pods in sequence with common PVC(s)")
+		//Modifying the E2E to show how to use the lib in existing e2e tests cases by applying cbr rules using new library
 		var execCmd string
 		var cmdExits bool
 		var vols []testsuites.VolumeDetails
 		var pods []testsuites.PodDetails
+		cbrlib := testsuites.GetCBRContext()
 
 		vollistLen := len(volList)
 		vols = make([]testsuites.VolumeDetails, 0)
@@ -145,18 +145,25 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [pods-seq] POD with Common Volumes(PVCs)
 			xi = xi + 1
 		}
 		//Create PVC
-		if withPVC {
-			execCmd = cmdShotLife
-			cmdExits = true
-			for n := range vols {
-				_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
-				cleanupFuncs = append(cleanupFuncs, funcs...)
-			}
-		} else {
-			// Without PVC
-			execCmd = "echo 'hello world'"
-			cmdExits = true
+		execCmd = cmdShotLife
+		cmdExits = true
+		for n := range vols {
+			_, funcs := vols[n].SetupDynamicPersistentVolumeClaim(cs, ns, false)
+			cleanupFuncs = append(cleanupFuncs, funcs...)
 		}
+		//create cbr
+		vpcCRN := os.Getenv("vpcCRN")
+		cbrInput := cbr.CBR{
+			VPC: []string{vpcCRN},
+		}
+		//Assert Failure with logs
+		zoneID, err := cbrlib.CreateCBRZone("E2E CA Zone", cbrInput)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(zoneID).ShouldNot(BeNil())
+
+		rule, err := testsuites.CreateZoneRules(cbrlib, "is", zoneID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rule).ShouldNot(BeNil())
 
 		for i := range cleanupFuncs {
 			defer cleanupFuncs[i]()
@@ -181,6 +188,10 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [pods-seq] POD with Common Volumes(PVCs)
 			},
 		}
 		test.RunSync(cs, ns)
+		//Pod creation must fail
+		//Delete zone and rule
+		err = cbrlib.DeleteCBRRuleZone(rule, zoneID)
+		Expect(err).ShouldNot(BeNil())
 	})
 
 })
