@@ -166,15 +166,3 @@ func (f *FakeNodeMounter) Resize(devicePath string, deviceMountPath string) (boo
 	}
 	return false, nil
 }
-
-/*
-// Mount
-func (f *FakeNodeMounter) Mount(source, target, _ string, _ []string) error {
-	if strings.Contains(source, "error_mount") {
-		return fmt.Errorf("fake Mount: source error")
-	} else if strings.Contains(target, "error_mount") {
-		return fmt.Errorf("fake Mount: target error")
-	}
-
-	return nil
-}*/
