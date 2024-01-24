@@ -687,6 +687,15 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 		err := k8sDevPV.WaitForPersistentVolumeDeleted(t.client, t.persistentVolume.Name, 5*time.Second, 10*time.Minute)
 		framework.ExpectNoError(err)
 	}
+
+	//Now PVC is deleted wait for some time and display that PV is still exists
+	if t.persistentVolume != nil && t.persistentVolume.Spec.PersistentVolumeReclaimPolicy == v1.PersistentVolumeReclaimRetain {
+		err = k8sDevPV.WaitForPersistentVolumeDeleted(t.client, t.persistentVolume.Name, 5*time.Second, 2*time.Minute)
+		framework.ExpectError(err)
+		By(fmt.Sprintf("Deleting PV object [%s]", t.persistentVolume.Name))
+		err = k8sDevPV.DeletePersistentVolume(t.client, t.persistentVolume.Name)
+	}
+
 	// Wait for the PVC to be deleted
 	//err = framework.WaitForPersistentVolumeClaimDeleted(t.client, t.persistentVolumeClaim.Name, t.namespace.Name, 5*time.Second, 5*time.Minute)
 	framework.ExpectNoError(err)
