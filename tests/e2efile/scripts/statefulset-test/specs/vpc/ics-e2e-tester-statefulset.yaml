@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-vpc-file
+  labels:
+    app: nginx-vpc-file
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx-vpc-file
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web-vpc-file
+  labels:
+    app: nginx-vpc-file
+spec:
+  selector:
+    matchLabels:
+      app: nginx-vpc-file # has to match .spec.template.metadata.labels
+  serviceName: "nginx-vpc-file"
+  podManagementPolicy: "Parallel"
+  replicas: REPLICA_COUNT # replace REPLICA_COUNT with actual replicas count
+  template:
+    metadata:
+      labels:
+        app: nginx-vpc-file # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: k8s.gcr.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: pvc-www-0
+          mountPath: /usr/share/nginx0/html
+        - name: pvc-www-1
+          mountPath: /usr/share/nginx1/html
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app: nginx-vpc-file
+      name: pvc-www-0
+    spec:
+      accessModes: [ "ReadWriteMany" ]
+      storageClassName: "ibmc-vpc-file-dp2"
+      resources:
+        requests:
+          storage: 11Gi
+  - metadata:
+      name: pvc-www-1
+      labels:
+        app: nginx-vpc-file
+    spec:
+      accessModes: [ "ReadWriteMany" ]
+      storageClassName: "ibmc-vpc-file-dp2"
+      resources:
+        requests:
+          storage: 11Gi
