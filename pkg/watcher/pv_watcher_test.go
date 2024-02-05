@@ -105,7 +105,7 @@ func TestAddTags(t *testing.T) {
 				Name:      "test-pvc",
 			},
 			Capacity: v1.ResourceList(map[v1.ResourceName]resource.Quantity{
-				v1.ResourceStorage: resource.MustParse("1Gi"),
+				v1.ResourceStorage: resource.MustParse("1G"),
 			}),
 
 			PersistentVolumeSource: v1.PersistentVolumeSource{

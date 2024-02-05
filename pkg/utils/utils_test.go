@@ -37,7 +37,7 @@ func TestBytesToGB(t *testing.T) {
 
 	actual := BytesToGB(sizeInBytes)
 	if actual != 5 {
-		t.Fatalf("Wrong result for BytesToGiB. Got: %d", actual)
+		t.Fatalf("Wrong result for BytesToGB. Got: %d", actual)
 	}
 }
 
