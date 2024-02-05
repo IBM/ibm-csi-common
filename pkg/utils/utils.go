@@ -55,19 +55,16 @@ func NewNodeServiceCapability(cap csi.NodeServiceCapability_RPC_Type) *csi.NodeS
 	}
 }
 
-// TODO - remove the following code
-/*
-// RoundUpBytes rounds up the volume size in bytes upto multiplications of GiB
+// RoundUpBytes rounds up the volume size in bytes upto multiplications of GB
 // in the unit of Bytes
 func RoundUpBytes(volumeSizeBytes int64) int64 {
-	return roundUpSize(volumeSizeBytes, GiB) * GiB
+	return roundUpSize(volumeSizeBytes, GB) * GB
 }
 
 // Check division by zero and int overflow
 func roundUpSize(volumeSizeBytes int64, allocationUnitBytes int64) int64 {
 	return (volumeSizeBytes + allocationUnitBytes - 1) / allocationUnitBytes
 }
-*/
 
 // BytesToGB converts Bytes to GB
 func BytesToGB(volumeSizeBytes int64) int {
