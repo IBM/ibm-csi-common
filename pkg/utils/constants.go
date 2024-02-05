@@ -32,7 +32,7 @@ const (
 	// MinimumVolumeDiskSizeInGb minimum size of the volume in GB
 	MinimumVolumeDiskSizeInGb = 10
 	// MaximumVolumeDiskSizeInGb ...
-	MaximumVolumeDiskSizeInGb = 2048
+	MaximumVolumeDiskSizeInGb = 2000
 	// DefaultVolumeDiskSizeinGb default size of the volume in GB
 	DefaultVolumeDiskSizeinGb = 10
 	// MaxRetryAttemptForSessions ...
