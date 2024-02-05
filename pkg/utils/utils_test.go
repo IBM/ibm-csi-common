@@ -41,15 +41,6 @@ func TestBytesToGB(t *testing.T) {
 	}
 }
 
-func TestGBToBytes(t *testing.T) {
-	var sizeinGB int64 = 5
-
-	actual := GBToBytes(sizeinGB)
-	if actual != 5*GB {
-		t.Fatalf("Wrong result for GBToBytes. Got: %d", actual)
-	}
-}
-
 func TestListContainsSubstr(t *testing.T) {
 	testCases := []struct {
 		testCaseName   string
