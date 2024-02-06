@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IBM/vpc-beta-go-sdk/vpcbetav1"
 	volumesnapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	snapshotclientset "github.com/kubernetes-csi/external-snapshotter/client/v4/clientset/versioned"
 	. "github.com/onsi/ginkgo/v2"
@@ -671,8 +672,28 @@ func generatePVC(name, namespace,
 }
 
 func (t *TestPersistentVolumeClaim) Cleanup() {
+
+	volumeHandle := strings.Split(t.persistentVolume.Spec.PersistentVolumeSource.CSI.VolumeHandle, ":")
+	getShareMountTargetOptions := &vpcbetav1.GetShareMountTargetOptions{
+		ShareID: &volumeHandle[0],
+		ID:      &volumeHandle[1],
+	}
+
+	By(fmt.Sprintf("Logging volumeHandle", volumeHandle))
+	shareMountTarget, response, err := VPCService.GetShareMountTarget(getShareMountTargetOptions)
+	if err != nil {
+		panic(err)
+	}
+	// end-get_share_mount_target
+
+	Expect(err).To(BeNil())
+	Expect(response.StatusCode).To(Equal(200))
+	Expect(shareMountTarget).ToNot(BeNil())
+
+	By(fmt.Sprintf("Logging shareMountTarget", shareMountTarget))
+
 	By(fmt.Sprintf("deleting PVC [%s]", t.persistentVolumeClaim.Name))
-	err := k8sDevPV.DeletePersistentVolumeClaim(t.client, t.persistentVolumeClaim.Name, t.namespace.Name)
+	err = k8sDevPV.DeletePersistentVolumeClaim(t.client, t.persistentVolumeClaim.Name, t.namespace.Name)
 	By("Triggered DeletePersistentVolumeClaim call")
 	framework.ExpectNoError(err)
 	// Wait for the PV to get deleted if reclaim policy is Delete. (If it's
@@ -694,6 +715,39 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 		framework.ExpectError(err)
 		By(fmt.Sprintf("Deleting PV object [%s]", t.persistentVolume.Name))
 		err = k8sDevPV.DeletePersistentVolume(t.client, t.persistentVolume.Name)
+
+		deleteShareMountTargetOptions := &vpcbetav1.DeleteShareMountTargetOptions{
+			ShareID: &volumeHandle[0],
+			ID:      &volumeHandle[1],
+		}
+
+		shareMountTarget, response, err := VPCService.DeleteShareMountTarget(deleteShareMountTargetOptions)
+		if err != nil {
+			panic(err)
+		}
+
+		// end-delete_share_mount_target
+
+		time.Sleep(1 * time.Minute)
+
+		Expect(err).To(BeNil())
+		Expect(response.StatusCode).To(Equal(202))
+		Expect(shareMountTarget).ToNot(BeNil())
+
+		deleteShareOptions := &vpcbetav1.DeleteShareOptions{
+			ID: &volumeHandle[0],
+		}
+
+		share, response, err := VPCService.DeleteShare(deleteShareOptions)
+		if err != nil {
+			panic(err)
+		}
+
+		// end-delete_share
+
+		Expect(err).To(BeNil())
+		Expect(response.StatusCode).To(Equal(202))
+		Expect(share).ToNot(BeNil())
 	}
 
 	// Wait for the PVC to be deleted

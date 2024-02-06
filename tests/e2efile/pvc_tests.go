@@ -18,6 +18,7 @@ package e2efile
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/IBM/ibm-csi-common/tests/e2efile/testsuites"
@@ -37,9 +38,16 @@ import (
 
 const defaultSecret = ""
 
-var testResultFile = os.Getenv("E2E_TEST_RESULT")
-var err error
-var fpointer *os.File
+var (
+	testResultFile = os.Getenv("E2E_TEST_RESULT")
+	err            error
+	fpointer       *os.File
+)
+
+var _ = BeforeSuite(func() {
+	log.Print("Successfully construct the service client instance")
+	testsuites.InitializeVPCClient()
+})
 
 var _ = Describe("[ics-e2e] [sc] [with-deploy] [retain] Dynamic Provisioning for ibmc-vpc-file-retain-dp2 SC with Deployment", func() {
 	f := framework.NewDefaultFramework("ics-e2e-deploy")
@@ -133,6 +141,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Dynamic Provisioning for ibmc-vpc
 		if labelerr != nil {
 			panic(labelerr)
 		}
+
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {

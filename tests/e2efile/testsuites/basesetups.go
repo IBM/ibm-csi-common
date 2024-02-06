@@ -18,8 +18,14 @@ package testsuites
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
 
+	"github.com/IBM/go-sdk-core/v5/core"
+	"github.com/IBM/vpc-beta-go-sdk/vpcbetav1"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	clientset "k8s.io/client-go/kubernetes"
@@ -66,6 +72,8 @@ const (
 
 var (
 	SnapshotAPIGroup = "snapshot.storage.k8s.io"
+	VPCService       *vpcbetav1.VpcbetaV1
+	err              error
 )
 
 type VolumeMountDetails struct {
@@ -86,6 +94,51 @@ type PodExecCheck struct {
 	Cmd              []string
 	ExpectedString01 string
 	ExpectedString02 string
+}
+
+func InitializeVPCClient() {
+	// begin-common
+	testEnv := os.Getenv("TEST_ENV")
+	region := os.Getenv("IC_REGION")
+	var apiKey string
+	var url string
+	var serviceURL string
+
+	if testEnv == "prod" {
+		apiKey = os.Getenv("IC_API_KEY_PROD")
+		url = "https://iam.cloud.ibm.com"
+		serviceURL = "https://us-south.iaasdev.cloud.ibm.com/v1"
+		serviceURL = strings.Replace(serviceURL, "us-south", region, 1)
+
+	} else {
+		apiKey = os.Getenv("IC_API_KEY_STAG")
+		url = "https://iam.test.cloud.ibm.com"
+		serviceURL = "https://us-south-stage01.iaasdev.cloud.ibm.com/v1"
+		serviceURL = strings.Replace(serviceURL, "us-south", region, 1)
+	}
+
+	if apiKey == "" {
+		log.Fatal("No API key set")
+	}
+
+	// Instantiate the service with an API key based IAM authenticator
+	VPCService, err = vpcbetav1.NewVpcbetaV1(&vpcbetav1.VpcbetaV1Options{
+		Authenticator: &core.IamAuthenticator{
+			ApiKey: apiKey,
+			URL:    url,
+		},
+	})
+	if err != nil {
+		log.Fatal("Error creating VPC Beta Service.")
+	}
+
+	By(fmt.Sprintf("testEnv", testEnv))
+	By(fmt.Sprintf("region", region))
+	By(fmt.Sprintf("serviceURL", serviceURL))
+	By(fmt.Sprintf("url", url))
+	Expect(VPCService).ToNot(BeNil())
+	VPCService.SetServiceURL(serviceURL)
+	// end-common
 }
 
 func (pod *PodDetails) SetupWithPVC(client clientset.Interface, namespace *v1.Namespace, name string) (*TestPod, []func()) {
