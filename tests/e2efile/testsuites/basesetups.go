@@ -108,7 +108,7 @@ func InitializeVPCClient() {
 	if testEnv == "prod" {
 		apiKey = os.Getenv("IC_API_KEY_PROD")
 		url = "https://iam.cloud.ibm.com"
-		serviceURL = "https://us-south.iaasdev.cloud.ibm.com/v1"
+		serviceURL = "https://us-south.iaas.cloud.ibm.com/v1"
 		serviceURL = strings.Replace(serviceURL, "us-south", region, 1)
 
 	} else {
