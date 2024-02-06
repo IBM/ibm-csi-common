@@ -680,6 +680,7 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 	}
 
 	By(fmt.Sprintf("Logging volumeHandle", volumeHandle))
+	By(fmt.Sprintf("Verifying if file share mount target is created"))
 	shareMountTarget, response, err := VPCService.GetShareMountTarget(getShareMountTargetOptions)
 	if err != nil {
 		panic(err)
@@ -690,7 +691,24 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 	Expect(response.StatusCode).To(Equal(200))
 	Expect(shareMountTarget).ToNot(BeNil())
 
-	By(fmt.Sprintf("Logging shareMountTarget", shareMountTarget))
+	By(fmt.Sprintf("Verifying if VNI is created"))
+	if *(shareMountTarget.AccessControlMode) == "security_group" {
+
+		getVirtualNetworkInterfaceOptions := &vpcbetav1.GetVirtualNetworkInterfaceOptions{
+			ID: shareMountTarget.VirtualNetworkInterface.ID,
+		}
+
+		virtualNetworkInterface, response, err := VPCService.GetVirtualNetworkInterface(getVirtualNetworkInterfaceOptions)
+		if err != nil {
+			panic(err)
+		}
+
+		// end-get_virtual_network_interface
+
+		Expect(err).To(BeNil())
+		Expect(response.StatusCode).To(Equal(200))
+		Expect(virtualNetworkInterface).ToNot(BeNil())
+	}
 
 	By(fmt.Sprintf("deleting PVC [%s]", t.persistentVolumeClaim.Name))
 	err = k8sDevPV.DeletePersistentVolumeClaim(t.client, t.persistentVolumeClaim.Name, t.namespace.Name)
@@ -715,19 +733,22 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 		framework.ExpectError(err)
 		By(fmt.Sprintf("Deleting PV object [%s]", t.persistentVolume.Name))
 		err = k8sDevPV.DeletePersistentVolume(t.client, t.persistentVolume.Name)
+		framework.ExpectNoError(err)
 
+		//Manually delete file share target and file share as k8s on deletion of PV object does not invoke CSI Driver controlleDeleteVolume
 		deleteShareMountTargetOptions := &vpcbetav1.DeleteShareMountTargetOptions{
 			ShareID: &volumeHandle[0],
 			ID:      &volumeHandle[1],
 		}
 
+		By(fmt.Sprintf("Deleting file share target"))
 		shareMountTarget, response, err := VPCService.DeleteShareMountTarget(deleteShareMountTargetOptions)
 		if err != nil {
 			panic(err)
 		}
 
+		By(fmt.Sprintf("Wating for file share target to be deleted"))
 		// end-delete_share_mount_target
-
 		time.Sleep(1 * time.Minute)
 
 		Expect(err).To(BeNil())
@@ -738,6 +759,7 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 			ID: &volumeHandle[0],
 		}
 
+		By(fmt.Sprintf("Deleting file share"))
 		share, response, err := VPCService.DeleteShare(deleteShareOptions)
 		if err != nil {
 			panic(err)
@@ -750,9 +772,46 @@ func (t *TestPersistentVolumeClaim) Cleanup() {
 		Expect(share).ToNot(BeNil())
 	}
 
-	// Wait for the PVC to be deleted
-	//err = framework.WaitForPersistentVolumeClaimDeleted(t.client, t.persistentVolumeClaim.Name, t.namespace.Name, 5*time.Second, 5*time.Minute)
-	framework.ExpectNoError(err)
+	By(fmt.Sprintf("Wating for file share to be deleted"))
+	// end-delete_share_mount_target
+	time.Sleep(30 * time.Second)
+
+	By(fmt.Sprintf("Verying if VNI is deleted"))
+	//Verifying if VNI is deleted
+	if *(shareMountTarget.AccessControlMode) == "security_group" {
+
+		getVirtualNetworkInterfaceOptions := &vpcbetav1.GetVirtualNetworkInterfaceOptions{
+			ID: shareMountTarget.VirtualNetworkInterface.ID,
+		}
+
+		virtualNetworkInterface, response, err := VPCService.GetVirtualNetworkInterface(getVirtualNetworkInterfaceOptions)
+
+		// end-get_virtual_network_interface
+		Expect(err).ToNot(BeNil())
+		Expect(response.StatusCode).To(Equal(404))
+		Expect(virtualNetworkInterface).To(BeNil())
+	}
+
+	By(fmt.Sprintf("Verying if shareMountTarget is deleted"))
+	//Verifying if shareMountTarget is deleted
+	shareMountTarget, response, err = VPCService.GetShareMountTarget(getShareMountTargetOptions)
+	// end-get_share_mount_target
+
+	Expect(err).ToNot(BeNil())
+	Expect(response.StatusCode).To(Equal(404))
+	Expect(shareMountTarget).To(BeNil())
+
+	By(fmt.Sprintf("Verying if share is deleted"))
+	//Verifying if share is deleted
+	getShareOptions := &vpcbetav1.GetShareOptions{
+		ID: &volumeHandle[1],
+	}
+	share, response, err := VPCService.GetShare(getShareOptions)
+	// end-get_share
+
+	Expect(err).ToNot(BeNil())
+	Expect(response.StatusCode).To(Equal(404))
+	Expect(share).To(BeNil())
 }
 
 func (t *TestPersistentVolumeClaim) ReclaimPolicy() v1.PersistentVolumeReclaimPolicy {

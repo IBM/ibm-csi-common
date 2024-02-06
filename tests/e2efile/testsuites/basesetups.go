@@ -103,6 +103,7 @@ func InitializeVPCClient() {
 	var apiKey string
 	var url string
 	var serviceURL string
+	version := "2024-02-06"
 
 	if testEnv == "prod" {
 		apiKey = os.Getenv("IC_API_KEY_PROD")
@@ -127,6 +128,7 @@ func InitializeVPCClient() {
 			ApiKey: apiKey,
 			URL:    url,
 		},
+		Version: &version,
 	})
 	if err != nil {
 		log.Fatal("Error creating VPC Beta Service.")
