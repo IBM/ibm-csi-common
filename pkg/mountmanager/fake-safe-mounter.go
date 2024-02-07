@@ -31,6 +31,16 @@ type FakeNodeMounter struct {
 	*mount.SafeFormatAndMount
 }
 
+// DebugLogsEITBasedFileShare implements Mounter.
+func (*FakeNodeMounter) DebugLogsEITBasedFileShare(requestID string) error {
+	return nil
+}
+
+// UmountEITBasedFileShare implements Mounter.
+func (*FakeNodeMounter) UmountEITBasedFileShare(targetPath string, requestID string) error {
+	return nil
+}
+
 // MountEITBasedFileShare implements Mounter.
 func (*FakeNodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
 	return nil
@@ -95,6 +105,16 @@ func (f *FakeNodeMounter) GetSafeFormatAndMount() *mount.SafeFormatAndMount {
 type FakeNodeMounterWithCustomActions struct {
 	*mount.SafeFormatAndMount
 	actionList []testingexec.FakeCommandAction
+}
+
+// DebugLogsEITBasedFileShare implements Mounter.
+func (*FakeNodeMounterWithCustomActions) DebugLogsEITBasedFileShare(requestID string) error {
+	return nil
+}
+
+// UmountEITBasedFileShare implements Mounter.
+func (*FakeNodeMounterWithCustomActions) UmountEITBasedFileShare(targetPath string, requestID string) error {
+	return nil
 }
 
 // MountEITBasedFileShare implements Mounter.
