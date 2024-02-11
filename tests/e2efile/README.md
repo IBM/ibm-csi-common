@@ -6,11 +6,17 @@
 3. Deploy the Driver (with SC)
 4. Export enviornment variables
    ```
-   export E2E_POD_COUNT="1"
-   export E2E_PVC_COUNT="1"
+   # Mandatory
    export GO111MODULE=on
    export GOPATH=<GOPATH>
    export E2E_TEST_RESULT=<absolute-path to a file where the results should be redirected>
+   export TEST_ENV=<stage/prod>
+   export IC_REGION=<us-south>
+   export IC_API_KEY_PROD=<stage/prod API key>
+
+   # Optional
+   export E2E_POD_COUNT="1"
+   export E2E_PVC_COUNT="1"
    ```
 
 5. Test DP2 profile with deployment
@@ -20,4 +26,8 @@
 6. Test volume expansion
    ```
    ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]"  ./tests/e2efile
+   ```
+7. Test EIT enabled volume test cases
+   ```
+   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[eit\]"  ./tests/e2efile
    ```
