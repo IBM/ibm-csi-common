@@ -493,6 +493,205 @@ var _ = Describe("[ics-e2e] [resize] [pv] Dynamic Provisioning and resize pv", f
 	})
 })
 
+// **EIT test cases**
+
+var _ = Describe("[ics-e2e] [sc] [with-deploy] [retain] [eit] Dynamic Provisioning for ibmc-vpc-file-eit-retain-dp2 SC with Deployment", func() {
+	f := framework.NewDefaultFramework("ics-e2e-deploy")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	var (
+		cs        clientset.Interface
+		ns        *v1.Namespace
+		secretKey string
+	)
+
+	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
+	if secretKey == "" {
+		secretKey = defaultSecret
+	}
+
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
+	})
+
+	It("with eit-retain-dp2 sc: should create pv, pvc, deployment resources. Write and read to volume; delete the pod; write and read to volume again", func() {
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		reclaimPolicy := v1.PersistentVolumeReclaimRetain
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		var replicaCount = int32(3)
+		pod := testsuites.PodDetails{
+			Cmd:      "echo 'hello world' >> /mnt/test-1/data && while true; do sleep 2; done",
+			CmdExits: false,
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-dp2-",
+					VolumeType:    "ibmc-vpc-file-eit-retain-dp2",
+					FSType:        "ibmshare",
+					ClaimSize:     "10Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test := testsuites.DynamicallyProvisioneDeployWithVolWRTest{
+			Pod: pod,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+			ReplicaCount: replicaCount,
+		}
+		test.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING EIT BASED VOLUME DYNAMIC PROVISIONING USING ibmc-vpc-file-eit-retain-dp2 STORAGE CLASS : PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+})
+
+var _ = Describe("[ics-e2e] [sc] [with-daemonset] [eit] Dynamic Provisioning for ibmc-vpc-file-eit-dp2 SC with DaemonSet", func() {
+	f := framework.NewDefaultFramework("ics-e2e-daemonsets")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	var (
+		cs clientset.Interface
+		ns *v1.Namespace
+	)
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
+	})
+	It("With eit-dp2 SC: should create pv, pvc, daemonSet resources. Write and read to volume.", func() {
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		headlessService := testsuites.NewHeadlessService(cs, "ics-e2e-service-", ns.Name, "test")
+		service := headlessService.Create()
+		defer headlessService.Cleanup()
+
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		pod := testsuites.PodDetails{
+			Cmd: "echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "ics-vol-dp2-",
+					VolumeType:    "ibmc-vpc-file-eit-dp2",
+					FSType:        "ibmshare",
+					ClaimSize:     "10Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+
+		test := testsuites.DaemonsetWithVolWRTest{
+			Pod: pod,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+			},
+			Labels:      service.Labels,
+			ServiceName: service.Name,
+		}
+		test.Run(cs, ns, false)
+		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING EIT BASED VOLUME MULTI-ZONE/MULTI-NODE READ/WRITE USING ibmc-vpc-file-eit-dp2 STORAGE CLASS : PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+})
+
+var _ = Describe("[ics-e2e] [resize] [pv] [eit] Dynamic Provisioning OF EIT VOLUME AND RESIZE PVC", func() {
+	f := framework.NewDefaultFramework("ics-e2e-pods")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	var (
+		cs        clientset.Interface
+		ns        *v1.Namespace
+		secretKey string
+	)
+
+	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
+	if secretKey == "" {
+		secretKey = defaultSecret
+	}
+
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
+	})
+
+	It("with eit-dp2 sc: should create pv, pvc and pod resources, and resize the volume", func() {
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+		pods := []testsuites.PodDetails{
+			{
+				Cmd:      "echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done",
+				CmdExits: false,
+				Volumes: []testsuites.VolumeDetails{
+					{
+						PVCName:       "ics-vol-dp2-",
+						VolumeType:    "ibmc-vpc-file-eit-dp2",
+						ClaimSize:     "10Gi",
+						ReclaimPolicy: &reclaimPolicy,
+						MountOptions:  []string{"rw"},
+						VolumeMount: testsuites.VolumeMountDetails{
+							NameGenerate:      "test-volume-",
+							MountPathGenerate: "/mnt/test-",
+						},
+					},
+				},
+			},
+		}
+		test := testsuites.DynamicallyProvisionedResizeVolumeTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+			// ExpandVolSize is in Gi i.e, 40Gi
+			ExpandVolSizeG: 40,
+			ExpandedSize:   40,
+		}
+		test.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-FILE-CSI-TEST: VERIFYING PVC EXPANSION OF EIT ENABLED VOLUME: PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+})
+
 func restClient(group string, version string) (restclientset.Interface, error) {
 	// setup rest client
 	config, err := framework.LoadConfig()
