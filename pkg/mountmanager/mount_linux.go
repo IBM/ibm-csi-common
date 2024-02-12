@@ -37,8 +37,6 @@ const (
 	defaultSocketPath = "/tmp/mysocket.sock"
 	// mount url
 	urlMountPath = "http://unix/api/mount"
-	// umount url
-	urlUmountPath = "http://unix/api/umount"
 	// debug url
 	urlDebugPath = "http://unix/api/debugLogs"
 )
@@ -48,18 +46,6 @@ func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPat
 	// Create payload
 	payload := fmt.Sprintf(`{"stagingTargetPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, stagingTargetPath, targetPath, fsType, requestID)
 	err := createMountHelperContainerRequest(payload, urlMountPath)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// UmountEITBasedFileShare unmounts EIT based FileShare from host system
-func (m *NodeMounter) UmountEITBasedFileShare(targetPath string, requestID string) error {
-	// Create payload
-	payload := fmt.Sprintf(`{"targetPath":"%s","requestID":"%s"}`, targetPath, requestID)
-	err := createMountHelperContainerRequest(payload, urlUmountPath)
 
 	if err != nil {
 		return err

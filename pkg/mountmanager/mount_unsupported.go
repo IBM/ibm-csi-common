@@ -58,11 +58,6 @@ func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPat
 	return nil
 }
 
-// UmountEITBasedFileShare ...
-func (m *NodeMounter) UmountEITBasedFileShare(targetPath string, requestID string) error {
-	return nil
-}
-
 // DebugLogsEITBasedFileShare...
 func (m *NodeMounter) DebugLogsEITBasedFileShare(requestID string) error {
 	return nil
