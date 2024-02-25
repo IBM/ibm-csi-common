@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.20
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.2
-	github.com/IBM/ibmcloud-volume-vpc v1.1.7
+	github.com/IBM/ibmcloud-volume-interface v1.2.3-0.20240205071025-bb0527465eab
+	github.com/IBM/ibmcloud-volume-vpc v1.1.8-0.20240225135956-7d183bf5cff4
 	github.com/IBM/secret-utils-lib v1.1.8
 	github.com/container-storage-interface/spec v1.8.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -153,4 +153,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
+replace (
+	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
+	github.com/onsi/ginkgo/v2 => github.com/onsi/ginkgo/v2 v2.9.4
+)
