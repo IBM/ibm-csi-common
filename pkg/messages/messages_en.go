@@ -281,35 +281,17 @@ var messagesEn = map[string]Message{
 		Type:        codes.Internal,
 		Action:      "Check backend logs to confirm mount status.",
 	},
-	UnresponsiveMountHelperUtility: {
-		Code:        UnresponsiveMountHelperUtility,
-		Description: "Failed to mount target.",
-		Type:        codes.Unavailable,
-		Action:      "This exit status might indicate mount-helper-utility is not running.",
-	},
 	UnresponsiveMountHelperContainerUtility: {
 		Code:        UnresponsiveMountHelperContainerUtility,
 		Description: "Failed to mount target because unable to make connection to mount helper container service.",
 		Type:        codes.Unavailable,
-		Action:      "Restart the CSI node-server pod to enable mount-helper-container service",
+		Action:      "Check if EIT is enabled from storage operator. Run command 'kubectl describe cr vpcFileDriver -n kube-system'",
 	},
 	MetadataServiceNotEnabled: {
 		Code:        MetadataServiceNotEnabled,
 		Description: "Failed to mount target.",
 		Type:        codes.Internal,
-		Action:      "Please check if metadata service is enabled for the cluster.",
-	},
-	MountHelperCertificatesExpired: {
-		Code:        MountHelperCertificatesExpired,
-		Description: "Failed to mount target.",
-		Type:        codes.Internal,
-		Action:      "Mount-helper utility certificates expired. Please check if metadata service is enabled. If not please enable it or else report issue to IKS team.",
-	},
-	MountHelperCertificatesMissing: {
-		Code:        MountHelperCertificatesMissing,
-		Description: "Failed to mount target.",
-		Type:        codes.Internal,
-		Action:      "Mount-helper utility certificates missing. Please create a ticket for dev team.",
+		Action:      "Metadata service might not be enabled for worker node. (msg TODO)",
 	},
 	ListVolumesFailed: {
 		Code:        ListVolumesFailed,
