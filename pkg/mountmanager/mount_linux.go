@@ -22,6 +22,7 @@ package mountmanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -152,8 +153,19 @@ func createMountHelperContainerRequest(payload string, url string) error {
 		return err
 	}
 
+	// TODO: Should outout be also returned as response or just the exit status code?
+	// Unmarshell json response
+	var responseBody struct {
+		Error string `json:"Error:"`
+	}
+	err = json.Unmarshal(body, &responseBody)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return err
+	}
+
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Response from mount-helper-container server: %s ,ResponseCode: %v", string(body), response.StatusCode)
+		return fmt.Errorf("Response from mount-helper-container server-> Exit Status Code: %s ,ResponseCode: %v", responseBody.Error, response.StatusCode)
 	}
 	return nil
 }
