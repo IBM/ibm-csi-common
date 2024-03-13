@@ -28,8 +28,8 @@ type mountInterface = mount.Interface
 type Mounter interface {
 	mountInterface
 
-	MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error
-	DebugLogsEITBasedFileShare(requestID string) error
+	MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error)
+	DebugLogsEITBasedFileShare(requestID string) (string, error)
 	GetSafeFormatAndMount() *mount.SafeFormatAndMount
 	MakeFile(path string) error
 	MakeDir(path string) error

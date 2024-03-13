@@ -291,7 +291,7 @@ var messagesEn = map[string]Message{
 		Code:        MetadataServiceNotEnabled,
 		Description: "Failed to mount target.",
 		Type:        codes.Internal,
-		Action:      "Metadata service might not be enabled for worker node. (msg TODO)",
+		Action:      "Metadata service might not be enabled for worker node. Make sure to use IKS>=1.30 or ROKS>=4.16 cluster.",
 	},
 	ListVolumesFailed: {
 		Code:        ListVolumesFailed,

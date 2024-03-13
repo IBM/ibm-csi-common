@@ -22,7 +22,6 @@ import (
 
 	mount "k8s.io/mount-utils"
 	exec "k8s.io/utils/exec"
-	testExec "k8s.io/utils/exec/testing"
 	testingexec "k8s.io/utils/exec/testing"
 )
 
@@ -32,13 +31,13 @@ type FakeNodeMounter struct {
 }
 
 // DebugLogsEITBasedFileShare implements Mounter.
-func (*FakeNodeMounter) DebugLogsEITBasedFileShare(requestID string) error {
-	return nil
+func (*FakeNodeMounter) DebugLogsEITBasedFileShare(requestID string) (string, error) {
+	return "", nil
 }
 
 // MountEITBasedFileShare implements Mounter.
-func (*FakeNodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
-	return nil
+func (*FakeNodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error) {
+	return "", nil
 }
 
 // NewFakeNodeMounter ...
@@ -60,7 +59,7 @@ func NewFakeSafeMounter() *mount.SafeFormatAndMount {
 	}},
 	}
 
-	var fakeExec exec.Interface = &testExec.FakeExec{
+	var fakeExec exec.Interface = &testingexec.FakeExec{
 		DisableScripts: true,
 	}
 
@@ -103,14 +102,13 @@ type FakeNodeMounterWithCustomActions struct {
 }
 
 // DebugLogsEITBasedFileShare implements Mounter.
-func (*FakeNodeMounterWithCustomActions) DebugLogsEITBasedFileShare(requestID string) error {
-	return nil
+func (*FakeNodeMounterWithCustomActions) DebugLogsEITBasedFileShare(requestID string) (string, error) {
+	return "", nil
 }
 
 // MountEITBasedFileShare implements Mounter.
-func (*FakeNodeMounterWithCustomActions) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) error {
-
-	return nil
+func (*FakeNodeMounterWithCustomActions) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error) {
+	return "", nil
 }
 
 // NewFakeNodeMounterWithCustomActions ...
