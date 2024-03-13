@@ -21,10 +21,50 @@
 package mountmanager
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
 	"os"
+	"strings"
 
 	mount "k8s.io/mount-utils"
 )
+
+const (
+	//socket path
+	defaultSocketPath = "/tmp/mysocket.sock"
+	// mount url
+	urlMountPath = "http://unix/api/mount"
+	// debug url
+	urlDebugPath = "http://unix/api/debugLogs"
+)
+
+// MountEITBasedFileShare mounts EIT based FileShare on host system
+func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error) {
+	// Create payload
+	payload := fmt.Sprintf(`{"stagingTargetPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, stagingTargetPath, targetPath, fsType, requestID)
+	errResponse, err := createMountHelperContainerRequest(payload, urlMountPath)
+
+	if err != nil {
+		return errResponse, err
+	}
+	return "", nil
+}
+
+// DebugLogsEITBasedFileShare collects mount-helper-container logs which might be useful for debugging in case of unknown mount failure.
+func (m *NodeMounter) DebugLogsEITBasedFileShare(requestID string) (string, error) {
+	// Create payload
+	payload := fmt.Sprintf(`{"requestID":"%s"}`, requestID)
+	errResponse, err := createMountHelperContainerRequest(payload, urlDebugPath)
+
+	if err != nil {
+		return errResponse, err
+	}
+	return "", nil
+}
 
 // MakeFile creates an empty file.
 func (m *NodeMounter) MakeFile(path string) error {
@@ -74,4 +114,55 @@ func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, e
 		}
 	}
 	return true, nil
+}
+
+// createMountHelperContainerRequest creates a request to mount-helper-container server over UNIX socket and returns errors if any.
+func createMountHelperContainerRequest(payload string, url string) (string, error) {
+	// Get socket path
+	socketPath := os.Getenv("SOCKET_PATH")
+	if socketPath == "" {
+		socketPath = defaultSocketPath
+	}
+	// Create a custom dialer function for Unix socket connection
+	dialer := func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return net.Dial("unix", socketPath)
+	}
+
+	// Create an HTTP client with the Unix socket transport
+	client := &http.Client{
+		Transport: &http.Transport{
+			DialContext: dialer,
+		},
+	}
+
+	//Create POST request
+	req, err := http.NewRequest("POST", url, strings.NewReader(payload))
+	if err != nil {
+		return "", fmt.Errorf("Failed to create EIT based umount request. Failed wth error: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	response, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
+	}
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Unmarshell json response
+	var responseBody struct {
+		Error         string `json:"Error"`
+		ErrorResponse string `json:"Response"`
+	}
+	err = json.Unmarshal(body, &responseBody)
+	if err != nil {
+		return "", err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return responseBody.ErrorResponse, fmt.Errorf("Response from mount-helper-container -> Exit Status Code: %s ,ResponseCode: %v", responseBody.Error, response.StatusCode)
+	}
+	return "", nil
 }
