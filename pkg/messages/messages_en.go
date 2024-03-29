@@ -279,13 +279,13 @@ var messagesEn = map[string]Message{
 		Code:        MountingTargetFailed,
 		Description: "Failed to mount target.",
 		Type:        codes.Internal,
-		Action:      "Check backend logs to confirm mount status.",
+		Action:      "Check node server logs for more details on mount failure.",
 	},
 	UnresponsiveMountHelperContainerUtility: {
 		Code:        UnresponsiveMountHelperContainerUtility,
 		Description: "Failed to mount target because unable to make connection to mount helper container service.",
 		Type:        codes.Unavailable,
-		Action:      "Check if EIT is enabled from storage operator. Run command 'kubectl describe cr vpcFileDriver -n kube-system'",
+		Action:      "Check if EIT is enabled from storage operator. Run command 'kubectl describe vpcFileDriver -n kube-system'",
 	},
 	MetadataServiceNotEnabled: {
 		Code:        MetadataServiceNotEnabled,

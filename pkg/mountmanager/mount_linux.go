@@ -29,6 +29,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	mount "k8s.io/mount-utils"
 )
@@ -47,18 +48,6 @@ func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPat
 	// Create payload
 	payload := fmt.Sprintf(`{"stagingTargetPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, stagingTargetPath, targetPath, fsType, requestID)
 	errResponse, err := createMountHelperContainerRequest(payload, urlMountPath)
-
-	if err != nil {
-		return errResponse, err
-	}
-	return "", nil
-}
-
-// DebugLogsEITBasedFileShare collects mount-helper-container logs which might be useful for debugging in case of unknown mount failure.
-func (m *NodeMounter) DebugLogsEITBasedFileShare(requestID string) (string, error) {
-	// Create payload
-	payload := fmt.Sprintf(`{"requestID":"%s"}`, requestID)
-	errResponse, err := createMountHelperContainerRequest(payload, urlDebugPath)
 
 	if err != nil {
 		return errResponse, err
@@ -133,6 +122,7 @@ func createMountHelperContainerRequest(payload string, url string) (string, erro
 		Transport: &http.Transport{
 			DialContext: dialer,
 		},
+		Timeout: 3 * time.Minute, // Put 3 min timeout
 	}
 
 	//Create POST request
@@ -153,8 +143,8 @@ func createMountHelperContainerRequest(payload string, url string) (string, erro
 
 	// Unmarshell json response
 	var responseBody struct {
-		Error         string `json:"Error"`
-		ErrorResponse string `json:"Response"`
+		MountExitCode   string `json:"MountExitCode"`
+		ExitDescription string `json:"Description"`
 	}
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
@@ -162,7 +152,7 @@ func createMountHelperContainerRequest(payload string, url string) (string, erro
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return responseBody.ErrorResponse, fmt.Errorf("Response from mount-helper-container -> Exit Status Code: %s ,ResponseCode: %v", responseBody.Error, response.StatusCode)
+		return responseBody.ExitDescription, fmt.Errorf("Response from mount-helper-container -> Exit Status Code: %s ,ResponseCode: %v", responseBody.MountExitCode, response.StatusCode)
 	}
 	return "", nil
 }
