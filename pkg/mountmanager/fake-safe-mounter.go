@@ -31,7 +31,7 @@ type FakeNodeMounter struct {
 }
 
 // MountEITBasedFileShare implements Mounter.
-func (*FakeNodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error) {
+func (*FakeNodeMounter) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, requestID string) (string, error) {
 	return "", nil
 }
 
@@ -97,7 +97,7 @@ type FakeNodeMounterWithCustomActions struct {
 }
 
 // MountEITBasedFileShare implements Mounter.
-func (*FakeNodeMounterWithCustomActions) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error) {
+func (*FakeNodeMounterWithCustomActions) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, requestID string) (string, error) {
 	return "", nil
 }
 

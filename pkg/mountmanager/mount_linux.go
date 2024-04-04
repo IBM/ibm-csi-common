@@ -44,9 +44,9 @@ const (
 )
 
 // MountEITBasedFileShare mounts EIT based FileShare on host system
-func (m *NodeMounter) MountEITBasedFileShare(stagingTargetPath string, targetPath string, fsType string, requestID string) (string, error) {
+func (m *NodeMounter) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, requestID string) (string, error) {
 	// Create payload
-	payload := fmt.Sprintf(`{"stagingTargetPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, stagingTargetPath, targetPath, fsType, requestID)
+	payload := fmt.Sprintf(`{"mountPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, mountPath, targetPath, fsType, requestID)
 	errResponse, err := createMountHelperContainerRequest(payload, urlMountPath)
 
 	if err != nil {
@@ -128,12 +128,12 @@ func createMountHelperContainerRequest(payload string, url string) (string, erro
 	//Create POST request
 	req, err := http.NewRequest("POST", url, strings.NewReader(payload))
 	if err != nil {
-		return "", fmt.Errorf("Failed to create EIT based umount request. Failed wth error: %w", err)
+		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	response, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Failed to send EIT based request. Failed with error: %w", err)
+		return "", err
 	}
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
