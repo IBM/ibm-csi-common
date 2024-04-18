@@ -285,7 +285,7 @@ var messagesEn = map[string]Message{
 		Code:        UnresponsiveMountHelperContainerUtility,
 		Description: "Failed to mount target because unable to make connection to mount helper container service.",
 		Type:        codes.Unavailable,
-		Action:      "Check if EIT is enabled from storage operator. Run command 'kubectl describe vpcFileDriver -n kube-system'",
+		Action:      "Check if EIT is enabled from storage operator. Run command 'kubectl edit configmap addon-vpc-file-csi-driver-configmap -n kube-system' and enable EIT.",
 	},
 	MetadataServiceNotEnabled: {
 		Code:        MetadataServiceNotEnabled,
