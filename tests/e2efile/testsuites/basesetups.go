@@ -103,7 +103,7 @@ func InitializeVPCClient() {
 	var apiKey string
 	var url string
 	var serviceURL string
-	version := "2024-03-23"
+	version := "2024-05-08"
 
 	if testEnv == "prod" {
 		apiKey = os.Getenv("IC_API_KEY_PROD")
