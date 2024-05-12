@@ -3,7 +3,7 @@ module github.com/IBM/ibm-csi-common
 go 1.20
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.3-0.20240212183524-a9052f2ba8c9
+	github.com/IBM/ibmcloud-volume-interface v1.2.4
 	github.com/IBM/ibmcloud-volume-vpc v1.1.7
 	github.com/IBM/secret-utils-lib v1.1.8
 	github.com/container-storage-interface/spec v1.8.0

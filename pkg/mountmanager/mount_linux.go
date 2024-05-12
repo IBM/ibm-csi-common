@@ -41,6 +41,8 @@ const (
 	urlMountPath = "http://unix/api/mount"
 	// debug url
 	urlDebugPath = "http://unix/api/debugLogs"
+	// http timeout
+	timeout = 3 * time.Minute
 )
 
 // MountEITBasedFileShare mounts EIT based FileShare on host system
@@ -122,7 +124,7 @@ func createMountHelperContainerRequest(payload string, url string) (string, erro
 		Transport: &http.Transport{
 			DialContext: dialer,
 		},
-		Timeout: 3 * time.Minute, // Put 3 min timeout
+		Timeout: timeout,
 	}
 
 	//Create POST request
