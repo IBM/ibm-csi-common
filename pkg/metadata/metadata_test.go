@@ -20,13 +20,13 @@ package metadata
 import (
 	"testing"
 
-	cloudprovider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
+	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewNodeMetadata(t *testing.T) {
 	// Creating test logger
-	logger, teardown := cloudprovider.GetTestLogger(t)
+	logger, teardown := utils.GetTestLogger(t)
 	defer teardown()
 	nodeInfo := NodeInfoManager{NodeName: "mynode"}
 	nodeMeta, err := nodeInfo.NewNodeMetadata(logger)
