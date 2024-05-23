@@ -363,6 +363,14 @@ echo "                  Path: `pwd`"
 go clean -modcache
 export GO111MODULE=on
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.1.6
-
+ginkgo run -v  ./tests/e2e
+rc2=$?
+if [[ $rc -ne 0 ]]; then
+   echo -e "IBM STORAGE OPERATOR:  EIT feature tests: FAIL" >> "$E2E_TEST_RESULT"
+	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
+	exit 1
+else
+   echo -e "IBM STORAGE OPERATOR:  EIT feature tests: PASS" >> "$E2E_TEST_RESULT"
+fi
 set +e
 
