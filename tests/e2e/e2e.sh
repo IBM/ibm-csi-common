@@ -25,25 +25,8 @@ check_operator_enabling() {
 
 check_file_enabling() { 
    echo "waiting for 5 minutes before checking file csi driver status"
-   sleep 200
-   kubectl get pods -n kube-system --no-headers | grep ibm-vpc-file-csi-node > node-server-pods.log 2>&1
-   IFS=$'\n' read -r -d '' -a nodeServerPods < <( cat node-server-pods.log | awk 'NR>1' && printf '\0' )
-   if [[ $nodeServerPods == "" ]];
-   then
-      echo "No node server pods found"
-      return 1
-   fi
-   for nodeServerPod in "${nodeServerPods[@]}";
-   do
-      podState=$(echo $nodeServerPod | awk '{print $3}')
-      if [[ $podState != "Running" ]]
-      then 
-            echo "$nodeServerPod is not in running state"
-            return 1
-      fi
-   done
-   
-   
+   sleep 420
+
    kubectl get pods -n kube-system --no-headers | grep ibm-vpc-file-csi-controller > controller-pods.log 2>&1
    IFS=$'\n' read -r -d '' -a contrllerServerPods < <( cat controller-pods.log | awk 'NR>1' && printf '\0' )
    if [[ $contrllerServerPods == "" ]];
@@ -57,6 +40,23 @@ check_file_enabling() {
       if [[ $podState != "Running" ]]
       then
             echo "$controllerPod is not in running state"
+            return 1
+      fi
+   done
+
+   kubectl get pods -n kube-system --no-headers | grep ibm-vpc-file-csi-node > node-server-pods.log 2>&1
+   IFS=$'\n' read -r -d '' -a nodeServerPods < <( cat node-server-pods.log | awk 'NR>1' && printf '\0' )
+   if [[ $nodeServerPods == "" ]];
+   then
+      echo "No node server pods found"
+      return 1
+   fi
+   for nodeServerPod in "${nodeServerPods[@]}";
+   do
+      podState=$(echo $nodeServerPod | awk '{print $3}')
+      if [[ $podState != "Running" ]]
+      then 
+            echo "$nodeServerPod is not in running state"
             return 1
       fi
    done
@@ -184,6 +184,7 @@ check_operator_disabling() {
 }
 
 IBM_STORAGE_OPERATOR_HOME="$GOPATH/src/github.com/IBM/ibm-csi-common"
+#IBM_STORAGE_OPERATOR_HOME=$(pwd)
 E2E_TEST_SETUP="$IBM_STORAGE_OPERATOR_HOME/e2e-setup.out"
 E2E_TEST_RESULT="$IBM_STORAGE_OPERATOR_HOME/e2e-test.out"
 export E2E_TEST_RESULT=$E2E_TEST_RESULT
@@ -227,12 +228,12 @@ fi
 
 if [[ "$IC_LOGIN" != "true" ]]; then
    echo "Error: Not logged into IBM Cloud!!!"
-   echo "IBM-STORAGE-OPERATOR-TEST: Cluster-Setup: FAILED" > "$E2E_TEST_SETUP"
+   echo "IBM-STORAGE-OPERATOR-TEST: Cluster-Setup: FAILED" >> "$E2E_TEST_SETUP"
    exit 1
 fi
 
-echo "**********IBM-Storage-Operator-Tests**********" > "$E2E_TEST_RESULT"
-echo "********** E2E Test Details **********" > "$E2E_TEST_RESULT"
+echo "**********IBM-Storage-Operator-Tests**********" >> "$E2E_TEST_RESULT"
+echo "********** E2E Test Details **********" >> "$E2E_TEST_RESULT"
 echo -e "StartTime   : $(date "+%F-%T")" >> "$E2E_TEST_RESULT"
 
 CLUSTER_DETAIL=$(kubectl get cm cluster-info -n kube-system -o jsonpath='{.data.cluster-config\.json}' |\
@@ -248,28 +249,30 @@ fi
 
 CLUSTER_KUBE_DETAIL=$(kubectl get nodes -o jsonpath="{range .items[*]}{.metadata.name}:{.status.nodeInfo.kubeletVersion}:{.status.nodeInfo.osImage} {'\n'}"); rc=$?
 echo -e "***************** Cluster Details ******************" >> "$E2E_TEST_SETUP"
-echo -e "$CLUSTER_DETAIL" >> "$E2E_TEST_RESULT"
+echo -e "$CLUSTER_DETAIL" >> "$E2E_TEST_SETUP"
 echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
 
 echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
-echo -e "$CLUSTER_KUBE_DETAIL" >> "$E2E_TEST_RESULT"
+echo -e "$CLUSTER_KUBE_DETAIL" >> "$E2E_TEST_SETUP"
 echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
 
+set -x
 
 # Test operator enablement and disablement - deploy and cleanup of resources
 if [[ $OPERATOR_ADDON_VERSION == "default" ]]; then
 	ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME
 else
-    ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME --version $OPERATOR_ADDON_VERSION
+   ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME --version $OPERATOR_ADDON_VERSION
 fi
 
-check_operator_enabling(); rc=$?
+check_operator_enabling; rc=$?
 if [[ $rc -ne 0 ]]; then
-    echo -e "IBM STORAGE OPERATOR:  Addon enable: FAIL" >> "$E2E_TEST_RESULT"
+   echo -e "IBM STORAGE OPERATOR:  Addon enable: FAIL" >> "$E2E_TEST_RESULT"
 	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
 	exit 1
-else 
-    echo -e "IBM STORAGE OPERATOR:  Addon enable: PASS" >> "$E2E_TEST_RESULT"
+else
+   echo "IBM STORAGE OPERATOR:  Addon enable: PASS"
+   echo -e "IBM STORAGE OPERATOR:  Addon enable: PASS" >> "$E2E_TEST_RESULT"
 fi
 
 
@@ -279,25 +282,25 @@ else
 	ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION
 fi
 
-check_file_enabling(); rc=$?
+check_file_enabling; rc=$?
 if [[ $rc -ne 0 ]]; then
-    echo -e "IBM STORAGE OPERATOR:  File csi driver addon enable: FAIL" >> "$E2E_TEST_RESULT"
+   echo -e "IBM STORAGE OPERATOR:  File csi driver addon enable: FAIL" >> "$E2E_TEST_RESULT"
 	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
 	exit 1
 else 
-    echo -e "IBM STORAGE OPERATOR:  File csi driver addon enable: PASS" >> "$E2E_TEST_RESULT"
+   echo -e "IBM STORAGE OPERATOR:  File csi driver addon enable: PASS" >> "$E2E_TEST_RESULT"
 fi
 
-ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME; rc=$?
+echo "y" | ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME; rc=$?
 if [[ $rc -eq 0 ]]; then
-	echo -e "IBM STORAGE OPERATOR: Disabling operator with file addon enabled should fail: FAIL" > "$E2E_TEST_RESULT"
+	echo -e "IBM STORAGE OPERATOR:  Disabling operator with file addon enabled should fail: FAIL" >> "$E2E_TEST_RESULT"
 	exit 1
 else
-	echo -e "IBM STORAGE OPERATOR: Disabling operator with file addon enabled should fail: PASS" > "$E2E_TEST_RESULT"
+	echo -e "IBM STORAGE OPERATOR:  Disabling operator with file addon enabled should fail: PASS" >> "$E2E_TEST_RESULT"
 fi
 
-ibmcloud ks cluster addon disable vpc-file-csi-driver -c $CLUSTER_NAME
-check_file_disabling(); rc=$?
+ibmcloud ks cluster addon disable vpc-file-csi-driver -c $CLUSTER_NAME -f
+check_file_disabling; rc=$?
 if [[ $rc -ne 0 ]]; then
 	echo -e "IBM STORAGE OPERATOR:  VPC File csi driver addon disable: FAIL" >> "$E2E_TEST_RESULT"
 	exit 1
@@ -306,8 +309,8 @@ else
 fi
 
 
-ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME
-check_operator_disabling(); rc=$?
+ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME -f
+check_operator_disabling; rc=$?
 if [[ $rc -ne 0 ]]; then
 	echo -e "IBM STORAGE OPERATOR:  IBM Storage operator addon disable: FAIL" >> "$E2E_TEST_RESULT"
 	exit 1
@@ -322,10 +325,10 @@ else
 fi
 
 if [[ $rc -eq 0 ]]; then
-	echo -e "IBM STORAGE OPERATOR: Enable file csi driver with operator disabled should fail: FAIL" > "$E2E_TEST_RESULT"
+	echo -e "IBM STORAGE OPERATOR:  Enable file csi driver with operator disabled should fail: FAIL" >> "$E2E_TEST_RESULT"
 	exit 1
 else
-	echo -e "IBM STORAGE OPERATOR: Enable file csi driver with operator disabled  should fail: PASS" > "$E2E_TEST_RESULT"
+	echo -e "IBM STORAGE OPERATOR:  Enable file csi driver with operator disabled  should fail: PASS" >> "$E2E_TEST_RESULT"
 fi
 
 #
@@ -334,21 +337,21 @@ if [[ $FILE_ADDON_VERSION == "default" ]]; then
 else
 	ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION -y; rc=$?
 fi
-check_operator_enabling(); rc=$?
+check_operator_enabling; rc=$?
 if [[ $rc -ne 0 ]]; then
-    echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - Operator addon enable: FAIL" >> "$E2E_TEST_RESULT"
+   echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - Operator addon enable: FAIL" >> "$E2E_TEST_RESULT"
 	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
 	exit 1
 else 
     echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - Operator addon enable: PASS" >> "$E2E_TEST_RESULT"
 fi
-check_file_enabling); rc=$?
+check_file_enabling; rc=$?
 if [[ $rc -ne 0 ]]; then
-    echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - File CSI driver addon enable: FAIL" >> "$E2E_TEST_RESULT"
+   echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - File CSI driver addon enable: FAIL" >> "$E2E_TEST_RESULT"
 	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
 	exit 1
 else 
-    echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - File CSI driver enable: PASS" >> "$E2E_TEST_RESULT"
+   echo -e "IBM STORAGE OPERATOR:  Dependent addon enable - File CSI driver enable: PASS" >> "$E2E_TEST_RESULT"
 fi
 
 set +e

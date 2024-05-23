@@ -161,7 +161,7 @@ var _ = ginkgo.Describe("Enable EIT on only multiple worker pool", func() {
 		configMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, configMapName, metav1.GetOptions{})
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
-		workerpools := []string{"default"}
+		workerpools := []string{"default,worker-pool1"}
 		// Update a key in the ConfigMap
 		configMap.Data["ENABLE_EIT"] = "true"
 		configMap.Data["EIT_ENABLED_WORKER_POOLS"] = "default, worker-pool1"
