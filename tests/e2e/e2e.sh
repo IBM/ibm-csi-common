@@ -183,7 +183,7 @@ check_operator_disabling() {
    return $failure
 }
 
-IBM_STORAGE_OPERATOR_HOME="$GOPATH/src/github.ibm.com/alchemy-containers/armada-storage-operator"
+IBM_STORAGE_OPERATOR_HOME="$GOPATH/src/github.com/IBM/ibm-csi-common"
 E2E_TEST_SETUP="$IBM_STORAGE_OPERATOR_HOME/e2e-setup.out"
 E2E_TEST_RESULT="$IBM_STORAGE_OPERATOR_HOME/e2e-test.out"
 export E2E_TEST_RESULT=$E2E_TEST_RESULT
