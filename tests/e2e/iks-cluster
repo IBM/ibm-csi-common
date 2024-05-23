@@ -843,14 +843,8 @@ ibmcloud target -r "$IC_REGION"
 
 if [[ -n "$E2ETEST_CS_API_EP" ]]; then
    ibmcloud ks init --host $E2ETEST_CS_API_EP
-   cd ${GOPATH}/src/github.ibm.com/alchemy-containers/armada-cli
-   make install-local
-   cd -
 else
    ibmcloud ks init --host https://containers.cloud.ibm.com
-   cd ${GOPATH}/src/github.ibm.com/alchemy-containers/armada-cli
-   make install-local
-   cd -
 fi
 
 if [[ $IC_PROVIDER == "vpc-gen2" ]] ; then
