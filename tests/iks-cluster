@@ -214,9 +214,8 @@ function check_addon_pod_status {
   pod_name=$1
   while true; do
     attempts=$((attempts+1))
-    pod_status_sts=$(kubectl get sts -n kube-system | grep "$pod_name"| awk '{print $2}')
     pod_status_deployment=$(kubectl get deployment -n kube-system | grep "$pod_name"| awk '{print $2}')
-    if [[ "$pod_status_sts" == "1/1" || "$pod_status_deployment" == "1/1" ]]; then
+    if [[ "$pod_status_deployment" == "1/1" ]]; then
       echo "$pod_name is  running ."
       break
     fi
@@ -341,7 +340,7 @@ function cluster_create_cls {
 
     if [[ $E2ETEST_MZ == "true" && -n "$SECOND_PRIV_VLAN" ]]; then
 	random_string=${cluster_name%%-*}
-        cluster_worker_pool="e2etest-${random_string}"
+        cluster_worker_pool="worker-pool1"
         ibmcloud ks worker-pool create $IC_PROVIDER --name ${cluster_worker_pool} --cluster $cluster_name \
             --flavor $WORKER_NODE_FLAVOR --size-per-zone $WORKER_NODE_COUNT_PERZONE; rc=$?
         if [[ $rc -ne 0 ]]; then set +x;  return 1; fi
@@ -400,7 +399,7 @@ function cluster_create_vpc {
 
     if [[ $E2ETEST_MZ == "true" ]]; then
 	random_string=${cluster_name%%-*}
-        cluster_worker_pool="e2etest-${random_string}"
+        cluster_worker_pool="worker-pool1"
         ibmcloud ks worker-pool create $IC_PROVIDER --name ${cluster_worker_pool} --cluster $cluster_name \
           --flavor $WORKER_NODE_FLAVOR --vpc-id $VPC_ID --size-per-zone $WORKER_NODE_COUNT_PERZONE; rc=$?
         if [[ $rc -ne 0 ]]; then set +x;  return 1; fi
@@ -632,12 +631,14 @@ e2e_var_exports=""
 e2e_name_tag=""
 e2e_addon_update="false"
 flavor_type="amd64"
+file_addon_version=""
+operator_addon_version=""
 
 cmd_name="$0"
 usage_str="$cmd_name: Options:-
-        -e <prod|stage> -d <cluster name> or
-        -e <prod|stage> -c <exiting cluster name> or
-        -e <prod|stage> --fresh [-n <name tag> ] -k default|latest|base -p classic|vpc-gen2 -t k8s|ocp -r <region> [--mz] [--retain]"
+        -e <prod|stage|prestage> -d <cluster name> or
+        -e <prod|stage|prestage> -c <exiting cluster name> or
+        -e <prod|stage|prestage> --fresh [-n <name tag> ] -k default|latest|base -p classic|vpc-gen2 -t k8s|ocp -r <region> [--mz] [--retain]"
 
 if [[ $# -lt 1 ]]; then
 	echo "$usage_str"
@@ -696,11 +697,17 @@ key="$1"
 	shift
 	;;
 
-        --addon-version)
-        e2e_addon_version="$2"
-        shift
+    --vpc-file-addon-version)
+    file_addon_version="$2"
+    shift
 	shift
-        ;;
+    ;;
+
+    --operator-addon-version)
+    operator_addon_version="$2"
+    shift
+    shift
+    ;;
 
 	-p|--provider)
 	e2e_ic_provider="$2"
@@ -767,7 +774,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 if [[ -z "$IC_API_KEY_PROD" && -z "$IC_API_KEY_STAG"  ]]; then echo -e "Error: E2ETEST_API_KEY not set!!!" >> $E2E_TEST_SETUP; exit 1;  fi
 
 E2ETEST_MZ="$e2e_mz"
-if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" ]]; then
+if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" && "$e2e_env" != "prestage" ]]; then
 	echo -e "Error: Invalid option \"-e $e2e_env\"!!!" >> $E2E_TEST_SETUP
 	exit 1
 fi
@@ -794,6 +801,10 @@ if [[ "$e2e_env" = "stage" ]]; then
     E2ETEST_IC_API_EP="https://test.cloud.ibm.com"
     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://containers.test.cloud.ibm.com"
     E2ETEST_IC_RES_GRP="Default"
+elif [[ "$e2e_env" = "prestage" ]]; then
+     E2ETEST_IC_API_EP="https://test.cloud.ibm.com"
+     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://containers.pretest.cloud.ibm.com"
+     E2ETEST_IC_RES_GRP="Default"
 else
     E2ETEST_IC_API_EP="https://cloud.ibm.com"
     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://containers.cloud.ibm.com"
@@ -812,7 +823,7 @@ fi
 # Login to IBM Cloud
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
-    if [[ "$e2e_env" = "stage" ]]; then
+    if [[ "$e2e_env" = "stage" || "$e2e_env" = "prestage" ]]; then
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_STAG} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
     else
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_PROD} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
@@ -832,8 +843,14 @@ ibmcloud target -r "$IC_REGION"
 
 if [[ -n "$E2ETEST_CS_API_EP" ]]; then
    ibmcloud ks init --host $E2ETEST_CS_API_EP
+   cd ${GOPATH}/src/github.ibm.com/alchemy-containers/armada-cli
+   make install-local
+   cd -
 else
    ibmcloud ks init --host https://containers.cloud.ibm.com
+   cd ${GOPATH}/src/github.ibm.com/alchemy-containers/armada-cli
+   make install-local
+   cd -
 fi
 
 if [[ $IC_PROVIDER == "vpc-gen2" ]] ; then
@@ -1037,22 +1054,6 @@ else
     echo "$cmd_out" | grep "vpc-gen2"; rc=$?
     if [[ $rc -eq 0 ]]; then IC_PROVIDER="vpc-gen2"; else IC_PROVIDER="classic"; fi
     export E2ETEST_CLUSTER_NAME="$cluster_name"
-
-    addons=$(ibmcloud ks cluster addon ls --cluster $cluster_name --output json)
-    version=$(jq '. | map(select(.name == "vpc-block-csi-driver"))[0].version' <<< "$addons")
-    version=${version//\"/}
-    target=$(jq '. | map(select(.name == "vpc-block-csi-driver"))[0].targetVersion' <<< "$addons")
-    target=${target//\"/}
-    echo "Info: Addon Version: [$version] Target [$target]"
-    if [[ "$e2e_addon_update" == "true" ]] || [[ -n "$target" && "$version" != "$target" ]]; then
-        addon_update=0
-        echo "Info: Updating addon [$version] -> [$target]"
-        ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
-        sleep 60
-        ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name
-        sleep 30
-
-    fi
 fi
 
 
@@ -1073,41 +1074,10 @@ fi
 
 exportKubeConfig $cluster_name; rc=$?
 
-# From Jenkins there is option to mention addon version. 
-# So if value is not "default", disable and enable user specified version
-if [[ $e2e_addon_version != "default"  ]]; then
-        echo "Info: Installing addon $ADDON_VERSION"
-        ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
-        sleep 60
-        ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $e2e_addon_version
-        sleep 30
-	check_addon_pod_status ibm-vpc-block-csi-controller
-fi
 set -x 
 if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) export kube config failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
 if [[ -n "$e2e_var_exports" ]]; then
     echo "KUBECONFIG=$KUBECONFIG" >> $e2e_var_exports
-    if [[ "$IC_PROVIDER" =~ ^vpc- ]]; then
-        addon_version=$(kubectl get sts -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
-        if [[ $? != "0" ]]; then
-           addon_version=$(kubectl get deployment -n kube-system ibm-vpc-block-csi-controller -o jsonpath="{.metadata.annotations.version}{'\n'}")
-        fi
-        echo "CLUSTER_ADDON_VER=$addon_version" >> $e2e_var_exports
-    fi
-fi
-
-if [[ $addon_update -eq 0 ]]; then
-    echo "Info: Checking CSI Controller POD state..."
-    count=0
-    while [[ $count -lt 10 ]]; do
-        count=$((count+1))
-        controller_pod=$(kubectl get pods -n kube-system | grep 'ibm-vpc-block-csi-controlle' | grep 'Running'); rc=$?
-        if [[ $rc -ne 0 ]]; then
-            sleep 30
-        else
-            break
-        fi
-    done
 fi
 
 updateCertPathInKubeConfig
