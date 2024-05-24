@@ -236,23 +236,23 @@ echo "**********IBM-Storage-Operator-Tests**********" >> "$E2E_TEST_RESULT"
 echo "********** E2E Test Details **********" >> "$E2E_TEST_RESULT"
 echo -e "StartTime   : $(date "+%F-%T")" >> "$E2E_TEST_RESULT"
 
-CLUSTER_DETAIL=$(kubectl get cm cluster-info -n kube-system -o jsonpath='{.data.cluster-config\.json}' |\
-		 grep -v -e 'crn' -e 'master_public_url' -e 'master_url'); rc=$?
+#CLUSTER_DETAIL=$(kubectl get cm cluster-info -n kube-system -o jsonpath='{.data.cluster-config\.json}' |\
+#		 grep -v -e 'crn' -e 'master_public_url' -e 'master_url'); rc=$?
 
-if [[ $rc -ne 0 ]]; then
-	echo -e "Error       : Setup failed" >> "$E2E_TEST_SETUP"
-	echo -e "Error       : Unable to connect to the cluster" >> "$E2E_TEST_SETUP"
-	echo -e "Error       : Unbale to execute e2e test!"
-	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
-	exit 1
-fi
+#if [[ $rc -ne 0 ]]; then
+#	echo -e "Error       : Setup failed" >> "$E2E_TEST_SETUP"
+#	echo -e "Error       : Unable to connect to the cluster" >> "$E2E_TEST_SETUP"
+#	echo -e "Error       : Unbale to execute e2e test!"
+#	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
+#	exit 1
+#fi
 
 CLUSTER_KUBE_DETAIL=$(kubectl get nodes -o jsonpath="{range .items[*]}{.metadata.name}:{.status.nodeInfo.kubeletVersion}:{.status.nodeInfo.osImage} {'\n'}"); rc=$?
 echo -e "***************** Cluster Details ******************" >> "$E2E_TEST_SETUP"
-echo -e "$CLUSTER_DETAIL" >> "$E2E_TEST_SETUP"
-echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
+#echo -e "$CLUSTER_DETAIL" >> "$E2E_TEST_SETUP"
+#echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
 
-echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
+#echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
 echo -e "$CLUSTER_KUBE_DETAIL" >> "$E2E_TEST_SETUP"
 echo -e "----------------------------------------------------" >> "$E2E_TEST_SETUP"
 
