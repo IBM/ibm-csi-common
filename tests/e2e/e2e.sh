@@ -271,7 +271,6 @@ else
 fi
 
 TOKEN=$(echo "$TOKEN" | tr -d '"')
-echo $TOKEN
 echo $ENDPOINT
 
 # Test operator enablement and disablement - deploy and cleanup of resources

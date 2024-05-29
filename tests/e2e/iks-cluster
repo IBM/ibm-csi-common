@@ -79,6 +79,7 @@ function exportKubeConfig {
     fi
     local cluster_name=$1
     echo "Info: Exporting KUBECONFIG..."
+    export CLUSTER_NAME=$1
     configfile=$(ibmcloud ks cluster config --cluster $cluster_name --admin)
     context=$(kubectl config view | grep "client-certificate" | grep "$cluster_name" | awk -F ":" '{print $2}')
     CONFIG_DIR=$(dirname $context)
