@@ -208,10 +208,15 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-    		-r|--region)
+      -r|--region)
 		REGION="$2"
 		shift
 		shift
+      ;;
+      -c|--cluster)
+      CLUSTER_NAME="$2"
+      shift
+      shift
 		;;
     		*)
     		UNKOWNPARAM+=("$1")
@@ -260,8 +265,7 @@ set -x
 
 TOKEN=""
 ENDPOINT=""
-printenv CLUSTER_NAME
-CLUSTER_NAME=$(printenv CLUSTER_NAME)
+echo "Inside e2e $CLUSTER_NAME"
 if [[ $TEST_ENV == "stage" ]]; then
    TOKEN=$(curl -X POST "https://iam.test.cloud.ibm.com/identity/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=$IC_API_KEY_STAG" | jq '.access_token')
    ENDPOINT=containers.test.cloud.ibm.com
