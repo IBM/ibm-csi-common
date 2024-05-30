@@ -304,7 +304,7 @@ if [[ $FILE_ADDON_VERSION == "default" ]]; then
    curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}'
 	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME
 else
-   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}"
+   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}'
 	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION
 fi
 
@@ -351,7 +351,7 @@ if [[ $FILE_ADDON_VERSION == "default" ]]; then
    echo "N" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}'; rc=$?
 	#echo "N" | ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME; rc=$?
 else
-   echo "N" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}"; rc=$?
+   echo "N" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}'; rc=$?
 	#echo "N" | ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION; rc=$?
 fi
 
@@ -367,7 +367,7 @@ if [[ $FILE_ADDON_VERSION == "default" ]]; then
    echo "y" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}'; rc=$?
 	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME -y; rc=$?
 else
-   echo "y" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}"; rc=$?
+   echo "y" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}'; rc=$?
 	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION -y; rc=$?
 fi
 check_operator_enabling; rc=$?
