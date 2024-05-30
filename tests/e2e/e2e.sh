@@ -260,6 +260,8 @@ set -x
 
 TOKEN=""
 ENDPOINT=""
+printenv CLUSTER_NAME
+CLUSTER_NAME=$(printenv CLUSTER_NAME)
 if [[ $TEST_ENV == "stage" ]]; then
    TOKEN=$(curl -X POST "https://iam.test.cloud.ibm.com/identity/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=$IC_API_KEY_STAG" | jq '.access_token')
    ENDPOINT=containers.test.cloud.ibm.com
