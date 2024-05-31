@@ -12,7 +12,10 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -28,11 +31,36 @@ import (
 
 var kubeClient *kubernetes.Clientset
 var namespace string = "kube-system" // Change this to your namespace
+var fileLock sync.Mutex
+var testResultFile string
 
 const (
 	workerPoolLabelKey = "ibm-cloud.kubernetes.io/worker-pool-name"
 	hostnamekey        = "kubernetes.io/hostname"
 )
+
+func init() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error getting test result directory: %s", err.Error())
+		return
+	}
+	testResultFile = filepath.Join(cwd, "..", "..", "e2e-test.out")
+}
+
+func UpdateTestResults(data string) {
+	fileLock.Lock()
+	defer fileLock.Unlock()
+
+	fpointer, err := os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer fpointer.Close()
+	if _, err = fpointer.WriteString(data + "\n"); err != nil {
+		panic(err)
+	}
+}
 
 func TestConfigMap(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
@@ -66,9 +94,16 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 		configMap.Data["EIT_ENABLED_WORKER_POOLS"] = ""
 		_, err = kubeClient.CoreV1().ConfigMaps(namespace).Update(ctx, configMap, metav1.UpdateOptions{})
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
-
+		if err != nil {
+			UpdateTestResults("Enable EIT on all worker pools: FAIL")
+			return
+		}
 		nodeList, err := kubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		if err != nil {
+			UpdateTestResults("Enable EIT on all worker pools: FAIL")
+			return
+		}
 
 		hostnames := make(map[string][]string)
 		for _, node := range nodeList.Items {
@@ -83,15 +118,21 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 		workerNodeYaml, err := yaml.Marshal(hostnames)
 		if err != nil {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			UpdateTestResults("Enable EIT on all worker pools: FAIL")
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
+		if resultAsExpected {
+			UpdateTestResults("Enable EIT on all worker pools: PASS")
+			return
+		}
+		UpdateTestResults("Enable EIT on all worker pools: FAIL")
 		// Give some time for the changes to propagate
 	})
 
@@ -130,18 +171,22 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 		if err != nil {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
-
-		gomega.Eventually(func() (map[string]string, error) {
+		// Give some time for the changes to propagate
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
-		// Give some time for the changes to propagate
+		if resultAsExpected {
+			UpdateTestResults("Enable EIT on only one worker pool: PASS")
+			return
+		}
+		UpdateTestResults("Enable EIT on only one worker pool: FAIL")
 	})
 
-	ginkgo.It("enable EIT on multiple worker pools", func() {
+	ginkgo.It("Enable EIT on multiple worker pools", func() {
 		ctx := context.Background()
 
 		// Retrieve the existing ConfigMap
@@ -177,14 +222,19 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		// Give some time for the changes to propagate
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
-		// Give some time for the changes to propagate
+		if resultAsExpected {
+			UpdateTestResults("Enable EIT on multiple worker pools: PASS")
+			return
+		}
+		UpdateTestResults("Enable EIT on multiple worker pools: FAIL")
 	})
 
 	ginkgo.It("Disable EIT on all worker pools", func() {
@@ -203,14 +253,19 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 		if err != nil {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
-		gomega.Eventually(func() (map[string]string, error) {
+		// Give some time for the changes to propagate
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
-		// Give some time for the changes to propagate
+		if resultAsExpected {
+			UpdateTestResults("Disable EIT on all worker pools: PASS")
+			return
+		}
+		UpdateTestResults("Disable EIT on all worker pools: FAIL")
 	})
 
 	ginkgo.It("Enable EIT on one worker pool, check the updated worker pool list, update with one more worker pool and verify", func() {
@@ -249,13 +304,18 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		// Give some time for the changes to propagate
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
+		if !resultAsExpected {
+			UpdateTestResults("Enable EIT on one worker pool, check the updated worker pool list, update with one more worker pool and verify: FAIL")
+			return
+		}
 
 		// Retrieve the existing ConfigMap
 		configMap, err = kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, configMapName, metav1.GetOptions{})
@@ -288,14 +348,19 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		// Give some time for the changes to propagate
+		resultAsExpected = gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
-		// Give some time for the changes to propagate
+		if !resultAsExpected {
+			UpdateTestResults("Enable EIT on one worker pool, check the updated worker pool list, update with one more worker pool and verify: FAIL")
+			return
+		}
+		UpdateTestResults("Enable EIT on one worker pool, check the updated worker pool list, update with one more worker pool and verify: PASS")
 	})
 
 	ginkgo.It("Enable EIT on a non existing worker pool", func() {
@@ -317,14 +382,18 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
-		// Give some time for the changes to propagate
+		if !resultAsExpected {
+			UpdateTestResults("Enable EIT on a non existing worker pool: FAIL")
+			return
+		}
+		UpdateTestResults("Enable EIT on a non existing worker pool: PASS")
 	})
 
 	ginkgo.It("Enable EIT on multiple worker pools, remove one worker pool and verify", func() {
@@ -363,13 +432,17 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
+		if !resultAsExpected {
+			UpdateTestResults("Enable EIT on multiple worker pools, remove one worker pool and verify: FAIL")
+			return
+		}
 
 		// Retrieve the existing ConfigMap
 		configMap, err = kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, configMapName, metav1.GetOptions{})
@@ -402,14 +475,18 @@ var _ = ginkgo.Describe("Enable EIT on all worker pools", func() {
 			gomega.Expect(err).ToNot(gomega.HaveOccurred())
 		}
 
-		gomega.Eventually(func() (map[string]string, error) {
+		resultAsExpected = gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
 			}
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
-		// Give some time for the changes to propagate
+		if !resultAsExpected {
+			UpdateTestResults("Enable EIT on multiple worker pools, remove one worker pool and verify: FAIL")
+			return
+		}
+		UpdateTestResults("Enable EIT on multiple worker pools, remove one worker pool and verify: PASS")
 	})
 
 })
