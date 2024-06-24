@@ -70,7 +70,7 @@ PLATFORM_openshift="ocp"
 PRIMARY_ZONE_ID="01"	# ZONE_vpc_gen2_01 / ZONE_classic_01
 SECOND_ZONE_ID="02"	# ZONE_vpc_gen2_02 / ZONE_classic_02
 
-CLUSTER_NAME_SUFFIX="e2etest"
+CLUSTER_NAME_SUFFIX="vpc-block-e2etest"
 
 function exportKubeConfig {
     if [[ $# -ne 1 ]]; then

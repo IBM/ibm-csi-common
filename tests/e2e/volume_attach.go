@@ -17,6 +17,10 @@ package e2e
 
 import (
 	"context"
+	"os"
+	"strconv"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	apps "k8s.io/api/apps/v1"
@@ -30,9 +34,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/kubernetes/test/e2e/framework"
 	admissionapi "k8s.io/pod-security-admission/api"
-	"os"
-	"strconv"
-	"time"
 )
 
 const (
@@ -105,7 +106,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "nginx",
+								Image:   "us.icr.io/armada-master/agnhost:2.52",
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
@@ -203,7 +204,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "nginx",
+								Image:   "us.icr.io/armada-master/agnhost:2.52",
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
@@ -357,7 +358,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "nginx",
+								Image:   "us.icr.io/armada-master/agnhost:2.52",
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
@@ -565,7 +566,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "nginx",
+								Image:   "us.icr.io/armada-master/agnhost:2.52",
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{

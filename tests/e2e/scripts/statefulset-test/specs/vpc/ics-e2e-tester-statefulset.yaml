@@ -33,7 +33,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: nginx
-        image: k8s.gcr.io/nginx-slim:0.8
+        image: us.icr.io/armada-master/agnhost:2.52
         ports:
         - containerPort: 80
           name: web
