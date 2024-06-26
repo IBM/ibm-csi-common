@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -44,8 +45,8 @@ import (
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
 )
 
-const (
-	icrImage = "us.icr.io/armada-master/agnhost:2.52"
+var (
+	icrImage = os.Getenv("icrImage")
 )
 
 type TestSecret struct {

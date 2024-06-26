@@ -42,6 +42,10 @@ const (
 	customSCName   = "custom-sc"
 )
 
+var (
+	icrImage = os.Getenv("icrImage")
+)
+
 var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", func() {
 	f := framework.NewDefaultFramework("ics-e2e-pods")
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
@@ -106,7 +110,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "us.icr.io/armada-master/agnhost:2.52",
+								Image:   icrImage,
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
@@ -204,7 +208,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "us.icr.io/armada-master/agnhost:2.52",
+								Image:   icrImage,
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
@@ -358,7 +362,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "us.icr.io/armada-master/agnhost:2.52",
+								Image:   icrImage,
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
@@ -566,7 +570,7 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 						Containers: []corev1.Container{
 							{
 								Name:    "example-container",
-								Image:   "us.icr.io/armada-master/agnhost:2.52",
+								Image:   icrImage,
 								Command: []string{"/bin/sh"},
 								Args:    []string{"-c", "echo 'hello world' > /data/volume-1/data && while true; do sleep 2; done"},
 								VolumeMounts: []corev1.VolumeMount{
