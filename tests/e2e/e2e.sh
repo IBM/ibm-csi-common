@@ -189,7 +189,8 @@ E2E_TEST_SETUP="$IBM_STORAGE_OPERATOR_HOME/e2e-setup.out"
 E2E_TEST_RESULT="$IBM_STORAGE_OPERATOR_HOME/e2e-test.out"
 export E2E_TEST_RESULT=$E2E_TEST_RESULT
 export E2E_TEST_SETUP=$E2E_TEST_SETUP
-
+OPERATOR_ADDON_VERSION=""
+FILE_ADDON_VERSION=""
 rm -f "$E2E_TEST_RESULT"
 rm -f "$E2E_TEST_SETUP"
 
@@ -218,6 +219,16 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
 		;;
+      --vpc-file-addon-version)
+      FILE_ADDON_VERSION="$2"
+      shift
+	   shift
+      ;;
+      --operator-addon-version)
+      OPERATOR_ADDON_VERSION="$2"
+      shift
+      shift
+      ;;
     		*)
     		UNKOWNPARAM+=("$1")
     		shift
@@ -281,12 +292,49 @@ echo $ENDPOINT
 
 # Test operator enablement and disablement - deploy and cleanup of resources
 if [[ $OPERATOR_ADDON_VERSION == "default" ]]; then
-   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":"","installOptionsTemplate":{}}]}'
+   echo "Default operator version is enabled by default"
+   check_operator_enabling; rc=$?
+   if [[ $rc -ne 0 ]]; then
+      echo -e "IBM storage operator addon must be enabled by default: FAIL" >> "$E2E_TEST_RESULT"
+	   echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
+	   exit 1
+   else
+      echo "IBM storage operator addon must be enabled by default: PASS"
+      echo -e "Addon enable: PASS" >> "$E2E_TEST_RESULT"
+   fi
+   #Keep this if enabling default addon is also a requirement
+   #curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":"","installOptionsTemplate":{}}]}'
 	#ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME
 else
+   echo "Disabling the default ibm-storage-operator addon"
+   #ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME 
+   response=$(curl -o /dev/null -s -w "%{http_code}\n" -X PATCH -H "Authorization: Bearer $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":false,"update":false,"addons":[{"name":"ibm-storage-operator","version":"","installOptionsTemplate":{}}]}')
+   echo $response
+   #ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME
+   check_operator_disabling; rc=$?
+   if [[ $rc -ne 0 ]]; then
+	   echo -e "IBM Storage operator addon disable: FAIL" >> "$E2E_TEST_RESULT"
+	   exit 1
+   else
+	   echo "Default ibm-storage-operator addon disabled"
+   fi
    #ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME --version $OPERATOR_ADDON_VERSION
-   #json_payload="{\"enable\":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":$OPERATOR_ADDON_VERSION,"installOptionsTemplate":{}}]}"
-   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":"1.0","installOptionsTemplate":{}}]}'
+   echo "Enabling ibm-storage-operator $OPERATOR_ADDON_VERSION"
+   json_payload=$(cat <<EOF
+   {
+         "enable": true,
+         "update": false,
+         "addons": [
+            {
+               "name":"ibm-storage-operator",
+               "version":"$OPERATOR_ADDON_VERSION",
+               "installOptionsTemplate":{}
+            }
+         ]
+   }
+EOF
+)
+   curl -X PATCH -H "Authorization: Bearer $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "$json_payload"
 fi
 
 check_operator_enabling; rc=$?
@@ -299,13 +347,26 @@ else
    echo -e "Addon enable: PASS" >> "$E2E_TEST_RESULT"
 fi
 
-
 if [[ $FILE_ADDON_VERSION == "default" ]]; then
+   #ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME
    curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}'
-	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME
 else
-   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}'
-	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION
+   #ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION
+   json_payload=$(cat <<EOF
+   {
+         "enable": true,
+         "update": false,
+         "addons": [
+            {
+               "name":"vpc-file-csi-driver",
+               "version":"$FILE_ADDON_VERSION",
+               "installOptionsTemplate":{}
+            }
+         ]
+   }
+EOF
+)
+   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "$json_payload"
 fi
 
 check_file_enabling; rc=$?
@@ -327,6 +388,7 @@ else
    exit 1
 fi
 
+#Once CLI is enabled - the following code can be uncommented and curl commands can be commented
 #echo "y" | ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME; rc=$?
 #if [[ $rc -eq 0 ]]; then
 #	echo -e "IBM STORAGE OPERATOR:  Disabling operator with file addon enabled should fail: FAIL" >> "$E2E_TEST_RESULT"
@@ -346,10 +408,9 @@ else
 	echo -e "VPC File csi driver addon disable: PASS" >> "$E2E_TEST_RESULT"
 fi
 
-
+#ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME -f
 response=$(curl -o /dev/null -s -w "%{http_code}\n" -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":false,"update":false,"addons":[{"name":"ibm-storage-operator","version":"","installOptionsTemplate":{}}]}')
 echo $response
-#ibmcloud ks cluster addon disable ibm-storage-operator -c $CLUSTER_NAME -f
 check_operator_disabling; rc=$?
 if [[ $rc -ne 0 ]]; then
 	echo -e "IBM Storage operator addon disable: FAIL" >> "$E2E_TEST_RESULT"
@@ -360,11 +421,25 @@ fi
 
 response=""
 if [[ $FILE_ADDON_VERSION == "default" ]]; then
+   #echo "N" | ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME; rc=$?
    response=$(curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}')
-	#echo "N" | ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME; rc=$?
 else
-   response=$(curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}')
-	#echo "N" | ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION; rc=$?
+   #echo "N" | ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION; rc=$?
+   json_payload=$(cat <<EOF
+   {
+         "enable": true,
+         "update": false,
+         "addons": [
+            {
+               "name":"vpc-file-csi-driver",
+               "version":"$FILE_ADDON_VERSION",
+               "installOptionsTemplate":{}
+            }
+         ]
+   }
+EOF
+)
+   response=$(curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "$json_payload")
 fi
 
 if [[ "$response" -eq "200" ]]; then
@@ -374,23 +449,27 @@ else
 	echo -e "Enable file csi driver with operator disabled  should fail: PASS" >> "$E2E_TEST_RESULT"
 fi
 
-
-#if [[ $FILE_ADDON_VERSION == "default" ]]; then
-#   echo "y" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}'; rc=$?
-#	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME -y; rc=$?
-#else
-#   echo "y" | curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}'; rc=$?
-#	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION -y; rc=$?
-#fi
-
 # Enable operator
 if [[ $OPERATOR_ADDON_VERSION == "default" ]]; then
+   #ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME
    curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":"","installOptionsTemplate":{}}]}'
-	#ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME
 else
    #ibmcloud ks cluster addon enable ibm-storage-operator -c $CLUSTER_NAME --version $OPERATOR_ADDON_VERSION
-   #json_payload="{\"enable\":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":$OPERATOR_ADDON_VERSION,"installOptionsTemplate":{}}]}"
-   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"ibm-storage-operator","version":"1.0","installOptionsTemplate":{}}]}'
+   json_payload=$(cat <<EOF
+   {
+         "enable": true,
+         "update": false,
+         "addons": [
+            {
+               "name":"ibm-storage-operator",
+               "version":"$OPERATOR_ADDON_VERSION",
+               "installOptionsTemplate":{}
+            }
+         ]
+   }
+EOF
+)
+   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "$json_payload"
 fi
 
 check_operator_enabling; rc=$?
@@ -404,11 +483,25 @@ fi
 
 # Enable file
 if [[ $FILE_ADDON_VERSION == "default" ]]; then
+   #ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME
    curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"","installOptionsTemplate":{}}]}'
-	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME
 else
-   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d '{"enable":true,"update":false,"addons":[{"name":"vpc-file-csi-driver","version":"2.0","installOptionsTemplate":{}}]}'
-	#ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION
+   #ibmcloud ks cluster addon enable vpc-file-csi-driver -c $CLUSTER_NAME --version $FILE_ADDON_VERSION
+   json_payload=$(cat <<EOF
+   {
+         "enable": true,
+         "update": false,
+         "addons": [
+            {
+               "name":"vpc-file-csi-driver",
+               "version":"$FILE_ADDON_VERSION",
+               "installOptionsTemplate":{}
+            }
+         ]
+   }
+EOF
+)
+   curl -X PATCH -H "Authorization: $TOKEN" "https://$ENDPOINT/global/v1/clusters/$CLUSTER_NAME/addons" -d "$json_payload"
 fi
 
 check_file_enabling; rc=$?
@@ -441,4 +534,3 @@ else
    echo -e "IBM STORAGE OPERATOR:  EIT feature tests: PASS" >> "$E2E_TEST_RESULT"
 fi
 set +e
-
