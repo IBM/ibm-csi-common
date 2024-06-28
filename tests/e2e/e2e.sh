@@ -343,6 +343,8 @@ if [[ $rc -ne 0 ]]; then
 	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
 	exit 1
 else
+   addon_version=$(kubectl get deployment -n kube-system ibm-storage-operator -o jsonpath="{.metadata.annotations.version}{'\n'}")
+   echo -e "Operator addon version: $addon_version" >> "$E2E_TEST_SETUP"
    echo "IBM STORAGE OPERATOR:  Addon enable: PASS"
    echo -e "Addon enable: PASS" >> "$E2E_TEST_RESULT"
 fi
@@ -374,7 +376,7 @@ if [[ $rc -ne 0 ]]; then
    echo -e "File csi driver addon enable: FAIL" >> "$E2E_TEST_RESULT"
 	echo -e "IBM-Storage-Operator-Test: FAILED" >> "$E2E_TEST_RESULT"
 	exit 1
-else 
+else
    echo -e "File csi driver addon enable: PASS" >> "$E2E_TEST_RESULT"
 fi
 
