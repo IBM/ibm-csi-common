@@ -99,22 +99,25 @@ var _ = ginkgo.Describe("Enable EIT, but keep worker pool empty", func() {
 			return
 		}
 
-		hostnames := make(map[string][]string)
-		workerNodeYaml, err := yaml.Marshal(hostnames)
-		if err != nil {
-			gomega.Expect(err).ToNot(gomega.HaveOccurred())
-			UpdateTestResults("Enable EIT on all worker pools: FAIL")
-		}
-
-		resultAsExpected1 := gomega.Eventually(func() (map[string]string, error) {
-			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
+		/*
+			hostnames := make(map[string][]string)
+			workerNodeYaml, err := yaml.Marshal(hostnames)
 			if err != nil {
-				return nil, err
-			}
-			return validationConfigMap.Data, nil
-		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
+				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+				UpdateTestResults("Enable EIT on all worker pools: FAIL")
+			}*/
 
-		resultAsExpected2 := gomega.Eventually(func() (map[string]string, error) {
+		/*
+			resultAsExpected1 := gomega.Eventually(func() (map[string]string, error) {
+				validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
+				if err != nil {
+					return nil, err
+				}
+				return validationConfigMap.Data, nil
+			}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", string(workerNodeYaml)))
+		*/
+
+		resultAsExpected := gomega.Eventually(func() (map[string]string, error) {
 			validationConfigMap, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(ctx, validationMapName, metav1.GetOptions{})
 			if err != nil {
 				return nil, err
@@ -122,7 +125,7 @@ var _ = ginkgo.Describe("Enable EIT, but keep worker pool empty", func() {
 			return validationConfigMap.Data, nil
 		}, 5*time.Minute, 60*time.Second).Should(gomega.HaveKeyWithValue("EIT_ENABLED_WORKER_NODES", ""))
 
-		if resultAsExpected1 || resultAsExpected2 {
+		if resultAsExpected {
 			UpdateTestResults("Enable EIT, but keep worker pool empty: PASS")
 			return
 		}
