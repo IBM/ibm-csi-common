@@ -396,7 +396,12 @@ function cluster_create_vpc {
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver \
             --flavor bz2.8x32 --workers $worker_node_count --operating-system UBUNTU_18_S390X; rc=$?
     fi
-    if [[ $rc -ne 0 ]]; then set +x;  return 1; fi
+    # If cluster creation fails...
+    if [[ $rc -ne 0 ]]; then
+        set +x
+        echo -e "Warn: Cluster ($cluster_name) creation failed. Exiting" >> $E2E_TEST_SETUP
+        return 1
+    fi
 
     if [[ $E2ETEST_MZ == "true" ]]; then
 	random_string=${cluster_name%%-*}
