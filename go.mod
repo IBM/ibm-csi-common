@@ -132,4 +132,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
+replace (
+	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
+	google.golang.org/protobuf => google.golang.org/protobuf v1.31.0
+)
