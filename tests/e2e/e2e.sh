@@ -133,7 +133,8 @@ echo "                  Path: `pwd`"
 # E2E Execution
 go clean -modcache
 export GO111MODULE=on
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.1.6
+# Install supported ginkgo version as of July 2024. Update it if necessary
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.17.2
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?
