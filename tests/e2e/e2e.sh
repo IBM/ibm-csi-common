@@ -164,7 +164,6 @@ if [[ $compare -eq 1 ]]; then
 	echo "Exit status for configmap related attach-volume test: $rc5"
 fi
 
-set -e
 if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
