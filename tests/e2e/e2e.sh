@@ -133,7 +133,8 @@ echo "                  Path: `pwd`"
 # E2E Execution
 go clean -modcache
 export GO111MODULE=on
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.1.6
+# Install supported ginkgo version as of July 2024. Update it if necessary
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.17.2
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?
@@ -163,7 +164,6 @@ if [[ $compare -eq 1 ]]; then
 	echo "Exit status for configmap related attach-volume test: $rc5"
 fi
 
-set -e
 if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Licensed Materials - Property of IBM
 #
-# (C) Copyright IBM Corp. 2021 All Rights Reserved
+# (C) Copyright IBM Corp. 2024 All Rights Reserved
 #
 # US Government Users Restricted Rights - Use, duplicate or
 # disclosure restricted by GSA ADP Schedule Contract with
@@ -396,7 +396,12 @@ function cluster_create_vpc {
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver \
             --flavor bz2.8x32 --workers $worker_node_count --operating-system UBUNTU_18_S390X; rc=$?
     fi
-    if [[ $rc -ne 0 ]]; then set +x;  return 1; fi
+    # If cluster creation fails...
+    if [[ $rc -ne 0 ]]; then
+        set +x
+        echo -e "Warn: Cluster ($cluster_name) creation failed. Exiting" >> $E2E_TEST_SETUP
+        return 1
+    fi
 
     if [[ $E2ETEST_MZ == "true" ]]; then
 	random_string=${cluster_name%%-*}
@@ -954,7 +959,7 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
         kube_vers=$(ibmcloud ks versions --show-version $K8S_PLATFORM | grep $PLATFORM_VERSION | awk '{ print $1 }')
     elif [[ "$PLATFORM_VERSION" == "latest" ]]; then
         if [[ "$K8S_PLATFORM" == "openshift" ]]; then
-            versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep $K8S_PLATFORM ))
+            versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM | grep $K8S_PLATFORM | awk '{ print $1 }'))
         else
             versions=($(ibmcloud ks versions --show-version $K8S_PLATFORM  | grep -oE "\b([0-9]{1,2}\.){2}[0-9]{1,2}\b"))
         fi
