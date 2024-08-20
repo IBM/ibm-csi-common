@@ -75,7 +75,6 @@ require (
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
-	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
@@ -113,18 +112,18 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.28.6 // indirect
+	k8s.io/apiextensions-apiserver v0.30.4 // indirect
 	k8s.io/apiserver v0.30.4 // indirect
-	k8s.io/cloud-provider v0.28.6 // indirect
+	k8s.io/cloud-provider v0.30.4 // indirect
 	k8s.io/component-base v0.30.4 // indirect
-	k8s.io/component-helpers v0.28.6 // indirect
-	k8s.io/controller-manager v0.28.6 // indirect
-	k8s.io/csi-translation-lib v0.28.6 // indirect
+	k8s.io/component-helpers v0.30.4 // indirect
+	k8s.io/controller-manager v0.30.4 // indirect
+	k8s.io/csi-translation-lib v0.30.4 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kms v0.30.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
-	k8s.io/kubectl v0.28.6 // indirect
-	k8s.io/kubelet v0.28.6 // indirect
+	k8s.io/kubectl v0.30.4 // indirect
+	k8s.io/kubelet v0.30.4 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.30.3 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
