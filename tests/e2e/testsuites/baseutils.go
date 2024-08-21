@@ -553,7 +553,7 @@ func generatePVC(name, namespace,
 			AccessModes: []v1.PersistentVolumeAccessMode{
 				accessMode,
 			},
-			Resources: v1.ResourceRequirements{
+			Resources: v1.VolumeResourceRequirements{
 				Requests: v1.ResourceList{
 					v1.ResourceName(v1.ResourceStorage): resource.MustParse(claimSize),
 				},
@@ -885,7 +885,7 @@ func (t *TestPod) Exec(command []string, expectedString string) {
 
 func (t *TestPod) WaitForSuccess() {
 	By(fmt.Sprintf("checking that the pods command exits with no error [%s/%s]", t.namespace.Name, t.pod.Name))
-	err := k8sDevPod.WaitForPodSuccessInNamespaceSlow(context.TODO(), t.client, t.pod.Name, t.namespace.Name)
+	err := k8sDevPod.WaitForPodSuccessInNamespace(context.TODO(), t.client, t.pod.Name, t.namespace.Name)
 	framework.ExpectNoError(err)
 }
 
