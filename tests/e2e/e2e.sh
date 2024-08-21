@@ -134,7 +134,7 @@ echo "                  Path: `pwd`"
 go clean -modcache
 export GO111MODULE=on
 # Install supported ginkgo version as of July 2024. Update it if necessary
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.17.2
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.19.0
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?
