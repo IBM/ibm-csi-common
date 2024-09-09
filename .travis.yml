@@ -19,7 +19,7 @@ before_install:
   -in ./e2e/config/secret.txt.enc -out secret.txt -d || true
 # - sudo add-apt-repository ppa:masterminds/glide -y && 
 - sudo apt-get update -q
-- sudo apt-get install glide -y
+- sudo apt-get install golang-glide -y
 - sudo apt-get install bc
 
 before_script:
