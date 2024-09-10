@@ -30,7 +30,6 @@ import (
 )
 
 // NodeMetadata is a fakeable interface exposing necessary data
-//go:generate counterfeiter -o fake_node_metadata.go --fake-name FakeNodeMetadata . NodeMetadata
 type NodeMetadata interface {
 	// GetZone ...
 	GetZone() string
@@ -53,6 +52,7 @@ type nodeMetadataManager struct {
 }
 
 // NodeInfo ...
+//go:generate counterfeiter -o fake/fake_node_info.go --fake-name FakeNodeInfo . NodeInfo
 type NodeInfo interface {
 	NewNodeMetadata(logger *zap.Logger) (NodeMetadata, error)
 }
