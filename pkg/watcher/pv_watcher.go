@@ -159,8 +159,7 @@ func (pvw *PVWatcher) updateVolume(oldobj, obj interface{}) {
 			}
 		}()
 
-		ctxLogger.Info("Entry updateVolume()", zap.Reflect("obj", obj))
-		ctxLogger.Info("Entry updateVolume()", zap.Reflect("oldobj", oldobj))
+		ctxLogger.Info("Entry updateVolume()", zap.Reflect("obj", obj), zap.Reflect("oldobj", oldobj))
 		pv, _ := obj.(*v1.PersistentVolume)
 		if oldobj != nil {
 			oldpv, _ := oldobj.(*v1.PersistentVolume)
