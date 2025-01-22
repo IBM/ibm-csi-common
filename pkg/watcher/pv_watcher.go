@@ -160,15 +160,16 @@ func (pvw *PVWatcher) updateVolume(oldobj, obj interface{}) {
 		}()
 
 		ctxLogger.Info("Entry updateVolume()", zap.Reflect("obj", obj), zap.Reflect("oldobj", oldobj))
-		pv, _ := obj.(*v1.PersistentVolume)
+		newpv, _ := obj.(*v1.PersistentVolume)
+		//If there is no change to status , capacity or iops we can skip the updateVolume call.
 		if oldobj != nil {
 			oldpv, _ := oldobj.(*v1.PersistentVolume)
 			oldCapacity := oldpv.Spec.Capacity[v1.ResourceStorage]
-			capacity := pv.Spec.Capacity[v1.ResourceStorage]
-			iops := pv.Spec.CSI.VolumeAttributes[utils.IOPSLabel]
+			capacity := newpv.Spec.Capacity[v1.ResourceStorage]
+			iops := newpv.Spec.CSI.VolumeAttributes[utils.IOPSLabel]
 			oldiops := oldpv.Spec.CSI.VolumeAttributes[utils.IOPSLabel]
 
-			if (pv.Status.Phase == oldpv.Status.Phase) && (oldCapacity.Value() == capacity.Value()) && (oldiops == iops) {
+			if (newpv.Status.Phase == oldpv.Status.Phase) && (oldCapacity.Value() == capacity.Value()) && (oldiops == iops) {
 				ctxLogger.Info("Skipping update Volume as there is no change in status , capacity and iops")
 				return
 			}
@@ -176,14 +177,14 @@ func (pvw *PVWatcher) updateVolume(oldobj, obj interface{}) {
 
 		session, err := pvw.cloudProvider.GetProviderSession(context.Background(), ctxLogger)
 		if session != nil {
-			volume := pvw.getVolume(pv, ctxLogger)
+			volume := pvw.getVolume(newpv, ctxLogger)
 			ctxLogger.Info("volume to update ", zap.Reflect("volume", volume))
 			err := session.UpdateVolume(volume)
 			if err != nil {
 				ctxLogger.Warn("Unable to update the volume", zap.Error(err))
-				pvw.recorder.Event(pv, v1.EventTypeWarning, VolumeUpdateEventReason, err.Error())
+				pvw.recorder.Event(newpv, v1.EventTypeWarning, VolumeUpdateEventReason, err.Error())
 			} else {
-				pvw.recorder.Event(pv, v1.EventTypeNormal, VolumeUpdateEventReason, VolumeUpdateEventSuccess)
+				pvw.recorder.Event(newpv, v1.EventTypeNormal, VolumeUpdateEventReason, VolumeUpdateEventSuccess)
 				ctxLogger.Warn("Volume Metadata saved successfully")
 			}
 		}
