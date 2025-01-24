@@ -196,7 +196,7 @@ func (pvw *PVWatcher) updateVolume(oldobj, obj interface{}) {
 			ctxLogger.Info("Updating tags from VPC IaaS")
 			err = iksVpc.VPCSession.UpdateVolume(volume)
 			if err != nil {
-				ctxLogger.Warn("Failed to update volume with tags", zap.Error(err))
+				ctxLogger.Warn("Failed to update volume with tags from VPC IaaS", zap.Error(err))
 				pvw.recorder.Event(newpv, v1.EventTypeWarning, VolumeUpdateEventReason, err.Error())
 			} else {
 				pvw.recorder.Event(newpv, v1.EventTypeNormal, VolumeUpdateEventReason, VolumeUpdateEventSuccess)
