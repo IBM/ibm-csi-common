@@ -188,11 +188,13 @@ func (pvw *PVWatcher) updateVolume(oldobj, obj interface{}) {
 
 			volume := pvw.getVolume(newpv, ctxLogger)
 			ctxLogger.Info("volume to update ", zap.Reflect("volume", volume))
+			ctxLogger.Info("Invoking POST v2/storage/updateVolume")
 			err := iksVpc.UpdateVolume(volume)
 			if err != nil {
 				ctxLogger.Warn("Unable to update the volume in ETCD", zap.Error(err))
 				pvw.recorder.Event(newpv, v1.EventTypeWarning, VolumeUpdateEventReason, err.Error())
 			}
+			ctxLogger.Info("Invoking PATCH /volumes")
 			err = iksVpc.VPCSession.UpdateVolume(volume)
 			if err != nil {
 				ctxLogger.Warn("Unable to update the volume with tags", zap.Error(err))
