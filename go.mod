@@ -3,8 +3,8 @@ module github.com/IBM/ibm-csi-common
 go 1.22.0
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.7-0.20250106070514-44ce23fb4f0e
-	github.com/IBM/ibmcloud-volume-vpc v1.1.13-0.20250123132406-05233462d4d5
+	github.com/IBM/ibmcloud-volume-interface v1.2.8
+	github.com/IBM/ibmcloud-volume-vpc v1.1.13-0.20250126063032-3d65a01a5ede
 	github.com/container-storage-interface/spec v1.9.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/glog v1.2.1
@@ -93,7 +93,6 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
-	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
