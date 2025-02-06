@@ -1084,9 +1084,9 @@ exportKubeConfig $cluster_name; rc=$?
 if [[ $e2e_addon_version != "default"  ]]; then
         echo "Info: Installing addon $ADDON_VERSION"
         ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
-        sleep 60
+        sleep 300
         ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $e2e_addon_version
-        sleep 30
+        sleep 180
 	check_addon_pod_status ibm-vpc-block-csi-controller
 fi
 set -x 
