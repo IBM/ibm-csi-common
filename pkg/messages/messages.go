@@ -19,6 +19,7 @@ package messages
 
 import (
 	"fmt"
+	"strings"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -57,6 +58,26 @@ func GetCSIError(logger *zap.Logger, code string, requestID string, err error, a
 	if err != nil {
 		userMsg.BackendError = err.Error()
 	}
+	userMsg.RequestID = requestID
+
+	logger.Error("FAILED CSI ERROR", zap.Error(userMsg))
+	return status.Error(userMsg.Type, userMsg.Info())
+}
+
+// GetCSIError ...
+func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ...interface{}) error {
+	var backendError string
+	var userMsg Message
+
+	if err != nil {
+		backendError = err.Error()
+	}
+	if strings.Contains(backendError, "RC:5") {
+		userMsg = GetCSIMessage("InternalError", args...)
+	} else {
+		userMsg = GetCSIMessage("InvalidArgument", args...)
+	}
+
 	userMsg.RequestID = requestID
 
 	logger.Error("FAILED CSI ERROR", zap.Error(userMsg))
