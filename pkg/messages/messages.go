@@ -79,6 +79,7 @@ func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ..
 	}
 
 	userMsg.RequestID = requestID
+	userMsg.BackendError = backendError
 
 	logger.Error("FAILED CSI ERROR", zap.Error(userMsg))
 	return status.Error(userMsg.Type, userMsg.Info())
