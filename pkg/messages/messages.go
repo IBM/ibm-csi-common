@@ -72,7 +72,7 @@ func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ..
 	if err != nil {
 		backendError = err.Error()
 	}
-	if strings.Contains(backendError, "RC:5") {
+	if strings.Contains(backendError, RC5XX) {
 		userMsg = GetCSIMessage(InternalError, args...)
 	} else {
 		userMsg = GetCSIMessage(InvalidParameters, args...)
