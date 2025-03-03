@@ -44,7 +44,7 @@ func (msg Message) Error() string {
 // Info ...
 func (msg Message) Info() string {
 	if msg.BackendError != "" {
-		return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
+		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
 	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.Action)
 }
