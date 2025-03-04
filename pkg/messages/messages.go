@@ -46,7 +46,7 @@ func (msg Message) Info() string {
 	if strings.Contains(msg.BackendError, "Trace Code:") {
 		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
-	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s.%s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
+	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
 }
 
 // MessagesEn ...
