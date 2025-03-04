@@ -43,10 +43,15 @@ func (msg Message) Error() string {
 
 // Info ...
 func (msg Message) Info() string {
+	//If the BackendError is from library
 	if strings.Contains(msg.BackendError, "Code:") {
 		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
-	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
+	//If the error is set from CSI
+	if msg.BackendError != "" {
+		return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
+	}
+	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.Action)
 }
 
 // MessagesEn ...
