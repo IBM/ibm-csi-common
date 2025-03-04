@@ -43,7 +43,7 @@ func (msg Message) Error() string {
 
 // Info ...
 func (msg Message) Info() string {
-	if strings.Contains(msg.BackendError, "Trace Code:") {
+	if strings.Contains(msg.BackendError, "Code:") {
 		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
 	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
@@ -59,6 +59,27 @@ func GetCSIError(logger *zap.Logger, code string, requestID string, err error, a
 		userMsg.BackendError = err.Error()
 	}
 	userMsg.RequestID = requestID
+
+	logger.Error("FAILED CSI ERROR", zap.Error(userMsg))
+	return status.Error(userMsg.Type, userMsg.Info())
+}
+
+// GetCSIError ...
+func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ...interface{}) error {
+	var backendError string
+	var userMsg Message
+
+	if err != nil {
+		backendError = err.Error()
+	}
+	if strings.Contains(backendError, RC5XX) {
+		userMsg = GetCSIMessage(InternalError, args...)
+	} else {
+		userMsg = GetCSIMessage(InvalidParameters, args...)
+	}
+
+	userMsg.RequestID = requestID
+	userMsg.BackendError = backendError
 
 	logger.Error("FAILED CSI ERROR", zap.Error(userMsg))
 	return status.Error(userMsg.Type, userMsg.Info())
