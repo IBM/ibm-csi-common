@@ -33,6 +33,7 @@ type Message struct {
 	RequestID    string
 	Description  string
 	BackendError string
+	CSIError     string
 	Action       string
 }
 
@@ -44,12 +45,12 @@ func (msg Message) Error() string {
 // Info ...
 func (msg Message) Info() string {
 	//If the BackendError is from library
-	if strings.Contains(msg.BackendError, "Code:") {
+	if msg.BackendError != "" {
 		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
-	//If the error is set from CSI
-	if msg.BackendError != "" {
-		return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.BackendError, msg.Action)
+	//If the CSIError is not empty
+	if msg.CSIError != "" {
+		return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.CSIError, msg.Action)
 	}
 	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.Action)
 }
@@ -61,7 +62,7 @@ var MessagesEn map[string]Message
 func GetCSIError(logger *zap.Logger, code string, requestID string, err error, args ...interface{}) error {
 	userMsg := GetCSIMessage(code, args...)
 	if err != nil {
-		userMsg.BackendError = err.Error()
+		userMsg.CSIError = err.Error()
 	}
 	userMsg.RequestID = requestID
 
