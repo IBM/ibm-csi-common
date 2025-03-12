@@ -44,14 +44,23 @@ func (msg Message) Error() string {
 
 // Info ...
 func (msg Message) Info() string {
-	//If the BackendError is from library
+	/*If the BackendError is from library e.g BackendError: {Trace Code:920df6e8-6be9-4b4a-89e4-837ecb3f513d,
+	Code:shares_profile_capacity_iops_invalid,Description:The capacity or IOPS specified in the request is not valid for the 'dp2' profile,
+	RC:400 Bad Request.Failed to create file share with the storage provider}
+	*/
 	if msg.BackendError != "" {
 		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
-	//If the CSIError is not empty
+	/*If there is CSIError from Driver side e.g
+	Error: zone and region is mandatory if subnetID or PrimaryIPID or PrimaryIPAddress is provided, Action: Please provide valid parameters
+	*/
 	if msg.CSIError != "" {
 		return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.CSIError, msg.Action)
 	}
+	/*If there is no error object then use the internal message e.g
+	{RequestID: 9829616e-c58b-47ce-9b49-85c0060db753 , Code: NoVolumeCapabilities, Description: Volume capabilities must be provided,
+	Action: Please provide volume capabilities in the storage class before creating volume}
+	*/
 	return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.Action)
 }
 
@@ -70,7 +79,8 @@ func GetCSIError(logger *zap.Logger, code string, requestID string, err error, a
 	return status.Error(userMsg.Type, userMsg.Info())
 }
 
-// GetCSIError ...
+// Populate backendError from library and based on RC:xxx code set the CSI return code.
+// GetCSIBackendError ...
 func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ...interface{}) error {
 	var backendError string
 	var userMsg Message
@@ -78,7 +88,9 @@ func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ..
 	if err != nil {
 		backendError = err.Error()
 	}
-	if strings.Contains(backendError, RC5XX) {
+	// Based on RC:xxx code from library set the appropriate CSI return code.
+	// We will consider two generic codes 5xx server side issue and 4xx client side issue.
+	if strings.Contains(strings.Replace(backendError, " ", "", -1), RC5XX) {
 		userMsg = GetCSIMessage(InternalError, args...)
 	} else {
 		userMsg = GetCSIMessage(InvalidParameters, args...)
@@ -87,7 +99,7 @@ func GetCSIBackendError(logger *zap.Logger, requestID string, err error, args ..
 	userMsg.RequestID = requestID
 	userMsg.BackendError = backendError
 
-	logger.Error("FAILED CSI ERROR", zap.Error(userMsg))
+	logger.Error("FAILED BACKEND ERROR", zap.Error(userMsg))
 	return status.Error(userMsg.Type, userMsg.Info())
 }
 
