@@ -45,14 +45,14 @@ func (msg Message) Error() string {
 // Info ...
 func (msg Message) Info() string {
 	/*If the BackendError is from library e.g BackendError: {Trace Code:920df6e8-6be9-4b4a-89e4-837ecb3f513d,
-	Code:shares_profile_capacity_iops_invalid,Description:The capacity or IOPS specified in the request is not valid for the 'dp2' profile,
-	RC:400 Bad Request.Failed to create file share with the storage provider}
+	Code:volume_profile_capacity_iops_invalid,Description:The capacity or IOPS specified in the request is not valid for the custom profile,
+	RC:400 Bad Request.Failed to create volume with the storage provider}
 	*/
 	if msg.BackendError != "" {
 		return fmt.Sprintf("{RequestID: %s, BackendError: %s, Action: %s}", msg.RequestID, msg.BackendError, msg.Action)
 	}
 	/*If there is CSIError from Driver side e.g
-	Error: zone and region is mandatory if subnetID or PrimaryIPID or PrimaryIPAddress is provided, Action: Please provide valid parameters
+	Error: zone and region is mandatory if subnetID is provided, Action: Please provide valid parameters
 	*/
 	if msg.CSIError != "" {
 		return fmt.Sprintf("{RequestID: %s, Code: %s, Description: %s, Error: %s, Action: %s}", msg.RequestID, msg.Code, msg.Description, msg.CSIError, msg.Action)
