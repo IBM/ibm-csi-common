@@ -3,7 +3,7 @@ module github.com/IBM/ibm-csi-common
 go 1.22.0
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.6
+	github.com/IBM/ibmcloud-volume-interface v1.2.10
 	github.com/container-storage-interface/spec v1.9.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/glog v1.2.1
@@ -67,7 +67,6 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1 // indirect
 	github.com/moby/spdystream v0.4.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -76,7 +75,6 @@ require (
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
-	github.com/pierrre/gotestcover v0.0.0-20160517101806-924dca7d15f0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
@@ -100,7 +98,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
