@@ -1066,7 +1066,7 @@ func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSn
 		return *vs.Status.ReadyToUse, nil
 	})
 	if snapFail == true {
-		framework.ExpectError(err)
+		Expect(err).To(HaveOccurred())
 	} else {
 		framework.ExpectNoError(err)
 	}
