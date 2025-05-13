@@ -840,6 +840,7 @@ if [[ -n "$E2ETEST_CS_API_EP" ]]; then
    ibmcloud ks init --host $E2ETEST_CS_API_EP
 elif [[ "$IC_REGION" == "ca-mon" ]]; then
    ibmcloud ks init --host https://ca-mon.containers.cloud.ibm.com
+   WORKER_NODE_FLAVOR=${E2ETEST_NODE_FLAVOR:-bx3d.4x20}
 else
    ibmcloud ks init --host https://containers.cloud.ibm.com
 fi
