@@ -841,3 +841,58 @@ func CreateStorageClass(scName string, cs clientset.Interface) {
 		panic(err)
 	}
 }
+
+func CreateSDPStorageClass(scName string, cs clientset.Interface) {
+	// Create a StorageClass object.
+	var zone = os.Getenv("E2E_ZONE")
+	storageClass := &storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: scName,
+		},
+		Provisioner: "vpc.block.csi.ibm.io",
+		Parameters: map[string]string{
+			"profile":                   "sdp",
+			"iops":                      "3000",
+			"throughput":                "1000",
+			"encrypted":                 "false",
+			"encryptionKey":             "",
+			"resourceGroup":             "",
+			"tags":                      "",
+			"generation":                "gc",
+			"classVersion":              "1",
+			"reclaimPolicy":             "Delete",
+			"allowVolumeExpansion":      "true",
+			"zone":                      zone,
+			"csi.storage.k8s.io/fstype": "ext4",
+			"billingType":               "hourly",
+		},
+	}
+	// Create the StorageClass object.
+	_, err = cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
+}
+
+// create sdp volume function
+func CreateSDPPVC(pvcName string, sc string, namespace string, cs clientset.Interface) {
+	customSCName := "custom-sc"
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespace,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			StorageClassName: &customSCName,
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteOnce,
+			},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceName(corev1.ResourceStorage): resource.MustParse("10Gi"),
+					// corev1.ResourceStorage: resource.MustParse("10Gi"),
+				},
+			},
+		},
+	}
+}

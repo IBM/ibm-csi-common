@@ -18,6 +18,8 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
@@ -31,7 +33,6 @@ import (
 	restclientset "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 	admissionapi "k8s.io/pod-security-admission/api"
-	"os"
 )
 
 const defaultSecret = ""
@@ -661,6 +662,92 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 		By("VPC-BLK-CSI-TEST: SNAPSHOT CREATION FOR UNATTACHED VOLUME MUST FAIL")
 		test1.SnapShotForUnattached(cs, snapshotrcs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SNAPSHOT CREATION FOR UNATTACHED VOLUME MUST FAIL: PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+})
+
+var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile", func() {
+	f := framework.NewDefaultFramework("ics-e2e-deploy")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	var (
+		cs        clientset.Interface
+		ns        *v1.Namespace
+		secretKey string
+	)
+
+	secretKey = os.Getenv("E2E_SECRET_ENCRYPTION_KEY")
+	if secretKey == "" {
+		secretKey = defaultSecret
+	}
+
+	BeforeEach(func() {
+		cs = f.ClientSet
+		ns = f.Namespace
+	})
+
+	It("with custom sc: should create a pvc & pv, pod resources, write and read to volume", func() {
+		//create sc
+		CreateSDPStorageClass("sdp-test-sc", cs)
+		// Defer the deletion of the StorageClass object.
+		defer func() {
+			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), customSCName, metav1.DeleteOptions{}); err != nil {
+				panic(err)
+			}
+		}()
+
+		//create pvc
+
+		CreateSDPPVC("scs-vol-block-custom", "sdp-test-sc", ns.Name, cs)
+		// Defer the deletion of the PVC object.
+
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		// For Custom SC PVC name and Secret name should be same and in same NS
+		secret := testsuites.NewSecret(cs, "ics-vol-block-custom", ns.Name, "800", "e2e test",
+			"false", secretKey, "vpc.block.csi.ibm.io") //why secret name is hard coded    *********************
+		secret.Create()
+		defer secret.Cleanup()
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+		pods := []testsuites.PodDetails{
+			{
+				Cmd:      "echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done",
+				CmdExits: false,
+				Volumes: []testsuites.VolumeDetails{
+					{
+						PVCName:       "ics-vol-block-custom",
+						VolumeType:    "ibmc-vpc-block-custom",
+						FSType:        "ext4",
+						ClaimSize:     "45Gi",
+						ReclaimPolicy: &reclaimPolicy,
+						MountOptions:  []string{"rw"},
+						VolumeMount: testsuites.VolumeMountDetails{
+							NameGenerate:      "test-volume-",
+							MountPathGenerate: "/mnt/test-",
+						},
+					},
+				},
+			},
+		}
+		//How we are planning to test passing of bandwidth     *********************
+		test := testsuites.DynamicallyProvisionePodWithVolTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+		test.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
