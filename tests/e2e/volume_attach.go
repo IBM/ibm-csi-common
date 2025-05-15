@@ -841,3 +841,73 @@ func CreateStorageClass(scName string, cs clientset.Interface) {
 		panic(err)
 	}
 }
+
+func CreateSDPStorageClass(scName string, sdpIops string, sdpThroughput string, cs clientset.Interface) {
+	// Create a StorageClass object.
+	var zone = os.Getenv("E2E_ZONE")
+	storageClass := &storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: scName,
+		},
+		Provisioner: "vpc.block.csi.ibm.io",
+		Parameters: map[string]string{
+			"profile":                   "sdp",
+			"iops":                      sdpIops,
+			"throughput":                sdpThroughput,
+			"encrypted":                 "false",
+			"encryptionKey":             "",
+			"resourceGroup":             "",
+			"tags":                      "",
+			"generation":                "gc",
+			"classVersion":              "1",
+			"reclaimPolicy":             "Delete",
+			"allowVolumeExpansion":      "true",
+			"zone":                      zone,
+			"csi.storage.k8s.io/fstype": "ext4",
+			"billingType":               "hourly",
+		},
+	}
+	// Create the StorageClass object.
+	_, err = cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
+}
+
+// create sdp volume function
+func CreateSDPPVC(pvcName string, sc string, namespace string, sdpPvcSize string, cs clientset.Interface) {
+	customSCName := "custom-sc"
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pvcName,
+			Namespace: namespace,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			StorageClassName: &customSCName,
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteOnce,
+			},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceName(corev1.ResourceStorage): resource.MustParse(sdpPvcSize),
+					// corev1.ResourceStorage: resource.MustParse("10Gi"),
+				},
+			},
+		},
+	}
+	// Create the PVC
+	_, err := cs.CoreV1().PersistentVolumeClaims(namespace).Create(context.TODO(), pvc, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
+	err = wait.PollImmediate(5*time.Second, 60*time.Second, func() (bool, error) {
+		updatedPVC, err := cs.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), pvcName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		return updatedPVC.Status.Phase == corev1.ClaimBound, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+}
