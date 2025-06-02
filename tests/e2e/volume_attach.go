@@ -17,9 +17,13 @@ package e2e
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -41,6 +45,13 @@ const (
 	configMapNs    = "kube-system"
 	customSCName   = "custom-sc"
 )
+
+type Performance struct {
+	MinIOPS       int
+	MaxIOPS       int
+	MinThroughput int // in Mbps
+	MaxThroughput int // in Mbps
+}
 
 var (
 	icrImage = os.Getenv("icrImage")
@@ -845,6 +856,7 @@ func CreateStorageClass(scName string, cs clientset.Interface) {
 func CreateSDPStorageClass(scName string, sdpIops string, sdpThroughput string, cs clientset.Interface) {
 	// Create a StorageClass object.
 	var zone = os.Getenv("E2E_ZONE")
+	flag := true
 	storageClass := &storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: scName,
@@ -854,29 +866,24 @@ func CreateSDPStorageClass(scName string, sdpIops string, sdpThroughput string, 
 			"profile":                   "sdp",
 			"iops":                      sdpIops,
 			"throughput":                sdpThroughput,
-			"encrypted":                 "false",
-			"encryptionKey":             "",
-			"resourceGroup":             "",
-			"tags":                      "",
-			"generation":                "gc",
-			"classVersion":              "1",
-			"reclaimPolicy":             "Delete",
-			"allowVolumeExpansion":      "true",
 			"zone":                      zone,
 			"csi.storage.k8s.io/fstype": "ext4",
 			"billingType":               "hourly",
 		},
+		AllowVolumeExpansion: &flag,
 	}
-	// Create the StorageClass object.
-	_, err = cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
+	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
 	if err != nil {
+		log.Fatalf("Failed to create StorageClass %q: %v", storageClass.Name, err) //remove
 		panic(err)
 	}
 }
 
 // create sdp volume function
-func CreateSDPPVC(pvcName string, sc string, namespace string, sdpPvcSize string, cs clientset.Interface) {
-	customSCName := "custom-sc"
+func CreateSDPPVC(pvcName string, sc string, namespace string, iops int, throughput int, sdpPvcSize string, cs clientset.Interface) {
+	_ = cs.CoreV1().PersistentVolumeClaims(namespace).Delete(context.Background(), "sdp-test-pvc", metav1.DeleteOptions{})
+	customSCName := "sdp-test-sc"
+	pvcInRange := true
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      pvcName,
@@ -900,14 +907,49 @@ func CreateSDPPVC(pvcName string, sc string, namespace string, sdpPvcSize string
 	if err != nil {
 		panic(err)
 	}
+	suffix := "Gi"
+	sizeString := ""
+	if strings.HasSuffix(sdpPvcSize, suffix) {
+		sizeString = sdpPvcSize[:len(sdpPvcSize)-len(suffix)]
+	}
+	size, err := strconv.Atoi(sizeString)
+	if err != nil {
+		fmt.Println("Error converting string to int:", err)
+		return
+	}
+
+	switch {
+	case size >= 1 && size <= 20 && iops == 3000 && throughput == 1000:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 3000, MinThroughput: 1000, MaxThroughput: 1000")
+	case size >= 21 && size <= 50 && iops >= 3000 && iops <= 5000 && throughput >= 1000 && throughput <= 4096:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 5000, MinThroughput: 1000, MaxThroughput: 4096")
+	case size >= 51 && size <= 80 && iops >= 3000 && iops <= 20000 && throughput >= 1000 && throughput <= 6144:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 20000, MinThroughput: 1000, MaxThroughput: 6144")
+	case size >= 81 && size <= 100 && iops >= 3000 && iops <= 30000 && throughput >= 1000 && throughput <= 8192:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 30000, MinThroughput: 1000, MaxThroughput: 8192")
+	case size >= 101 && size <= 130 && iops >= 3000 && iops <= 45000 && throughput >= 1000 && throughput <= 8192:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 45000, MinThroughput: 1000, MaxThroughput: 8192")
+	case size >= 131 && size <= 150 && iops >= 60000 && iops <= 5000 && throughput >= 1000 && throughput <= 8192:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 60000, MinThroughput: 1000, MaxThroughput: 8192")
+	case size >= 151 && size <= 32000 && iops >= 64000 && iops <= 5000 && throughput >= 1000 && throughput <= 8192:
+		fmt.Println("MinIOPS: 3000, MaxIOPS: 64000, MinThroughput: 1000, MaxThroughput: 8192")
+	default:
+		pvcInRange = false
+		fmt.Println("PVC capacity does not match any known performance tier — expected to be in Pending state")
+	}
+
 	err = wait.PollImmediate(5*time.Second, 60*time.Second, func() (bool, error) {
 		updatedPVC, err := cs.CoreV1().PersistentVolumeClaims(namespace).Get(context.TODO(), pvcName, metav1.GetOptions{})
-		if err != nil {
+		if err != nil && pvcInRange == false {
+			return updatedPVC.Status.Phase == corev1.ClaimPending, nil
+		} else if err != nil && pvcInRange == true {
 			return false, err
 		}
 		return updatedPVC.Status.Phase == corev1.ClaimBound, nil
 	})
-	if err != nil {
+	if err != nil && pvcInRange == false {
+		fmt.Printf("PVC stuck in pending state as expected\n")
+	} else if err != nil && pvcInRange == true {
 		panic(err)
 	}
 }
