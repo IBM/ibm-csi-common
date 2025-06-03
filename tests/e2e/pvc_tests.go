@@ -20,14 +20,9 @@ import (
 	"fmt"
 	"os"
 
-	// "time"
-
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo/v2"
 
-	// . "github.com/onsi/gomega"
-	// apps "k8s.io/api/apps/v1"
-	// corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 
-	// "k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	restclientset "k8s.io/client-go/rest"
@@ -757,6 +751,22 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 		test.Run(cs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD TEST: PASS\n"); err != nil {
+			panic(err)
+		}
+
+		test1 := testsuites.DynamicallyProvisionedResizeVolumeTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+			// ExpandVolSize is in Gi i.e, 10Gi
+			ExpandVolSizeG: 10,
+			ExpandedSize:   9,
+		}
+		test1.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD TEST AND RESIZE VOLUME: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
