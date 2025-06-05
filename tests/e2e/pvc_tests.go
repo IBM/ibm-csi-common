@@ -18,7 +18,9 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo/v2"
@@ -672,6 +674,7 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile", func() {
 	f := framework.NewDefaultFramework("ics-e2e-deploy")
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	condition := true // or some env check version
 	var (
 		cs          clientset.Interface
 		snapshotrcs restclientset.Interface
@@ -688,6 +691,36 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		cs = f.ClientSet
 		ns = f.Namespace
 		var err error
+		version := ""
+		deployment, err := cs.AppsV1().Deployments("kube-system").Get(context.TODO(), "ibm-vpc-block-csi-controller", metav1.GetOptions{})
+		if err != nil {
+			log.Printf("Error getting Deployment: %v", err)
+			sts, err := cs.AppsV1().StatefulSets("kube-system").Get(context.TODO(), "ibm-vpc-block-csi-controller", metav1.GetOptions{})
+			if err != nil {
+				log.Fatalln("Error getting Sts and Deployment")
+			}
+			log.Println("STS Found")
+			version = sts.ObjectMeta.Annotations["version"]
+			fmt.Println("Addon version:", version)
+		} else {
+			log.Println("Deployment Found")
+			// Extract version annotation
+			version = deployment.ObjectMeta.Annotations["version"]
+			fmt.Println("Addon version:", version)
+		}
+
+		//saving x.y version
+		parts := strings.Split(version, ".")
+		if len(parts) >= 2 {
+			majorMinor := fmt.Sprintf("%s.%s", parts[0], parts[1])
+			fmt.Println("Major.Minor:", majorMinor)
+			if majorMinor == "5.1" {
+				condition = false
+			}
+		} else {
+			fmt.Println("Version format is invalid")
+		}
+
 		snapshotrcs, err = restClient(testsuites.SnapshotAPIGroup, testsuites.APIVersionv1)
 		if err != nil {
 			Fail(fmt.Sprintf("could not get rest clientset: %v", err))
@@ -696,6 +729,9 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 
 	// sc and pvc are according to doc, positive scenerio,  pvc creation will be successful
 	It("with custom sc(iops=3000, throughput=1000, pvc size=1Gi): should create a pvc & pv, pod resources, write and read to volume", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
 		//create sc
 		CreateSDPStorageClass("sdp-test-sc", "3000", "1000", cs)
 		// Defer the deletion of the StorageClass object.
@@ -750,7 +786,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD With SDP PROFILE PVC(1Gi) TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 
@@ -766,14 +802,16 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			ExpandedSize:   9,
 		}
 		test1.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP Profile POD TEST AND RESIZE VOLUME: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP PROFILE PVC RESIZE VOLUME: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
 
 	// sc and pvc are according to doc, positive scenerio,  pvc creation will be successful
 	It("with custom sc(iops=4000, throughput=8000, pvc size=90Gi): should create a pvc & pv, pod resources, write and read to volume", func() {
-
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
 		//create sc
 		CreateSDPStorageClass("sdp-test-sc", "4000", "8000", cs)
 		// Defer the deletion of the StorageClass object.
@@ -828,13 +866,16 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP Profile POD TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD with SDP Profile PVC(90Gi) TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
 
 	// sc and pvc are not according to doc, negative scenerio, pvc creation will fail
 	It("with custom sc(iops=4000, throughput=2000, pvc size=10Gi): should create a pvc & pv, pod resources, write and read to volume", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
 		//create sc
 		CreateSDPStorageClass("sdp-test-sc", "4000", "2000", cs)
 		// Defer the deletion of the StorageClass object.
@@ -859,13 +900,16 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 		defer fpointer.Close()
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP Profile POD TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP Profile POD TEST - Negative Case : PASS\n"); err != nil {
 			panic(err)
 		}
 	})
 
 	// sc and pvc are according to doc, positive scenerio,  pvc creation will be successful
 	It("with custom sc(iops=4000, throughput=2000, pvc size=25Gi): should create a pvc & pv, pod resources, create snapshot and restore it", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
 		//create sc
 		CreateSDPStorageClass("sdp-test-sc", "4000", "2000", cs)
 		// Defer the deletion of the StorageClass object.
@@ -973,7 +1017,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 
 		test1.Run(cs, snapshotrcs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: Custom SC with SDP Profile SNAPSHOT CREATION | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: Custom SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
