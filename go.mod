@@ -1,9 +1,9 @@
 module github.com/IBM/ibm-csi-common
 
-go 1.23.8
+go 1.23.10
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.12
+	github.com/IBM/ibmcloud-volume-interface v1.2.13
 	github.com/container-storage-interface/spec v1.11.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/glog v1.2.1
@@ -16,19 +16,19 @@ require (
 	golang.org/x/net v0.38.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.36.1
-	k8s.io/api v0.32.3
-	k8s.io/apimachinery v0.32.3
-	k8s.io/client-go v0.32.3
-	k8s.io/kubernetes v1.32.3
-	k8s.io/mount-utils v0.32.3
-	k8s.io/pod-security-admission v0.32.3
+	k8s.io/api v0.32.6
+	k8s.io/apimachinery v0.32.6
+	k8s.io/client-go v0.32.6
+	k8s.io/kubernetes v1.32.6
+	k8s.io/mount-utils v0.32.6
+	k8s.io/pod-security-admission v0.32.6
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
 )
 
 require (
 	cel.dev/expr v0.18.0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
-	github.com/IBM/secret-utils-lib v1.1.13 // indirect
+	github.com/IBM/secret-utils-lib v1.1.14 // indirect
 	github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
@@ -118,7 +118,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/oauth2 v0.24.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
@@ -131,22 +131,22 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.32.3 // indirect
-	k8s.io/apiserver v0.32.3 // indirect
-	k8s.io/cloud-provider v0.32.3 // indirect
-	k8s.io/component-base v0.32.3 // indirect
-	k8s.io/component-helpers v0.32.3 // indirect
-	k8s.io/controller-manager v0.32.3 // indirect
-	k8s.io/cri-api v0.32.3 // indirect
+	k8s.io/apiextensions-apiserver v0.32.6 // indirect
+	k8s.io/apiserver v0.32.6 // indirect
+	k8s.io/cloud-provider v0.32.6 // indirect
+	k8s.io/component-base v0.32.6 // indirect
+	k8s.io/component-helpers v0.32.6 // indirect
+	k8s.io/controller-manager v0.32.6 // indirect
+	k8s.io/cri-api v0.32.6 // indirect
 	k8s.io/cri-client v0.0.0 // indirect
-	k8s.io/csi-translation-lib v0.32.3 // indirect
+	k8s.io/csi-translation-lib v0.32.6 // indirect
 	k8s.io/dynamic-resource-allocation v0.0.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kms v0.32.3 // indirect
+	k8s.io/kms v0.32.6 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/kube-scheduler v0.0.0 // indirect
-	k8s.io/kubectl v0.32.3 // indirect
-	k8s.io/kubelet v0.32.3 // indirect
+	k8s.io/kubectl v0.32.6 // indirect
+	k8s.io/kubelet v0.32.6 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.0 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
@@ -157,7 +157,7 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/golang/protobuf => github.com/golang/protobuf v1.5.4
 	google.golang.org/protobuf => google.golang.org/protobuf v1.36.1
-	k8s.io/cri-client => k8s.io/cri-client v0.32.3
-	k8s.io/dynamic-resource-allocation => k8s.io/dynamic-resource-allocation v0.32.3
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.32.3
+	k8s.io/cri-client => k8s.io/cri-client v0.32.6
+	k8s.io/dynamic-resource-allocation => k8s.io/dynamic-resource-allocation v0.32.6
+	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.32.6
 )
