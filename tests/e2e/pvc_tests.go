@@ -808,12 +808,12 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 	})
 
 	// sc and pvc are according to doc, positive scenerio,  pvc creation will be successful
-	It("with custom sc(iops=4000, throughput=8000, pvc size=90Gi): should create a pvc & pv, pod resources, write and read to volume", func() {
+	It("with custom sc(iops=30000, throughput=8192, pvc size=100Gi): should create a pvc & pv, pod resources, write and read to volume", func() {
 		if condition == false {
 			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
 		}
 		//create sc
-		CreateSDPStorageClass("sdp-test-sc", "4000", "8000", cs)
+		CreateSDPStorageClass("sdp-test-sc", "30000", "8192", cs)
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), "sdp-test-sc", metav1.DeleteOptions{}); err != nil {
@@ -846,7 +846,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 						PVCName:       "sdp-test-pvc",
 						VolumeType:    "sdp-test-sc",
 						FSType:        "ext4",
-						ClaimSize:     "90Gi",
+						ClaimSize:     "100Gi",
 						ReclaimPolicy: &reclaimPolicy,
 						MountOptions:  []string{"rw"},
 						VolumeMount: testsuites.VolumeMountDetails{
@@ -1018,6 +1018,282 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 
 		test1.Run(cs, snapshotrcs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: Custom SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+
+	It("with ibmc-vpc-block-sdp sc: should create a pvc & pv, pod resources, write and read to volume", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
+
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		pods := []testsuites.PodDetails{
+			{
+				Cmd:      "echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done",
+				CmdExits: false,
+				Volumes: []testsuites.VolumeDetails{
+					{
+						PVCName:       "sdp-test-pvc",
+						VolumeType:    "ibmc-vpc-block-sdp",
+						FSType:        "ext4",
+						ClaimSize:     "10Gi",
+						ReclaimPolicy: &reclaimPolicy,
+						MountOptions:  []string{"rw"},
+						VolumeMount: testsuites.VolumeMountDetails{
+							NameGenerate:      "test-volume-",
+							MountPathGenerate: "/mnt/test-",
+						},
+					},
+				},
+			},
+		}
+		test := testsuites.DynamicallyProvisionePodWithVolTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+		test.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC DEPLOYMENT TEST: PASS\n"); err != nil {
+			panic(err)
+		}
+
+		test1 := testsuites.DynamicallyProvisionedResizeVolumeTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+			// ExpandVolSize is in Gi i.e, 50Gi
+			ExpandVolSizeG: 50,
+			ExpandedSize:   50,
+		}
+		test1.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC PVC RESIZE VOLUME: PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+
+	It("with ibmc-vpc-block-sdp sc: should create a pvc snapshot", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
+
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		//creating snapshot
+
+		pod := testsuites.PodDetails{
+			// sync before taking a snapshot so that any cached data is written to the EBS volume
+			Cmd:      "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
+			CmdExits: false,
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "sdp-test-pvc-1",
+					VolumeType:    "ibmc-vpc-block-sdp",
+					FSType:        "ext4",
+					ClaimSize:     "10Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		restoredPod1 := testsuites.PodDetails{
+			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "sdp-test-pvc-2",
+					VolumeType:    "ibmc-vpc-block-sdp",
+					FSType:        "ext4",
+					ClaimSize:     "10Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test1 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+			Pod:         pod,
+			RestoredPod: restoredPod1,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+
+		test1.Run(cs, snapshotrcs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+
+	It("with ibmc-vpc-block-sdp-max-bandwidth sc: should create a pvc & pv, pod resources, write and read to volume", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
+
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		pods := []testsuites.PodDetails{
+			{
+				Cmd:      "echo 'hello world' > /mnt/test-1/data && while true; do sleep 2; done",
+				CmdExits: false,
+				Volumes: []testsuites.VolumeDetails{
+					{
+						PVCName:       "sdp-test-pvc",
+						VolumeType:    "ibmc-vpc-block-sdp-max-bandwidth",
+						FSType:        "ext4",
+						ClaimSize:     "81Gi",
+						ReclaimPolicy: &reclaimPolicy,
+						MountOptions:  []string{"rw"},
+						VolumeMount: testsuites.VolumeMountDetails{
+							NameGenerate:      "test-volume-",
+							MountPathGenerate: "/mnt/test-",
+						},
+					},
+				},
+			},
+		}
+		test := testsuites.DynamicallyProvisionePodWithVolTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+		test.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC DEPLOYMENT TEST: PASS\n"); err != nil {
+			panic(err)
+		}
+
+		test1 := testsuites.DynamicallyProvisionedResizeVolumeTest{
+			Pods: pods,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+			// ExpandVolSize is in Gi i.e, 50Gi
+			ExpandVolSizeG: 100,
+			ExpandedSize:   100,
+		}
+		test1.Run(cs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC PVC RESIZE VOLUME: PASS\n"); err != nil {
+			panic(err)
+		}
+	})
+
+	It("with ibmc-vpc-block-sdp-max-bandwidth sc: should create a pvc snapshot", func() {
+		if condition == false {
+			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+		}
+
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer fpointer.Close()
+
+		//creating snapshot
+
+		pod := testsuites.PodDetails{
+			// sync before taking a snapshot so that any cached data is written to the EBS volume
+			Cmd:      "echo 'hello world' >> /mnt/test-1/data && grep 'hello world' /mnt/test-1/data && sync",
+			CmdExits: false,
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "sdp-test-pvc-1",
+					VolumeType:    "ibmc-vpc-block-sdp-max-bandwidth",
+					FSType:        "ext4",
+					ClaimSize:     "100Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		restoredPod1 := testsuites.PodDetails{
+			Cmd: "grep 'hello world' /mnt/test-1/data && while true; do sleep 2; done",
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "sdp-test-pvc-2",
+					VolumeType:    "ibmc-vpc-block-sdp-max-bandwidth",
+					FSType:        "ext4",
+					ClaimSize:     "100Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
+					},
+				},
+			},
+		}
+		test1 := testsuites.DynamicallyProvisionedVolumeSnapshotTest{
+			Pod:         pod,
+			RestoredPod: restoredPod1,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello world\n",
+				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+			},
+		}
+
+		test1.Run(cs, snapshotrcs, ns)
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
