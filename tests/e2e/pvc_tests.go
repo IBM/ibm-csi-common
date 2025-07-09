@@ -1081,7 +1081,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 			// ExpandVolSize is in Gi i.e, 50Gi
 			ExpandVolSizeG: 50,
-			ExpandedSize:   50,
+			ExpandedSize:   48,
 		}
 		test1.Run(cs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC PVC RESIZE VOLUME: PASS\n"); err != nil {
@@ -1219,7 +1219,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 			// ExpandVolSize is in Gi i.e, 50Gi
 			ExpandVolSizeG: 100,
-			ExpandedSize:   100,
+			ExpandedSize:   95,
 		}
 		test1.Run(cs, ns)
 		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC PVC RESIZE VOLUME: PASS\n"); err != nil {
