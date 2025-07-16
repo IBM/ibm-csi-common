@@ -671,7 +671,7 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 	})
 })
 
-var _ = Describe("[ics-e2e] [sc] [with-sdp-profile] Provisioning PVC with SDP profile", func() {
+var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile", func() {
 	f := framework.NewDefaultFramework("ics-e2e-deploy")
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	condition := true // or some env check version
@@ -708,7 +708,7 @@ var _ = Describe("[ics-e2e] [sc] [with-sdp-profile] Provisioning PVC with SDP pr
 			version = deployment.ObjectMeta.Annotations["version"]
 			fmt.Println("Addon version:", version)
 		}
-
+		//once 5.1 deprecates we can remove version check
 		//saving x.y version
 		parts := strings.Split(version, ".")
 		if len(parts) >= 2 {

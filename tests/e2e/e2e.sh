@@ -46,6 +46,11 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+		--run-acadia)
+		e2e_acadia_profile_test_case="$2"
+		shift
+		shift
+		;;
     		*)
     		UNKOWNPARAM+=("$1")
     		shift
@@ -164,7 +169,18 @@ if [[ $compare -eq 1 ]]; then
 	echo "Exit status for configmap related attach-volume test: $rc5"
 fi
 
-if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 ]]; then
+# Acadia Profile based tests
+if [[ "$e2e_acadia_profile_test_case" == "true" ]]; then
+	# Acadia Profile tests (To be run only for addon version = 5.2)
+	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[with-sdp-profile\]" ./tests/e2e
+	rc6=$?
+	echo "Exit status for Acadia profile test: $rc6"
+
+else
+	echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> $E2E_TEST_RESULT
+fi
+
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
