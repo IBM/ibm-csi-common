@@ -671,7 +671,7 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 	})
 })
 
-var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile", func() {
+var _ = Describe("[ics-e2e] [sc] [with-sdp-profile] Provisioning PVC with SDP profile", func() {
 	f := framework.NewDefaultFramework("ics-e2e-deploy")
 	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	condition := true // or some env check version
@@ -786,7 +786,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD With SDP PROFILE PVC(1Gi) TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | CUSTOM SC POD WITH MIN SIZE(1Gi)/IOPS(3000)/BW(1000): PASS\n"); err != nil {
 			panic(err)
 		}
 
@@ -802,7 +802,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			ExpandedSize:   9,
 		}
 		test1.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP PROFILE PVC RESIZE VOLUME: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | CUSTOM SC POD RESIZE VOLUME: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -866,7 +866,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD with SDP Profile PVC(90Gi) TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | CUSTOM SC POD WITH SIZE(100Gi)/IOPS(30000)/BW(8192): PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -900,7 +900,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 		defer fpointer.Close()
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC with SDP Profile POD TEST - Negative Case : PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | CUSTOM SC POD INVALID SIZE/IOPS/BW MUST FAIL: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -964,9 +964,6 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: CUSTOM SC POD TEST: PASS\n"); err != nil {
-			panic(err)
-		}
 
 		//creating snapshot
 
@@ -1017,7 +1014,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 
 		test1.Run(cs, snapshotrcs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: Custom SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | CUSTOM SC SNAPSHOT CREATION | RESTORE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -1068,7 +1065,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC DEPLOYMENT TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | ibmc-vpc-block-sdp SC DEPLOYMENT TEST: PASS\n"); err != nil {
 			panic(err)
 		}
 
@@ -1084,7 +1081,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			ExpandedSize:   48,
 		}
 		test1.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC PVC RESIZE VOLUME: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | ibmc-vpc-block-sdp SC PVC RESIZE VOLUME: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -1155,7 +1152,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 
 		test1.Run(cs, snapshotrcs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | ibmc-vpc-block-sdp SC SNAPSHOT CREATION | RESTORE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -1206,7 +1203,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			},
 		}
 		test.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC DEPLOYMENT TEST: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | ibmc-vpc-block-sdp-max-bandwidth SC PVC RESIZE VOLUME: PASS\n"); err != nil {
 			panic(err)
 		}
 
@@ -1222,7 +1219,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 			ExpandedSize:   95,
 		}
 		test1.Run(cs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC PVC RESIZE VOLUME: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | ibmc-vpc-block-sdp-max-bandwidth SC SNAPSHOT CREATION | RESTORE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -1293,7 +1290,7 @@ var _ = Describe("[ics-e2e] [sc] [with-deploy] Provisioning PVC with SDP profile
 		}
 
 		test1.Run(cs, snapshotrcs, ns)
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: ibmc-vpc-block-sdp-max-bandwidth SC with SDP Profile SNAPSHOT CREATION | RESTORE | SAME CLAIM SIZE | DELETE SNAPSHOT: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: SDP PROFILE | ibmc-vpc-block-sdp-max-bandwidth SC SNAPSHOT CREATION | RESTORE | DELETE SNAPSHOT: PASS\n"); err != nil {
 			panic(err)
 		}
 	})

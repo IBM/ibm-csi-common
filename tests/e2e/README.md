@@ -56,3 +56,7 @@
    ```
    ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[node-drain\] \[with-pods\]" ./tests/e2e
    ```
+13. Test acadia profile and it's storage classes
+   ```
+   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\] \[with-sdp-profile\]"  ./tests/e2e --kubeconfig=$HOME/.kube/config
+   ```
