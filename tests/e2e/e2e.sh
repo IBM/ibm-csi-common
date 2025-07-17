@@ -46,6 +46,11 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+		--run-acadia)
+		e2e_acadia_profile_test_case="$2"
+		shift
+		shift
+		;;
     		*)
     		UNKOWNPARAM+=("$1")
     		shift
@@ -164,7 +169,29 @@ if [[ $compare -eq 1 ]]; then
 	echo "Exit status for configmap related attach-volume test: $rc5"
 fi
 
-if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 ]]; then
+#version check
+version_ge() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+}
+
+# Acadia Profile based tests
+rc6=${rc6:-0}
+if version_ge "$CLUSTER_ADDON_MAJOR" "$VA_ADDON_VERSION"; then
+	if [[ "$e2e_acadia_profile_test_case" == "true" ]]; then
+    	# Run Acadia profile tests for other regions only if test case flag is true
+ 		ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[with-sdp-profile\]" ./tests/e2e
+    	rc6=$?
+    	echo "Exit status for Acadia profile test (flag-enabled, other region): $rc6"
+	else
+    	# Skip the test if conditions are not met
+    	echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
+	fi
+else
+	# Skip the test if conditions are not met
+    echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
+fi
+
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT

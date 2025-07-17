@@ -115,7 +115,7 @@ func WaitForFileSystemToResize(t *TestPod, expectedOut int64, timeout time.Durat
 			return err
 		} else {
 			s := strings.TrimSpace(string(out))
-			updatedSize, _ := resource.ParseQuantity(s)
+			updatedSize, err := resource.ParseQuantity(s)
 			if err != nil {
 				fmt.Println(err)
 				return err
