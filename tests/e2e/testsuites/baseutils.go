@@ -43,7 +43,6 @@ import (
 	k8sDevPod "k8s.io/kubernetes/test/e2e/framework/pod"
 	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	k8sDevPV "k8s.io/kubernetes/test/e2e/framework/pv"
-	"k8s.io/utils/ptr"
 )
 
 var (
@@ -647,12 +646,6 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 										ReadOnly:  readOnly,
 									},
 								},
-								SecurityContext: &v1.SecurityContext{
-									RunAsUser:                ptr.To(int64(0)),
-									RunAsGroup:               ptr.To(int64(0)),
-									ReadOnlyRootFilesystem:   ptr.To(false),
-									AllowPrivilegeEscalation: ptr.To(true),
-								},
 							},
 						},
 						RestartPolicy: v1.RestartPolicyAlways,
@@ -859,13 +852,6 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 						Command:      []string{"/bin/sh"},
 						Args:         []string{"-c", command},
 						VolumeMounts: make([]v1.VolumeMount, 0),
-						SecurityContext: &v1.SecurityContext{
-							RunAsUser:  ptr.To(int64(0)),
-							RunAsGroup: ptr.To(int64(0)),
-							// Privileged:               ptr.To(false), // or true if needed
-							// ReadOnlyRootFilesystem:   ptr.To(false),
-							// AllowPrivilegeEscalation: ptr.To(true),
-						},
 					},
 				},
 				RestartPolicy: v1.RestartPolicyNever,
