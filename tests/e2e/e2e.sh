@@ -184,11 +184,11 @@ if version_ge "$CLUSTER_ADDON_MAJOR" "$VA_ADDON_VERSION"; then
     	echo "Exit status for Acadia profile test (flag-enabled, other region): $rc6"
 	else
     	# Skip the test if conditions are not met
-    	echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
+    	echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> $E2E_TEST_RESULT
 	fi
 else
 	# Skip the test if conditions are not met
-    echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
+    echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> $E2E_TEST_RESULT
 fi
 
 if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 ]]; then
