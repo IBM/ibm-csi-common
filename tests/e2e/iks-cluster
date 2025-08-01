@@ -387,15 +387,15 @@ function cluster_create_vpc {
         
         ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $PRIMARY_ZONE \
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver --cos-instance "$E2ETEST_IC_COS_INSTANCE" \
-	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count; rc=$?
+	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count --trusted-profile-id $e2e_tp; rc=$?
     elif [[ "$flavor_type" == "amd64" ]]; then
         ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $PRIMARY_ZONE \
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver \
-	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count; rc=$?
+	    --flavor $WORKER_NODE_FLAVOR --workers $worker_node_count --trusted-profile-id $e2e_tp; rc=$?
     else
         ibmcloud ks cluster create $IC_PROVIDER --name $cluster_name --zone $PRIMARY_ZONE \
             --vpc-id $VPC_ID --subnet-id $PRIM_SUBNET_ID --version $kube_ver \
-            --flavor bz2.8x32 --workers $worker_node_count --operating-system UBUNTU_18_S390X; rc=$?
+            --flavor bz2.8x32 --workers $worker_node_count --operating-system UBUNTU_18_S390X  --trusted-profile-id $e2e_tp; rc=$?
     fi
     # If cluster creation fails...
     if [[ $rc -ne 0 ]]; then
@@ -710,6 +710,12 @@ key="$1"
 
 	-p|--provider)
 	e2e_ic_provider="$2"
+	shift;
+	shift
+	;;
+
+    -tp|--trustedProfile)
+	e2e_tp="$2"
 	shift;
 	shift
 	;;
