@@ -131,10 +131,10 @@ function check_trusted_profile_status {
         echo "parsed $profileID"
 		echo "expected $expected_profile_id"
         if [[ "$profileID" == "$expected_profile_id" ]]; then
-            echo -e "VPC-BLOCK-CSI-TEST: VERIFYING TRUSTED_PROFILE: PASS" >> $E2E_TEST_SETUP
+            echo -e "VPC-BLOCK-CSI-TEST: USING TRUSTED_PROFILE: TRUE" >> $E2E_TEST_SETUP
 			echo "***************************************************" >> $E2E_TEST_SETUP
         else
-            echo -e "VPC-BLOCK-CSI-TEST: VERIFYING TRUSTED_PROFILE: FAILED" >> $E2E_TEST_SETUP
+            echo -e "VPC-BLOCK-CSI-TEST: USING TRUSTED_PROFILE: FAILED" >> $E2E_TEST_SETUP
 			echo "***************************************************" >> $E2E_TEST_SETUP
             exit 1
         fi
