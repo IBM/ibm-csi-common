@@ -95,7 +95,7 @@ fi
 # Validate that ibm-cloud-credentials is created
 wait_for_secret() {
     echo
-    echo "⏳ Waiting up to ${SECRET_CREATION_WAIT}s for ibm-cloud-credentials to appear..."
+    echo "Waiting up to ${SECRET_CREATION_WAIT}s for ibm-cloud-credentials to appear..."
 
     local elapsed=0
     while [[ $elapsed -lt ${SECRET_CREATION_WAIT} ]]; do
