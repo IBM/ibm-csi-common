@@ -21,6 +21,7 @@ E2E_TEST_SETUP="$VPC_BLOCK_CSI_HOME/e2e-setup.out"
 E2E_TEST_RESULT="$VPC_BLOCK_CSI_HOME/e2e-test.out"
 export E2E_TEST_RESULT=$E2E_TEST_RESULT
 export E2E_TEST_SETUP=$E2E_TEST_SETUP
+SECRET_CREATION_WAIT=600 #seconds
 
 rm -f $E2E_TEST_RESULT
 rm -f $E2E_TEST_SETUP
@@ -46,6 +47,13 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+
+		-tp| --use-trusted-profile)
+		e2e_tp="$2"
+		shift;
+		shift
+		;;
+
 		--run-acadia)
 		e2e_acadia_profile_test_case="$2"
 		shift
@@ -83,6 +91,55 @@ if [[ $rc -ne 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
 	exit 1
 fi
+
+# Validate that ibm-cloud-credentials is created
+wait_for_secret() {
+    echo
+    echo "Waiting up to ${SECRET_CREATION_WAIT}s for ibm-cloud-credentials to appear..."
+
+    local elapsed=0
+    while [[ $elapsed -lt ${SECRET_CREATION_WAIT} ]]; do
+      if kubectl get secret ibm-cloud-credentials -n kube-system; then
+        echo "ibm-cloud-credentials found in namespace kube-system."
+        return 0
+      fi
+
+      sleep 5
+      ((elapsed+=5))
+    done
+
+    echo "ibm-cloud-credentials was not created within ${SECRET_CREATION_WAIT}s."
+    return 1
+}
+
+function check_trusted_profile_status {
+	set -x
+	expected_profile_id=""
+    if [[ "$e2e_tp" == "true" ]]; then
+		if [[ "$TEST_ENV" == "stage" ]]; then
+            expected_profile_id=$STAGE_TRUSTED_PROFILE_ID
+        else
+            expected_profile_id=$PROD_TRUSTED_PROFILE_ID
+        fi
+		echo "************************Trusted Profile Check ***************************" >> $E2E_TEST_SETUP
+        # Secret existence
+        wait_for_secret
+        secret_json=$(kubectl get secret ibm-cloud-credentials -n kube-system -o json)
+        encoded=$(jq -r '.data["ibm-credentials.env"]' <<< "$secret_json")
+        decoded=$(base64 --decode <<< "$encoded")
+        profileID=$(echo $decoded | grep IBMCLOUD_PROFILEID | cut -d'=' -f3-)
+        if [[ "$profileID" == "$expected_profile_id" ]]; then
+            echo -e "VPC-BLOCK-CSI-TEST: USING TRUSTED_PROFILE: TRUE" >> $E2E_TEST_SETUP
+			echo "***************************************************" >> $E2E_TEST_SETUP
+        else
+            echo -e "VPC-BLOCK-CSI-TEST: USING TRUSTED_PROFILE: FAILED" >> $E2E_TEST_SETUP
+			echo "***************************************************" >> $E2E_TEST_SETUP
+            exit 1
+        fi
+    fi
+}
+
+check_trusted_profile_status
 
 CLUSTER_KUBE_DETAIL=$(kubectl get nodes -o jsonpath="{range .items[*]}{.metadata.name}:{.status.nodeInfo.kubeletVersion}:{.status.nodeInfo.osImage} {'\n'}"); rc=$?
 echo -e "***************** Cluster Details ******************" >> $E2E_TEST_SETUP
@@ -184,11 +241,11 @@ if version_ge "$CLUSTER_ADDON_MAJOR" "$VA_ADDON_VERSION"; then
     	echo "Exit status for Acadia profile test (flag-enabled, other region): $rc6"
 	else
     	# Skip the test if conditions are not met
-    	echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
+    	echo -e "VPC-BLOCK-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
 	fi
 else
 	# Skip the test if conditions are not met
-    echo -e "VPC-FILE-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
+    echo -e "VPC-BLOCK-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
 fi
 
 if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 ]]; then

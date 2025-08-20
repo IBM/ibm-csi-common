@@ -230,6 +230,19 @@ function check_addon_pod_status {
   done
 }
 
+function set_trusted_profile {
+    set -x
+    cluster_id=$(ibmcloud ks cluster get --cluster $cluster_name  --json | jq ".id")
+    cluster_id=${cluster_id//\"/}
+    if [[ "$e2e_tp" == "true" ]]; then
+        if [[ "$e2e_env" == "stage" ]]; then
+            ibmcloud ks experimental trusted-profile set --cluster $cluster_id --trusted-profile $STAGE_TRUSTED_PROFILE_ID
+        else
+            ibmcloud ks experimental trusted-profile set --cluster $cluster_id --trusted-profile $PROD_TRUSTED_PROFILE_ID
+        fi
+    fi
+}
+
 function createSubnet {
 	res_grp_name="$1"
 	vpc_id="$2"
@@ -714,6 +727,12 @@ key="$1"
 	shift
 	;;
 
+    -tp| --use-trusted-profile)
+	e2e_tp="$2"
+	shift;
+	shift
+	;;
+
 	-t|--type)
 	e2e_k8s_platform="$2"
 	shift
@@ -1118,6 +1137,8 @@ if [[ $addon_update -eq 0 ]]; then
         fi
     done
 fi
+
+set_trusted_profile
 
 updateCertPathInKubeConfig
 
