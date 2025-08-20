@@ -128,8 +128,6 @@ function check_trusted_profile_status {
         encoded=$(jq -r '.data["ibm-credentials.env"]' <<< "$secret_json")
         decoded=$(base64 --decode <<< "$encoded")
         profileID=$(echo $decoded | grep IBMCLOUD_PROFILEID | cut -d'=' -f3-)
-        echo "parsed $profileID"
-		echo "expected $expected_profile_id"
         if [[ "$profileID" == "$expected_profile_id" ]]; then
             echo -e "VPC-BLOCK-CSI-TEST: USING TRUSTED_PROFILE: TRUE" >> $E2E_TEST_SETUP
 			echo "***************************************************" >> $E2E_TEST_SETUP
