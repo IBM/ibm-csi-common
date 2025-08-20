@@ -100,7 +100,7 @@ wait_for_secret() {
     local elapsed=0
     while [[ $elapsed -lt ${SECRET_CREATION_WAIT} ]]; do
       if kubectl get secret ibm-cloud-credentials -n kube-system; then
-        echo "✅ ibm-cloud-credentials found in namespace kube-system."
+        echo "ibm-cloud-credentials found in namespace kube-system."
         return 0
       fi
 
@@ -108,7 +108,7 @@ wait_for_secret() {
       ((elapsed+=5))
     done
 
-    echo "❌ ibm-cloud-credentials was not created within ${SECRET_CREATION_WAIT}s."
+    echo "ibm-cloud-credentials was not created within ${SECRET_CREATION_WAIT}s."
     return 1
 }
 
