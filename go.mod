@@ -3,7 +3,7 @@ module github.com/IBM/ibm-csi-common
 go 1.23.10
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.16
+	github.com/IBM/ibmcloud-volume-interface v1.2.18
 	github.com/container-storage-interface/spec v1.11.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/glog v1.2.1
@@ -16,9 +16,9 @@ require (
 	golang.org/x/net v0.38.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.36.1
-	k8s.io/api v0.32.8
-	k8s.io/apimachinery v0.32.8
-	k8s.io/client-go v0.32.8
+	k8s.io/api v0.32.10
+	k8s.io/apimachinery v0.32.10
+	k8s.io/client-go v0.32.10
 	k8s.io/kubernetes v1.32.8
 	k8s.io/mount-utils v0.32.8
 	k8s.io/pod-security-admission v0.32.8
