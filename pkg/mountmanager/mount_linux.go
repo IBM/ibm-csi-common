@@ -46,9 +46,9 @@ const (
 )
 
 // MountEITBasedFileShare mounts EIT based FileShare on host system
-func (m *NodeMounter) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, requestID string) (string, error) {
+func (m *NodeMounter) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, transitEncryption string, requestID string) (string, error) {
 	// Create payload
-	payload := fmt.Sprintf(`{"mountPath":"%s","targetPath":"%s","fsType":"%s","requestID":"%s"}`, mountPath, targetPath, fsType, requestID)
+	payload := fmt.Sprintf(`{"mountPath":"%s","targetPath":"%s","fsType":"%s","transitEncryption":"%s","requestID":"%s"}`, mountPath, targetPath, fsType, transitEncryption, requestID)
 	errResponse, err := createMountHelperContainerRequest(payload, urlMountPath)
 
 	if err != nil {
