@@ -54,6 +54,6 @@ func (m *NodeMounter) Resize(devicePath string, deviceMountPath string) (bool, e
 }
 
 // MountEITBasedFileShare ...
-func (m *NodeMounter) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, requestID string) (string, error) {
+func (m *NodeMounter) MountEITBasedFileShare(mountPath string, targetPath string, fsType string, transitEncryption string, requestID string) (string, error) {
 	return "", nil
 }
