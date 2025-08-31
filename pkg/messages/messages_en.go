@@ -147,7 +147,7 @@ var messagesEn = map[string]Message{
 		Code:        FailedPrecondition,
 		Description: "'%s' profile is not accessible",
 		Type:        codes.FailedPrecondition,
-		Action:      "Please open support ticket on VPC for allowlisting. Once allowlisted please restart the VPC FILE CSI Driver",
+		Action:      "Please open support ticket on VPC for allowlisting. Once allowlisted please restart the CSI Driver",
 	},
 	FailedPrecondition: {
 		Code:        FailedPrecondition,
