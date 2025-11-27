@@ -50,7 +50,7 @@ jobs:
         run: make fmt
 
       - name: Run sanity tests
-        run: make test-sanity
+        run: make vet
 
       - name: Run tests
         run: make test
