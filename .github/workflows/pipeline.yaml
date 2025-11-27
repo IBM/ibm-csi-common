@@ -49,7 +49,7 @@ jobs:
       - name: Run formatting check
         run: make fmt
 
-      - name: Run sanity tests
+      - name: Run static analysis
         run: make vet
 
       - name: Run tests
@@ -58,9 +58,6 @@ jobs:
 
       - name: Generate coverage
         run: make coverage && touch "Passing" || touch "Failed"
-
-      - name: Build driver
-        run: make driver
 
       - name: Publish coverage
         if: success() && matrix.go-version == 'stable'
