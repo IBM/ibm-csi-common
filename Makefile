@@ -55,7 +55,11 @@ lint:
 vet:
 	go vet ${GOPACKAGES}
 
+.PHONY: coverage
+coverage:
+	go tool cover -html=cover.out -o=cover.html
+	@./scripts/calculateCoverage.sh
+
 .PHONY: test
 test:
 	$(GOPATH)/bin/gotestcover -v -race -short -coverprofile=cover.out ${GOPACKAGES}
-	go tool cover -html=cover.out -o=cover.html
