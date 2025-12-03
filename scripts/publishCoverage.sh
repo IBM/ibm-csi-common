@@ -20,98 +20,35 @@ set +x
 
 echo "===== Publishing the coverage results ====="
 
-# GitHub Actions env vars:
-# $GITHUB_WORKSPACE  -> repo root on runner
-# $GITHUB_REPOSITORY -> owner/repo
-# $GITHUB_REF_NAME   -> branch or tag name
-# $GITHUB_BASE_REF   -> base branch for PRs (e.g. master)
-# $GITHUB_SHA        -> commit SHA
-# $GITHUB_RUN_NUMBER -> workflow run number
-# $GITHUB_EVENT_NAME -> event type (push, pull_request, etc)
-# $GITHUB_EVENT_PATH -> webhook event JSON
-
-WORKDIR="$GITHUB_WORKSPACE/gh-pages"
 NEW_COVERAGE_SOURCE="$GITHUB_WORKSPACE/cover.html"
-BADGE_COLOR="red"
-GREEN_THRESHOLD=85
-YELLOW_THRESHOLD=50
 
-# helper function for coverage extraction
 get_coverage() {
     local file="$1"
     if [[ -f "$file" ]]; then
         grep "%)" "$file" \
           | sed 's/[][()><%]/ /g' \
-          | awk '{s+=$4}END{if(NR>0)print s/NR; else print 0}'
+          | awk '{s+=$4}END{if(NR>0)printf "%.2f", s/NR; else print "0"}'
     else
         echo "0"
     fi
 }
 
-# branch to compare against
-if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-    BASE_BRANCH="$GITHUB_BASE_REF"
-else
-    BASE_BRANCH="$GITHUB_REF_NAME"
-fi
-
-# calculate new coverage
 NEW_COVERAGE=$(get_coverage "$NEW_COVERAGE_SOURCE")
 
-# clone gh-pages repo, where coverage is stored
-mkdir -p "$WORKDIR"
-cd "$WORKDIR"
-git clone -b gh-pages "https://$GHE_USER:$GHE_TOKEN@github.com/$GITHUB_REPOSITORY.git" .
-git config user.name "github actions"
-git config user.email "actions@github.com"
+echo "Computed coverage: $NEW_COVERAGE%"
 
-# calculate old coverage from gh-pages branch
-COVERAGE_DIR="coverage/$BASE_BRANCH"
-OLD_COVER_HTML="$COVERAGE_DIR/cover.html"
-OLD_COVERAGE=$(get_coverage "$OLD_COVER_HTML")
-
-OLD_COVERAGE=$(printf "%.2f" "$OLD_COVERAGE")
-NEW_COVERAGE=$(printf "%.2f" "$NEW_COVERAGE")
-
-echo "===== Coverage comparison ====="
-echo "Old Coverage: $OLD_COVERAGE%"
-echo "New Coverage: $NEW_COVERAGE%"
-
-# update coverage reports
-mkdir -p "$COVERAGE_DIR"
-mkdir -p "coverage/$GITHUB_SHA"
-cp "$NEW_COVERAGE_SOURCE" "$COVERAGE_DIR/cover.html"
-cp "$NEW_COVERAGE_SOURCE" "coverage/$GITHUB_SHA/cover.html"
-
-if (( $(echo "$NEW_COVERAGE > $GREEN_THRESHOLD" | bc -l) )); then
-    BADGE_COLOR="green"
-elif (( $(echo "$NEW_COVERAGE > $YELLOW_THRESHOLD" | bc -l) )); then
-    BADGE_COLOR="yellow"
-fi
-
-curl -s "https://img.shields.io/badge/coverage-${NEW_COVERAGE}%25-${BADGE_COLOR}.svg" \
-  > "$COVERAGE_DIR/badge.svg"
-
-# coverage result message
-if (( $(echo "$OLD_COVERAGE > $NEW_COVERAGE" | bc -l) )); then
-	RESULT_MESSAGE=":red_circle: Coverage decreased from **$OLD_COVERAGE%** → **$NEW_COVERAGE%**"
-elif (( $(echo "$OLD_COVERAGE == $NEW_COVERAGE" | bc -l) )); then
-    RESULT_MESSAGE=":thumbsup: Coverage remained the same at **$NEW_COVERAGE%**"
-else
-	RESULT_MESSAGE=":thumbsup: Coverage increased from **$OLD_COVERAGE%** → **$NEW_COVERAGE%**"
-fi
-
-# update gh-pages or PR
-if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
-    git add .
-    git commit -m "Coverage: commit $GITHUB_SHA (run $GITHUB_RUN_NUMBER)" || echo "No changes to commit"
-    git push "https://github-actions:${GHE_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
-elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+# Only comment on PRs
+if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
     PR_NUMBER=$(jq -r .pull_request.number "$GITHUB_EVENT_PATH")
+
+    COMMENT_BODY="**Test Coverage:** ${NEW_COVERAGE}%"
+
+    echo "Posting PR comment: $COMMENT_BODY"
+
     curl -s -X POST \
-      -H "Authorization: token $GHE_TOKEN" \
+      -H "Authorization: token ${GHE_TOKEN}" \
       -H "Content-Type: application/json" \
-      -d "{\"body\": \"$RESULT_MESSAGE\"}" \
+      -d "{\"body\": \"$COMMENT_BODY\"}" \
       "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
 fi
 
