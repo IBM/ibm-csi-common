@@ -35,6 +35,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
+          cache: true
 
       - name: Install Go dependencies
         run: make deps
