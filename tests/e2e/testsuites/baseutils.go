@@ -648,10 +648,16 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 									},
 								},
 								SecurityContext: &v1.SecurityContext{
-									RunAsUser:                ptr.To(int64(0)),
-									RunAsGroup:               ptr.To(int64(0)),
+									RunAsNonRoot:             ptr.To(true),
 									ReadOnlyRootFilesystem:   ptr.To(false),
-									AllowPrivilegeEscalation: ptr.To(true),
+									AllowPrivilegeEscalation: ptr.To(false),
+									Capabilities: &v1.Capabilities{
+										Drop: []v1.Capability{"ALL"},
+									},
+									// ADDED: Use runtime default seccomp profile
+									SeccompProfile: &v1.SeccompProfile{
+										Type: v1.SeccompProfileTypeRuntimeDefault,
+									},
 								},
 							},
 						},
@@ -860,11 +866,16 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 						Args:         []string{"-c", command},
 						VolumeMounts: make([]v1.VolumeMount, 0),
 						SecurityContext: &v1.SecurityContext{
-							RunAsUser:  ptr.To(int64(0)),
-							RunAsGroup: ptr.To(int64(0)),
-							// Privileged:               ptr.To(false), // or true if needed
-							// ReadOnlyRootFilesystem:   ptr.To(false),
-							// AllowPrivilegeEscalation: ptr.To(true),
+							RunAsNonRoot:             ptr.To(true),
+							ReadOnlyRootFilesystem:   ptr.To(false),
+							AllowPrivilegeEscalation: ptr.To(false),
+							Capabilities: &v1.Capabilities{
+								Drop: []v1.Capability{"ALL"},
+							},
+							// ADDED: Use runtime default seccomp profile
+							SeccompProfile: &v1.SeccompProfile{
+								Type: v1.SeccompProfileTypeRuntimeDefault,
+							},
 						},
 					},
 				},

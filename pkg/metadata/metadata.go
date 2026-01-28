@@ -20,6 +20,7 @@ package metadata
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
@@ -27,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // NodeMetadata is a fakeable interface exposing necessary data
@@ -45,13 +47,14 @@ type NodeMetadata interface {
 }
 
 type nodeMetadataManager struct {
-	zone     string
-	region   string
-	workerID string
+	zone      string
+	region    string
+	workerID  string
 	accountID string
 }
 
 // NodeInfo ...
+//
 //go:generate counterfeiter -o fake/fake_node_info.go --fake-name FakeNodeInfo . NodeInfo
 type NodeInfo interface {
 	NewNodeMetadata(logger *zap.Logger) (NodeMetadata, error)
@@ -70,6 +73,12 @@ func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMet
 	if err != nil {
 		return nil, err
 	}
+	// Fall back to KUBECONFIG
+	kubeconfig := os.Getenv("KUBECONFIG")
+	if kubeconfig == "" {
+		kubeconfig = clientcmd.RecommendedHomeFile // ~/.kube/config
+	}
+
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -102,9 +111,9 @@ func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMet
 	}
 
 	return &nodeMetadataManager{
-		zone:     nodeLabels[utils.NodeZoneLabel],
-		region:   nodeLabels[utils.NodeRegionLabel],
-		workerID: workerID,
+		zone:      nodeLabels[utils.NodeZoneLabel],
+		region:    nodeLabels[utils.NodeRegionLabel],
+		workerID:  workerID,
 		accountID: accountID,
 	}, nil
 }
