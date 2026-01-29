@@ -306,7 +306,6 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 			panic(err)
 		}
 	})
-
 })
 
 var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", func() {
@@ -875,6 +874,31 @@ func CreateSDPStorageClass(scName string, sdpIops string, sdpThroughput string, 
 	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
 	if err != nil {
 		log.Fatalf("Failed to create StorageClass %q: %v", storageClass.Name, err) //remove
+		panic(err)
+	}
+}
+
+func CreateXFSStorageClass(scName string, profile string, iops string, cs clientset.Interface) {
+	// Create a StorageClass object with XFS filesystem
+	var zone = os.Getenv("E2E_ZONE")
+	flag := true
+	storageClass := &storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: scName,
+		},
+		Provisioner: "vpc.block.csi.ibm.io",
+		Parameters: map[string]string{
+			"profile":                   profile,
+			"iops":                      iops,
+			"zone":                      zone,
+			"csi.storage.k8s.io/fstype": "xfs", // XFS filesystem
+			"billingType":               "hourly",
+		},
+		AllowVolumeExpansion: &flag,
+	}
+	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
+	if err != nil {
+		log.Fatalf("Failed to create StorageClass %q: %v", storageClass.Name, err)
 		panic(err)
 	}
 }
