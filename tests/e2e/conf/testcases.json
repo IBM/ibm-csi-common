@@ -14,16 +14,13 @@
     "VPC-BLK-CSI-TEST: XFS GP Profile DEPLOYMENT Test",
     "VPC-BLK-CSI-TEST: XFS 5iops Profile POD Test",
     "VPC-BLK-CSI-TEST: XFS 5iops Profile DEPLOYMENT Test",
-    "VPC-BLK-CSI-TEST: XFS 10iops Profile POD Test",
     "VPC-BLK-CSI-TEST: XFS GP Profile POD Resize Volume",
-    "VPC-BLK-CSI-TEST: XFS 5iops Profile POD Resize Volume",
-    "VPC-BLK-CSI-TEST: XFS Custom SC POD Test"
+    "VPC-BLK-CSI-TEST: XFS 5iops Profile POD Resize Volume"
   ],
   "drain": [
     "VPC-BLK-CSI-TEST: Cordon and Drain Node"
   ],
   "statefulset": [
-    "VPC-BLK-CSI-TEST: With Statefulsets",
-    "VPC-BLK-CSI-TEST: XFS With Statefulsets"
+    "VPC-BLK-CSI-TEST: With Statefulsets"
   ]
 }

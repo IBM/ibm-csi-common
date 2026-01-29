@@ -882,20 +882,27 @@ func CreateXFSStorageClass(scName string, profile string, iops string, cs client
 	// Create a StorageClass object with XFS filesystem
 	var zone = os.Getenv("E2E_ZONE")
 	flag := true
+
+	params := map[string]string{
+		"profile":                   profile,
+		"zone":                      zone,
+		"csi.storage.k8s.io/fstype": "xfs",
+		"billingType":               "hourly",
+	}
+
+	if iops != "" && profile == "custom" {
+		params["iops"] = iops
+	}
+
 	storageClass := &storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: scName,
 		},
-		Provisioner: "vpc.block.csi.ibm.io",
-		Parameters: map[string]string{
-			"profile":                   profile,
-			"iops":                      iops,
-			"zone":                      zone,
-			"csi.storage.k8s.io/fstype": "xfs", // XFS filesystem
-			"billingType":               "hourly",
-		},
+		Provisioner:          "vpc.block.csi.ibm.io",
+		Parameters:           params,
 		AllowVolumeExpansion: &flag,
 	}
+
 	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
 	if err != nil {
 		log.Fatalf("Failed to create StorageClass %q: %v", storageClass.Name, err)

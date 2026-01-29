@@ -210,6 +210,10 @@ ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-v
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 
+ginkgo -v -nodes=1 --focus="\[ics-e2e] [xfs] [sc]" ./tests/e2e -- -e2e-verify-service-account=false
+rc4=$?
+echo "Exit status for xfs storage class resize volume test: $rc4"
+
 
 set -x
 VA_ADDON_VERSION=5.2
@@ -218,12 +222,12 @@ compare=`echo | awk "{ print ($CLUSTER_ADDON_MAJOR >= $VA_ADDON_VERSION)?1 : 0 }
 echo $compare
 if [[ $compare -eq 1 ]]; then
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
-	rc4=$?
-	echo "Exit status for default attach-volume test: $rc4"
+	rc5=$?
+	echo "Exit status for default attach-volume test: $rc5"
 
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[config\]" ./tests/e2e
-	rc5=$?
-	echo "Exit status for configmap related attach-volume test: $rc5"
+	rc6=$?
+	echo "Exit status for configmap related attach-volume test: $rc6"
 fi
 
 #version check
@@ -232,13 +236,13 @@ version_ge() {
 }
 
 # Acadia Profile based tests
-rc6=${rc6:-0}
+rc7=${rc7:-0}
 if version_ge "$CLUSTER_ADDON_MAJOR" "$VA_ADDON_VERSION"; then
 	if [[ "$e2e_acadia_profile_test_case" == "true" ]]; then
     	# Run Acadia profile tests for other regions only if test case flag is true
  		ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[with-sdp-profile\]" ./tests/e2e
-    	rc6=$?
-    	echo "Exit status for Acadia profile test (flag-enabled, other region): $rc6"
+    	rc7=$?
+    	echo "Exit status for Acadia profile test (flag-enabled, other region): $rc7"
 	else
     	# Skip the test if conditions are not met
     	echo -e "VPC-BLOCK-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
@@ -248,7 +252,7 @@ else
     echo -e "VPC-BLOCK-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
 fi
 
-if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 ]]; then
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 && $rc7 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
