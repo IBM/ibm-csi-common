@@ -910,6 +910,34 @@ func CreateXFSStorageClass(scName string, profile string, iops string, cs client
 	}
 }
 
+// CreateXFSSDPProfileStorageClass creates a xfs storage class of sdp profile type
+func CreateXFSSDPProfileStorageClass(scName string, sdpIops string, sdpThroughput string, cs clientset.Interface) {
+	var zone = os.Getenv("E2E_ZONE")
+	flag := true
+
+	storageClass := &storagev1.StorageClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: scName,
+		},
+		Provisioner: "vpc.block.csi.ibm.io",
+		Parameters: map[string]string{
+			"profile":                   "sdp",
+			"iops":                      sdpIops,
+			"throughput":                sdpThroughput,
+			"zone":                      zone,
+			"csi.storage.k8s.io/fstype": "xfs",
+			"billingType":               "hourly",
+		},
+		AllowVolumeExpansion: &flag,
+	}
+
+	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
+	if err != nil {
+		log.Fatalf("Failed to create XFS SDP StorageClass %q: %v", storageClass.Name, err)
+		panic(err)
+	}
+}
+
 // create sdp volume function
 func CreateSDPPVC(pvcName string, sc string, namespace string, iops int, throughput int, sdpPvcSize string, cs clientset.Interface) {
 	_ = cs.CoreV1().PersistentVolumeClaims(namespace).Delete(context.Background(), "sdp-test-pvc", metav1.DeleteOptions{})
