@@ -1,6 +1,8 @@
 GOPACKAGES=$(shell go list ./... | grep -v /vendor/ | grep -v /tests)
 GOFILES=$(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./tests/e2e/*")
 VERSION := latest
+GOPATH := $(shell go env GOPATH)
+LINT_BIN=$(GOPATH)/bin/golangci-lint
 
 GIT_COMMIT_SHA="$(shell git rev-parse HEAD 2>/dev/null)"
 GIT_REMOTE_URL="$(shell git config --get remote.origin.url 2>/dev/null)"
@@ -22,12 +24,19 @@ all: deps fmt vet test
 
 .PHONY: deps
 deps:
-	echo "Installing dependencies ..."
-	go mod download
-	go get github.com/pierrre/gotestcover
-	go install github.com/pierrre/gotestcover
-	@if ! which golangci-lint >/dev/null || [[ "$$(golangci-lint --version)" != *${LINT_VERSION}* ]]; then \
-		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v${LINT_VERSION}; \
+	@echo "Installing dependencies ..."
+
+	@go mod download
+
+	@if ! command -v gotestcover >/dev/null; then \
+		echo "Installing gotestcover ..."; \
+		go install github.com/pierrre/gotestcover@latest; \
+	fi
+
+	@if ! command -v $(LINT_BIN) >/dev/null || ! golangci-lint --version 2>/dev/null | grep -q "$(LINT_VERSION)"; then \
+		echo "Installing golangci-lint $(LINT_VERSION) ..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+			| sh -s -- -b $(shell go env GOBIN 2>/dev/null || echo $$(go env GOPATH)/bin) v$(LINT_VERSION); \
 	fi
 
 .PHONY: fmt
@@ -36,20 +45,21 @@ fmt:
 
 .PHONY: dofmt
 dofmt:
-	golangci-lint run --disable-all --enable=gofmt --fix --skip-dirs=tests
+	$(LINT_BIN) run --disable-all --enable=gofmt --fix --skip-dirs=tests
 
 .PHONY: lint
 lint:
-	golangci-lint run --timeout 600s --skip-dirs=tests
+	$(LINT_BIN) run --timeout 600s --skip-dirs=tests
 
 .PHONY: vet
 vet:
 	go vet ${GOPACKAGES}
 
+.PHONY: coverage
+coverage:
+	go tool cover -html=cover.out -o=cover.html
+	@./scripts/calculateCoverage.sh
+
 .PHONY: test
 test:
 	$(GOPATH)/bin/gotestcover -v -race -short -coverprofile=cover.out ${GOPACKAGES}
-	go tool cover -html=cover.out -o=cover.html
-
-.PHONY: ut-coverage
-ut-coverage: deps fmt vet test
