@@ -47,8 +47,8 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 1: XFS with Tier Profile - Pod
 	It("[xfs-tier-pod] with XFS tier profile: should create pvc & pv, pod resources", func() {
-		CreateXFSStorageClass("xfs-tier-test-sc", "general-purpose", "", cs)
-		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-tier-test-sc", metav1.DeleteOptions{})
+		CreateXFSStorageClass("xfs-5iops-deploy-sc", "5iops-tier", "", cs)
+		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-5iops-deploy-sc", metav1.DeleteOptions{})
 
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -57,46 +57,45 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 		}
 		defer fpointer.Close()
 
-		pods := []testsuites.PodDetails{
-			{
-				Cmd:      "df -h; mount | grep xfs; echo 'xfs tier test' > /mnt/test-1/data && while true; do sleep 2; done",
-				CmdExits: false,
-				Volumes: []testsuites.VolumeDetails{
-					{
-						PVCName:       "xfs-tier-test-pvc",
-						VolumeType:    "xfs-tier-test-sc",
-						FSType:        "xfs",
-						ClaimSize:     "11Gi",
-						ReclaimPolicy: &reclaimPolicy,
-						MountOptions:  []string{"rw"},
-						VolumeMount: testsuites.VolumeMountDetails{
-							NameGenerate:      "test-volume-",
-							MountPathGenerate: "/mnt/test-",
-						},
+		pod := testsuites.PodDetails{
+			Cmd:      "echo 'xfs 5iops deployment' >> /mnt/test-1/data && while true; do sleep 2; done",
+			CmdExits: false,
+			Volumes: []testsuites.VolumeDetails{
+				{
+					PVCName:       "xfs-5iops-deploy-pvc",
+					VolumeType:    "xfs-5iops-deploy-sc",
+					FSType:        "xfs",
+					ClaimSize:     "10Gi",
+					ReclaimPolicy: &reclaimPolicy,
+					MountOptions:  []string{"rw"},
+					VolumeMount: testsuites.VolumeMountDetails{
+						NameGenerate:      "test-volume-",
+						MountPathGenerate: "/mnt/test-",
 					},
 				},
 			},
 		}
 
-		test := testsuites.DynamicallyProvisionePodWithVolTest{
-			Pods: pods,
+		test := testsuites.DynamicallyProvisioneDeployWithVolWRTest{
+			Pod: pod,
 			PodCheck: &testsuites.PodExecCheck{
 				Cmd:              []string{"cat", "/mnt/test-1/data"},
-				ExpectedString01: "xfs tier test\n",
-				ExpectedString02: "xfs tier test\nxfs tier test\n",
+				ExpectedString01: "xfs 5iops deployment\n",
+				ExpectedString02: "xfs 5iops deployment\nxfs 5iops deployment\n",
 			},
 		}
+
 		test.Run(cs, ns)
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS Tier Profile POD Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS Tier Profile Test: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
 
 	// Test 2: XFS with Tier Profile - Resize
 	It("[xfs-tier-resize] with XFS tier profile: should resize volume", func() {
-		CreateXFSStorageClass("xfs-tier-resize-sc", "general-purpose", "", cs)
-		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-tier-resize-sc", metav1.DeleteOptions{})
+		CreateXFSStorageClass("xfs-5iops-deploy-sc", "5iops-tier", "", cs)
+		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-5iops-deploy-sc", metav1.DeleteOptions{})
 
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -107,14 +106,14 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 		pods := []testsuites.PodDetails{
 			{
-				Cmd:      "echo 'xfs tier resize test' >> /mnt/test-1/data && while true; do sleep 2; done",
+				Cmd:      "echo 'xfs 5iops resize test' >> /mnt/test-1/data && while true; do sleep 2; done",
 				CmdExits: false,
 				Volumes: []testsuites.VolumeDetails{
 					{
-						PVCName:       "xfs-tier-resize-pvc",
-						VolumeType:    "xfs-tier-resize-sc",
+						PVCName:       "xfs-5iops-deploy-pvc",
+						VolumeType:    "xfs-5iops-deploy-sc",
 						FSType:        "xfs",
-						ClaimSize:     "11Gi",
+						ClaimSize:     "10Gi",
 						ReclaimPolicy: &reclaimPolicy,
 						MountOptions:  []string{"rw"},
 						VolumeMount: testsuites.VolumeMountDetails{
@@ -130,15 +129,15 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 			Pods: pods,
 			PodCheck: &testsuites.PodExecCheck{
 				Cmd:              []string{"cat", "/mnt/test-1/data"},
-				ExpectedString01: "xfs tier resize test\n",
-				ExpectedString02: "xfs tier resize test\nxfs tier resize test\n",
+				ExpectedString01: "xfs 5iops resize test\n",
+				ExpectedString02: "xfs 5iops resize test\nxfs 5iops resize test\n",
 			},
-			ExpandVolSizeG: 20,
-			ExpandedSize:   19,
+			ExpandVolSizeG: 15,
+			ExpandedSize:   14,
 		}
 		test.Run(cs, ns)
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS Tier Profile POD Resize: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS Tier Profile Resize: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -197,7 +196,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 		}
 		test.Run(cs, ns)
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile POD Test: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Test: PASS\n"); err != nil {
 			panic(err)
 		}
 	})
@@ -258,7 +257,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 		}
 		test.Run(cs, ns)
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile POD Resize: PASS\n"); err != nil {
+		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Resize: PASS\n"); err != nil {
 			panic(err)
 		}
 	})

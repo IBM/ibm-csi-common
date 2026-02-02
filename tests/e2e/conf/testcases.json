@@ -10,10 +10,10 @@
     "VPC-BLK-CSI-TEST: GP SC DEPLOYMENT Test",
     "VPC-BLK-CSI-TEST: Custom SC POD Test",
     "VPC-BLK-CSI-TEST: 5iops SC POD Resize Volume",
-    "VPC-BLK-CSI-TEST: XFS Tier Profile POD Test",
-    "VPC-BLK-CSI-TEST: XFS Tier Profile POD Resize",
-    "VPC-BLK-CSI-TEST: XFS SDP Profile POD Test",
-    "VPC-BLK-CSI-TEST: XFS SDP Profile POD Resize"
+    "VPC-BLK-CSI-TEST: XFS Tier Profile Test",
+    "VPC-BLK-CSI-TEST: XFS Tier Profile Resize",
+    "VPC-BLK-CSI-TEST: XFS SDP Profile Test",
+    "VPC-BLK-CSI-TEST: XFS SDP Profile Resize"
   ],
   "drain": [
     "VPC-BLK-CSI-TEST: Cordon and Drain Node"
