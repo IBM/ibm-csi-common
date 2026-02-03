@@ -47,7 +47,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 1: XFS with Tier Profile - Pod
 	It("[xfs-tier-pod] with XFS tier profile: should create pvc & pv, pod resources", func() {
-		CreateXFSStorageClass("xfs-5iops-deploy-sc", "5iops-tier", "", cs)
+		CreateStorageClass("xfs-5iops-deploy-sc", "5iops-tier", "xfs", "", "", cs)
 		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-5iops-deploy-sc", metav1.DeleteOptions{})
 
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
@@ -94,7 +94,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 2: XFS with Tier Profile - Resize
 	It("[xfs-tier-resize] with XFS tier profile: should resize volume", func() {
-		CreateXFSStorageClass("xfs-5iops-deploy-sc", "5iops-tier", "", cs)
+		CreateStorageClass("xfs-5iops-deploy-sc", "5iops-tier", "xfs", "", "", cs)
 		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-5iops-deploy-sc", metav1.DeleteOptions{})
 
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
@@ -144,7 +144,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 3: XFS with SDP Profile - Pod
 	It("[xfs-sdp-pod] with XFS SDP profile: should create pvc & pv, pod resources", func() {
-		CreateXFSSDPProfileStorageClass("xfs-sdp-test-sc", "3000", "1000", cs)
+		CreateStorageClass("xfs-sdp-test-sc", "sdp", "xfs", "3000", "1000", cs)
 		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-test-sc", metav1.DeleteOptions{})
 
 		// Create secret for SDP
@@ -203,7 +203,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 4: XFS with SDP Profile - Resize
 	It("[xfs-sdp-resize] with XFS SDP profile: should resize volume", func() {
-		CreateXFSSDPProfileStorageClass("xfs-sdp-resize-sc", "3000", "1000", cs)
+		CreateStorageClass("xfs-sdp-resize-sc", "sdp", "xfs", "3000", "1000", cs)
 		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-resize-sc", metav1.DeleteOptions{})
 
 		// Create secret for SDP

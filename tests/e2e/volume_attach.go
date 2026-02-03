@@ -78,7 +78,8 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 
 	It("Configmap Parameter is set to 3. Verify volume attachment scenarios", func() {
 		By("VOLUME ATTACHMENT WITH 3 VOLUMES")
-		CreateStorageClass(customSCName, cs)
+		// CreateStorageClass(customSCName, cs)
+		CreateStorageClass(customSCName, "5iops-tier", "ext4", "", "", cs)
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), customSCName, metav1.DeleteOptions{}); err != nil {
@@ -329,7 +330,8 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 
 	It("Verify volume attachment without any change in configmap", func() {
 		By("DEFAULT VOLUME ATTACHMENT WITH 12 VOLUMES")
-		CreateStorageClass(customSCName, cs)
+		// CreateStorageClass(customSCName, cs)
+		CreateStorageClass(customSCName, "5iops-tier", "ext4", "", "", cs)
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), customSCName, metav1.DeleteOptions{}); err != nil {
@@ -830,68 +832,33 @@ func CreatePVC(pvcName string, namespace string, cs clientset.Interface) {
 	}
 }
 
-func CreateStorageClass(scName string, cs clientset.Interface) {
-	// Create a StorageClass object.
-	var zone = os.Getenv("E2E_ZONE")
-	storageClass := &storagev1.StorageClass{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: scName,
-		},
-		Provisioner: "vpc.block.csi.ibm.io",
-		Parameters: map[string]string{
-			"profile":                   "5iops-tier",
-			"zone":                      zone,
-			"csi.storage.k8s.io/fstype": "ext4",
-			"billingType":               "hourly",
-		},
-	}
-	// Create the StorageClass object.
-	_, err = cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
-	if err != nil {
-		panic(err)
-	}
-}
-
-func CreateSDPStorageClass(scName string, sdpIops string, sdpThroughput string, cs clientset.Interface) {
-	// Create a StorageClass object.
-	var zone = os.Getenv("E2E_ZONE")
-	flag := true
-	storageClass := &storagev1.StorageClass{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: scName,
-		},
-		Provisioner: "vpc.block.csi.ibm.io",
-		Parameters: map[string]string{
-			"profile":                   "sdp",
-			"iops":                      sdpIops,
-			"throughput":                sdpThroughput,
-			"zone":                      zone,
-			"csi.storage.k8s.io/fstype": "ext4",
-			"billingType":               "hourly",
-		},
-		AllowVolumeExpansion: &flag,
-	}
-	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
-	if err != nil {
-		log.Fatalf("Failed to create StorageClass %q: %v", storageClass.Name, err) //remove
-		panic(err)
-	}
-}
-
-func CreateXFSStorageClass(scName string, profile string, iops string, cs clientset.Interface) {
-	// Create a StorageClass object with XFS filesystem
+// CreateStorageClass creates a storage class with the specified parameters
+// Parameters:
+//   - scName: Name of the storage class
+//   - profile: Storage profile ("5iops-tier", "general-purpose", "10iops-tier", "custom", "sdp")
+//   - fsType: Filesystem type ("ext4" or "xfs")
+//   - iops: IOPS value (used for "custom" and "sdp" profiles, empty string for tier-based)
+//   - throughput: Throughput in MB/s (only used for "sdp" profile, empty string otherwise)
+//   - cs: Kubernetes clientset
+func CreateStorageClass(scName, profile, fsType, iops, throughput string, cs clientset.Interface) {
 	var zone = os.Getenv("E2E_ZONE")
 	flag := true
 
 	params := map[string]string{
 		"profile":                   profile,
 		"zone":                      zone,
-		"csi.storage.k8s.io/fstype": "xfs",
+		"csi.storage.k8s.io/fstype": fsType,
 		"billingType":               "hourly",
 	}
 
-	if iops != "" && profile == "custom" {
+	// Add IOPS for custom and sdp profiles
+	if iops != "" && (profile == "custom" || profile == "sdp") {
 		params["iops"] = iops
+	}
+
+	// Add throughput for sdp profile
+	if throughput != "" && profile == "sdp" {
+		params["throughput"] = throughput
 	}
 
 	storageClass := &storagev1.StorageClass{
@@ -905,37 +872,10 @@ func CreateXFSStorageClass(scName string, profile string, iops string, cs client
 
 	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
 	if err != nil {
-		log.Fatalf("Failed to create StorageClass %q: %v", storageClass.Name, err)
+		log.Fatalf("Failed to create StorageClass %q (profile: %s, fsType: %s): %v", scName, profile, fsType, err)
 		panic(err)
 	}
-}
-
-// CreateXFSSDPProfileStorageClass creates a xfs storage class of sdp profile type
-func CreateXFSSDPProfileStorageClass(scName string, sdpIops string, sdpThroughput string, cs clientset.Interface) {
-	var zone = os.Getenv("E2E_ZONE")
-	flag := true
-
-	storageClass := &storagev1.StorageClass{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: scName,
-		},
-		Provisioner: "vpc.block.csi.ibm.io",
-		Parameters: map[string]string{
-			"profile":                   "sdp",
-			"iops":                      sdpIops,
-			"throughput":                sdpThroughput,
-			"zone":                      zone,
-			"csi.storage.k8s.io/fstype": "xfs",
-			"billingType":               "hourly",
-		},
-		AllowVolumeExpansion: &flag,
-	}
-
-	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
-	if err != nil {
-		log.Fatalf("Failed to create XFS SDP StorageClass %q: %v", storageClass.Name, err)
-		panic(err)
-	}
+	log.Printf("Created StorageClass: %s (profile: %s, fsType: %s)", scName, profile, fsType)
 }
 
 // create sdp volume function
