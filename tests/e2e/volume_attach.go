@@ -78,7 +78,6 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [config] [3-volumes]", fun
 
 	It("Configmap Parameter is set to 3. Verify volume attachment scenarios", func() {
 		By("VOLUME ATTACHMENT WITH 3 VOLUMES")
-		// CreateStorageClass(customSCName, cs)
 		CreateStorageClass(customSCName, "5iops-tier", "ext4", "", "", cs)
 		// Defer the deletion of the StorageClass object.
 		defer func() {
@@ -330,7 +329,6 @@ var _ = Describe("[ics-e2e] [volume-attachment-limit] [default] [12-volumes]", f
 
 	It("Verify volume attachment without any change in configmap", func() {
 		By("DEFAULT VOLUME ATTACHMENT WITH 12 VOLUMES")
-		// CreateStorageClass(customSCName, cs)
 		CreateStorageClass(customSCName, "5iops-tier", "ext4", "", "", cs)
 		// Defer the deletion of the StorageClass object.
 		defer func() {
