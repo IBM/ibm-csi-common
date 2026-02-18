@@ -20,7 +20,6 @@ package metadata
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
@@ -28,7 +27,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // NodeMetadata is a fakeable interface exposing necessary data
@@ -72,11 +70,6 @@ func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMet
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
-	}
-	// Fall back to KUBECONFIG
-	kubeconfig := os.Getenv("KUBECONFIG")
-	if kubeconfig == "" {
-		kubeconfig = clientcmd.RecommendedHomeFile // ~/.kube/config
 	}
 
 	// creates the clientset
