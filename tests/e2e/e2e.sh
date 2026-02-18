@@ -210,7 +210,7 @@ ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[resize\] \[pv\]" ./tests/e2e -- -e2e-v
 rc3=$?
 echo "Exit status for resize volume test: $rc3"
 
-ginkgo -v -nodes=1 --focus="\[ics-e2e] [xfs] [sc]" ./tests/e2e -- -e2e-verify-service-account=false
+ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[xfs\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc4=$?
 echo "Exit status for xfs storage class resize volume test: $rc4"
 
