@@ -732,8 +732,10 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 		if condition == false {
 			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
 		}
-		//create sc
-		CreateSDPStorageClass("sdp-test-sc", "3000", "1000", cs)
+
+		// Create SDP profile of ext4 fsType sc
+		CreateStorageClass("sdp-test-sc", "sdp", "ext4", "3000", "1000", cs)
+
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), "sdp-test-sc", metav1.DeleteOptions{}); err != nil {
@@ -812,8 +814,10 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 		if condition == false {
 			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
 		}
-		//create sc
-		CreateSDPStorageClass("sdp-test-sc", "30000", "8192", cs)
+
+		// Create SDP profile of ext4 fsType sc
+		CreateStorageClass("sdp-test-sc", "sdp", "ext4", "30000", "8192", cs)
+
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), "sdp-test-sc", metav1.DeleteOptions{}); err != nil {
@@ -876,8 +880,10 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 		if condition == false {
 			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
 		}
-		//create sc
-		CreateSDPStorageClass("sdp-test-sc", "4000", "2000", cs)
+
+		// Create SDP profile of ext4 fsType sc
+		CreateStorageClass("sdp-test-sc", "sdp", "ext4", "4000", "2000", cs)
+
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), "sdp-test-sc", metav1.DeleteOptions{}); err != nil {
@@ -910,8 +916,10 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 		if condition == false {
 			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
 		}
-		//create sc
-		CreateSDPStorageClass("sdp-test-sc", "4000", "2000", cs)
+
+		// Create SDP profile of ext4 fsType sc
+		CreateStorageClass("sdp-test-sc", "sdp", "ext4", "4000", "2000", cs)
+
 		// Defer the deletion of the StorageClass object.
 		defer func() {
 			if err := cs.StorageV1().StorageClasses().Delete(context.Background(), "sdp-test-sc", metav1.DeleteOptions{}); err != nil {

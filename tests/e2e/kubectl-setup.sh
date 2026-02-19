@@ -42,8 +42,8 @@ function initKSEndpoint {
         stage)
             export ARMADA_API_ENDPOINT="${STAGE_ARMADA_API_ENDPOINT}"
             ;;
-	prod)
-	    export ARMADA_API_ENDPOINT="https://containers.cloud.ibm.com"
+        prod)
+            export ARMADA_API_ENDPOINT="${ARMADA_API_ENDPOINT}"
             ;;
 	*)
 	    echo "Info: dev / prestage / stage / prod"

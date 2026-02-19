@@ -862,9 +862,6 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 						SecurityContext: &v1.SecurityContext{
 							RunAsUser:  ptr.To(int64(0)),
 							RunAsGroup: ptr.To(int64(0)),
-							// Privileged:               ptr.To(false), // or true if needed
-							// ReadOnlyRootFilesystem:   ptr.To(false),
-							// AllowPrivilegeEscalation: ptr.To(true),
 						},
 					},
 				},

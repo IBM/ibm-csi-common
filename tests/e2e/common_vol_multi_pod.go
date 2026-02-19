@@ -402,14 +402,13 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [deploy] Deployment with Common Volumes(
 		vols = make([]testsuites.VolumeDetails, 0)
 		xi := 0
 		for i := 0; vollistLen > 0 && i < maxPVC; i++ {
-			if xi > vollistLen {
+			if xi >= vollistLen {
 				xi = 0
 			}
 			vol := volList[xi]
 			vols = append(vols, vol)
 			xi = xi + 1
 		}
-		//Create PVC
 
 		pod := testsuites.PodDetails{
 			Cmd:      "df -h; echo 'hello world' >> /mnt/test-1/data && while true; do sleep 2; done",
@@ -422,10 +421,46 @@ var _ = Describe("[ics-e2e] [exec-cvmp] [deploy] Deployment with Common Volumes(
 			PodCheck: &testsuites.PodExecCheck{
 				Cmd:              []string{"cat", "/mnt/test-1/data"},
 				ExpectedString01: "hello world\n",
-				ExpectedString02: "hello world\nhello world\n", // pod will be restarted so expect to see 2 instances of string
+				ExpectedString02: "hello world\nhello world\n",
 			},
 		}
 		test.RunMultiVol(cs, ns)
 	})
 
+	It("[xfs] should create a pvc with XFS filesystem, deployment resources, write and read to volume, delete the pod, write and read to volume again", func() {
+		By("create deployment with XFS PVC")
+		
+		reclaimPolicy := v1.PersistentVolumeReclaimDelete
+		accessMode := v1.ReadWriteOnce
+		
+		xfsVolume := testsuites.VolumeDetails{
+			PVCName:       "ics-vol-gp-xfs-",
+			VolumeType:    "ibmc-vpc-block-general-purpose",
+			FSType:        "xfs",
+			ClaimSize:     "11Gi",
+			ReclaimPolicy: &reclaimPolicy,
+			AccessMode:    &accessMode,
+			MountOptions:  []string{"rw"},
+			VolumeMount: testsuites.VolumeMountDetails{
+				NameGenerate:      "test-volume-",
+				MountPathGenerate: "/mnt/test-",
+			},
+		}
+
+		pod := testsuites.PodDetails{
+			Cmd:      "df -h; mount | grep xfs; echo 'hello xfs world' >> /mnt/test-1/data && while true; do sleep 2; done",
+			CmdExits: false,
+			Volumes:  []testsuites.VolumeDetails{xfsVolume},
+		}
+
+		test := testsuites.DynamicallyProvisioneDeployWithVolWRTest{
+			Pod: pod,
+			PodCheck: &testsuites.PodExecCheck{
+				Cmd:              []string{"cat", "/mnt/test-1/data"},
+				ExpectedString01: "hello xfs world\n",
+				ExpectedString02: "hello xfs world\nhello xfs world\n",
+			},
+		}
+		test.RunMultiVol(cs, ns)
+	})
 })
