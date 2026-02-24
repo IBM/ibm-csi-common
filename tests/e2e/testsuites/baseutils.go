@@ -613,6 +613,31 @@ type TestDeployment struct {
 	podName    string
 }
 
+func podSecurityContext() *v1.PodSecurityContext {
+	return &v1.PodSecurityContext{
+		RunAsNonRoot: ptr.To(true),
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
+}
+
+func containerSecurityContext() *v1.SecurityContext {
+	return &v1.SecurityContext{
+		RunAsUser:                ptr.To(int64(1000)),
+		RunAsGroup:               ptr.To(int64(1000)),
+		RunAsNonRoot:             ptr.To(true),
+		ReadOnlyRootFilesystem:   ptr.To(false),
+		AllowPrivilegeEscalation: ptr.To(false),
+		Capabilities: &v1.Capabilities{
+			Drop: []v1.Capability{"ALL"},
+		},
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
+}
+
 func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, pvc *v1.PersistentVolumeClaim, volumeName, mountPath string, readOnly bool) *TestDeployment {
 	generateName := "ics-e2e-tester-"
 	selectorValue := fmt.Sprintf("%s%d", generateName, rand.Int())
@@ -634,6 +659,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 						Labels: map[string]string{"app": selectorValue},
 					},
 					Spec: v1.PodSpec{
+						SecurityContext: podSecurityContext(),
 						Containers: []v1.Container{
 							{
 								Name:    "ics-e2e-tester",
@@ -647,12 +673,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 										ReadOnly:  readOnly,
 									},
 								},
-								SecurityContext: &v1.SecurityContext{
-									RunAsUser:                ptr.To(int64(0)),
-									RunAsGroup:               ptr.To(int64(0)),
-									ReadOnlyRootFilesystem:   ptr.To(false),
-									AllowPrivilegeEscalation: ptr.To(false),
-								},
+								SecurityContext: containerSecurityContext(),
 							},
 						},
 						RestartPolicy: v1.RestartPolicyAlways,
