@@ -98,6 +98,32 @@ func NewHeadlessService(c clientset.Interface, name, namespace, labelSelctors st
 	}
 }
 
+func podSecurityContext() *v1.PodSecurityContext {
+	return &v1.PodSecurityContext{
+		RunAsNonRoot: ptr.To(true),
+		RunAsUser:    ptr.To(int64(1000)),
+		RunAsGroup:   ptr.To(int64(1000)),
+		FSGroup:      ptr.To(int64(1000)),
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
+}
+
+func containerSecurityContext() *v1.SecurityContext {
+	return &v1.SecurityContext{
+		RunAsNonRoot:             ptr.To(true),
+		ReadOnlyRootFilesystem:   ptr.To(false),
+		AllowPrivilegeEscalation: ptr.To(false),
+		Capabilities: &v1.Capabilities{
+			Drop: []v1.Capability{"ALL"},
+		},
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
+}
+
 func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns *v1.Namespace, servicename, command, storageClassName, volumeName, mountPath string, labels map[string]string, replicaCount int32) *TestStatefulsets {
 	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
 	generateName := "ics-e2e-tester-"
@@ -122,6 +148,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 						Labels: labels,
 					},
 					Spec: v1.PodSpec{
+						SecurityContext: podSecurityContext(),
 						Containers: []v1.Container{
 							{
 								Name:    "statefulset",
@@ -140,6 +167,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 										MountPath: mountPath,
 									},
 								},
+								SecurityContext: containerSecurityContext(),
 							},
 						},
 					},
@@ -613,32 +641,6 @@ type TestDeployment struct {
 	podName    string
 }
 
-func podSecurityContext() *v1.PodSecurityContext {
-	return &v1.PodSecurityContext{
-		RunAsNonRoot: ptr.To(true),
-		RunAsUser:    ptr.To(int64(1000)),
-		RunAsGroup:   ptr.To(int64(1000)),
-		FSGroup:      ptr.To(int64(1000)),
-		SeccompProfile: &v1.SeccompProfile{
-			Type: v1.SeccompProfileTypeRuntimeDefault,
-		},
-	}
-}
-
-func containerSecurityContext() *v1.SecurityContext {
-	return &v1.SecurityContext{
-		RunAsNonRoot:             ptr.To(true),
-		ReadOnlyRootFilesystem:   ptr.To(false),
-		AllowPrivilegeEscalation: ptr.To(false),
-		Capabilities: &v1.Capabilities{
-			Drop: []v1.Capability{"ALL"},
-		},
-		SeccompProfile: &v1.SeccompProfile{
-			Type: v1.SeccompProfileTypeRuntimeDefault,
-		},
-	}
-}
-
 func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, pvc *v1.PersistentVolumeClaim, volumeName, mountPath string, readOnly bool) *TestDeployment {
 	generateName := "ics-e2e-tester-"
 	selectorValue := fmt.Sprintf("%s%d", generateName, rand.Int())
@@ -878,19 +880,17 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 			Spec: v1.PodSpec{
 				Containers: []v1.Container{
 					{
-						Name:         "ics-e2e-tester",
-						Image:        icrImage,
-						Command:      []string{"/bin/sh"},
-						Args:         []string{"-c", command},
-						VolumeMounts: make([]v1.VolumeMount, 0),
-						SecurityContext: &v1.SecurityContext{
-							RunAsUser:  ptr.To(int64(0)),
-							RunAsGroup: ptr.To(int64(0)),
-						},
+						Name:            "ics-e2e-tester",
+						Image:           icrImage,
+						Command:         []string{"/bin/sh"},
+						Args:            []string{"-c", command},
+						VolumeMounts:    make([]v1.VolumeMount, 0),
+						SecurityContext: containerSecurityContext(),
 					},
 				},
-				RestartPolicy: v1.RestartPolicyNever,
-				Volumes:       make([]v1.Volume, 0),
+				RestartPolicy:   v1.RestartPolicyNever,
+				Volumes:         make([]v1.Volume, 0),
+				SecurityContext: podSecurityContext(),
 			},
 		},
 	}
