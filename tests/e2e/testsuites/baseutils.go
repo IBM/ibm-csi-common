@@ -616,6 +616,9 @@ type TestDeployment struct {
 func podSecurityContext() *v1.PodSecurityContext {
 	return &v1.PodSecurityContext{
 		RunAsNonRoot: ptr.To(true),
+		RunAsUser:    ptr.To(int64(1000)),
+		RunAsGroup:   ptr.To(int64(1000)),
+		FSGroup:      ptr.To(int64(1000)),
 		SeccompProfile: &v1.SeccompProfile{
 			Type: v1.SeccompProfileTypeRuntimeDefault,
 		},
@@ -624,8 +627,6 @@ func podSecurityContext() *v1.PodSecurityContext {
 
 func containerSecurityContext() *v1.SecurityContext {
 	return &v1.SecurityContext{
-		RunAsUser:                ptr.To(int64(1000)),
-		RunAsGroup:               ptr.To(int64(1000)),
 		RunAsNonRoot:             ptr.To(true),
 		ReadOnlyRootFilesystem:   ptr.To(false),
 		AllowPrivilegeEscalation: ptr.To(false),
@@ -847,15 +848,17 @@ func NewTestPodWithName(c clientset.Interface, ns *v1.Namespace, name, command s
 			Spec: v1.PodSpec{
 				Containers: []v1.Container{
 					{
-						Name:         "ics-e2e-tester",
-						Image:        icrImage,
-						Command:      []string{"/bin/sh"},
-						Args:         []string{"-c", command},
-						VolumeMounts: make([]v1.VolumeMount, 0),
+						Name:            "ics-e2e-tester",
+						Image:           icrImage,
+						Command:         []string{"/bin/sh"},
+						Args:            []string{"-c", command},
+						VolumeMounts:    make([]v1.VolumeMount, 0),
+						SecurityContext: containerSecurityContext(),
 					},
 				},
-				RestartPolicy: v1.RestartPolicyNever,
-				Volumes:       make([]v1.Volume, 0),
+				RestartPolicy:   v1.RestartPolicyNever,
+				Volumes:         make([]v1.Volume, 0),
+				SecurityContext: podSecurityContext(),
 			},
 		},
 	}
