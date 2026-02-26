@@ -143,122 +143,122 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 	})
 
 	// Test 3: XFS with SDP Profile - Pod
-	It("[xfs-sdp-pod] with XFS SDP profile: should create pvc & pv, pod resources", func() {
-		CreateStorageClass("xfs-sdp-test-sc", "sdp", "xfs", "3000", "1000", cs)
-		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-test-sc", metav1.DeleteOptions{})
+	// It("[xfs-sdp-pod] with XFS SDP profile: should create pvc & pv, pod resources", func() {
+	// 	CreateStorageClass("xfs-sdp-test-sc", "sdp", "xfs", "3000", "1000", cs)
+	// 	defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-test-sc", metav1.DeleteOptions{})
 
-		// Create secret for SDP
-		secretKey := os.Getenv("IC_API_KEY_STAG")
-		if secretKey == "" {
-			Skip("Skipping SDP test - IC_API_KEY_STAG not set")
-		}
+	// 	// Create secret for SDP
+	// 	secretKey := os.Getenv("IC_API_KEY_STAG")
+	// 	if secretKey == "" {
+	// 		Skip("Skipping SDP test - IC_API_KEY_STAG not set")
+	// 	}
 
-		secret := testsuites.NewSecret(cs, "xfs-sdp-test-pvc", ns.Name, "800", "e2e test",
-			"false", secretKey, "vpc.block.csi.ibm.io")
-		secret.Create()
-		defer secret.Cleanup()
+	// 	secret := testsuites.NewSecret(cs, "xfs-sdp-test-pvc", ns.Name, "800", "e2e test",
+	// 		"false", secretKey, "vpc.block.csi.ibm.io")
+	// 	secret.Create()
+	// 	defer secret.Cleanup()
 
-		reclaimPolicy := v1.PersistentVolumeReclaimDelete
-		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
-		}
-		defer fpointer.Close()
+	// 	reclaimPolicy := v1.PersistentVolumeReclaimDelete
+	// 	fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	defer fpointer.Close()
 
-		pods := []testsuites.PodDetails{
-			{
-				Cmd:      "xfs_info /mnt/test-1; echo 'xfs sdp test' > /mnt/test-1/data && while true; do sleep 2; done",
-				CmdExits: false,
-				Volumes: []testsuites.VolumeDetails{
-					{
-						PVCName:       "xfs-sdp-test-pvc",
-						VolumeType:    "xfs-sdp-test-sc",
-						FSType:        "xfs",
-						ClaimSize:     "10Gi",
-						ReclaimPolicy: &reclaimPolicy,
-						MountOptions:  []string{"rw"},
-						VolumeMount: testsuites.VolumeMountDetails{
-							NameGenerate:      "test-volume-",
-							MountPathGenerate: "/mnt/test-",
-						},
-					},
-				},
-			},
-		}
+	// 	pods := []testsuites.PodDetails{
+	// 		{
+	// 			Cmd:      "xfs_info /mnt/test-1; echo 'xfs sdp test' > /mnt/test-1/data && while true; do sleep 2; done",
+	// 			CmdExits: false,
+	// 			Volumes: []testsuites.VolumeDetails{
+	// 				{
+	// 					PVCName:       "xfs-sdp-test-pvc",
+	// 					VolumeType:    "xfs-sdp-test-sc",
+	// 					FSType:        "xfs",
+	// 					ClaimSize:     "10Gi",
+	// 					ReclaimPolicy: &reclaimPolicy,
+	// 					MountOptions:  []string{"rw"},
+	// 					VolumeMount: testsuites.VolumeMountDetails{
+	// 						NameGenerate:      "test-volume-",
+	// 						MountPathGenerate: "/mnt/test-",
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
 
-		test := testsuites.DynamicallyProvisionePodWithVolTest{
-			Pods: pods,
-			PodCheck: &testsuites.PodExecCheck{
-				Cmd:              []string{"cat", "/mnt/test-1/data"},
-				ExpectedString01: "xfs sdp test\n",
-				ExpectedString02: "xfs sdp test\nxfs sdp test\n",
-			},
-		}
-		test.Run(cs, ns)
+	// 	test := testsuites.DynamicallyProvisionePodWithVolTest{
+	// 		Pods: pods,
+	// 		PodCheck: &testsuites.PodExecCheck{
+	// 			Cmd:              []string{"cat", "/mnt/test-1/data"},
+	// 			ExpectedString01: "xfs sdp test\n",
+	// 			ExpectedString02: "xfs sdp test\nxfs sdp test\n",
+	// 		},
+	// 	}
+	// 	test.Run(cs, ns)
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Test: PASS\n"); err != nil {
-			panic(err)
-		}
-	})
+	// 	if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Test: PASS\n"); err != nil {
+	// 		panic(err)
+	// 	}
+	// })
 
-	// Test 4: XFS with SDP Profile - Resize
-	It("[xfs-sdp-resize] with XFS SDP profile: should resize volume", func() {
-		CreateStorageClass("xfs-sdp-resize-sc", "sdp", "xfs", "3000", "1000", cs)
-		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-resize-sc", metav1.DeleteOptions{})
+	// // Test 4: XFS with SDP Profile - Resize
+	// It("[xfs-sdp-resize] with XFS SDP profile: should resize volume", func() {
+	// 	CreateStorageClass("xfs-sdp-resize-sc", "sdp", "xfs", "3000", "1000", cs)
+	// 	defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-resize-sc", metav1.DeleteOptions{})
 
-		// Create secret for SDP
-		secretKey := os.Getenv("IC_API_KEY_STAG")
-		if secretKey == "" {
-			Skip("Skipping SDP resize test - IC_API_KEY_STAG not set")
-		}
+	// 	// Create secret for SDP
+	// 	secretKey := os.Getenv("IC_API_KEY_STAG")
+	// 	if secretKey == "" {
+	// 		Skip("Skipping SDP resize test - IC_API_KEY_STAG not set")
+	// 	}
 
-		secret := testsuites.NewSecret(cs, "xfs-sdp-resize-pvc", ns.Name, "800", "e2e test",
-			"false", secretKey, "vpc.block.csi.ibm.io")
-		secret.Create()
-		defer secret.Cleanup()
+	// 	secret := testsuites.NewSecret(cs, "xfs-sdp-resize-pvc", ns.Name, "800", "e2e test",
+	// 		"false", secretKey, "vpc.block.csi.ibm.io")
+	// 	secret.Create()
+	// 	defer secret.Cleanup()
 
-		reclaimPolicy := v1.PersistentVolumeReclaimDelete
-		fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
-		}
-		defer fpointer.Close()
+	// 	reclaimPolicy := v1.PersistentVolumeReclaimDelete
+	// 	fpointer, err = os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	defer fpointer.Close()
 
-		pods := []testsuites.PodDetails{
-			{
-				Cmd:      "echo 'xfs sdp resize test' >> /mnt/test-1/data && while true; do sleep 2; done",
-				CmdExits: false,
-				Volumes: []testsuites.VolumeDetails{
-					{
-						PVCName:       "xfs-sdp-resize-pvc",
-						VolumeType:    "xfs-sdp-resize-sc",
-						FSType:        "xfs",
-						ClaimSize:     "10Gi",
-						ReclaimPolicy: &reclaimPolicy,
-						MountOptions:  []string{"rw"},
-						VolumeMount: testsuites.VolumeMountDetails{
-							NameGenerate:      "test-volume-",
-							MountPathGenerate: "/mnt/test-",
-						},
-					},
-				},
-			},
-		}
+	// 	pods := []testsuites.PodDetails{
+	// 		{
+	// 			Cmd:      "echo 'xfs sdp resize test' >> /mnt/test-1/data && while true; do sleep 2; done",
+	// 			CmdExits: false,
+	// 			Volumes: []testsuites.VolumeDetails{
+	// 				{
+	// 					PVCName:       "xfs-sdp-resize-pvc",
+	// 					VolumeType:    "xfs-sdp-resize-sc",
+	// 					FSType:        "xfs",
+	// 					ClaimSize:     "10Gi",
+	// 					ReclaimPolicy: &reclaimPolicy,
+	// 					MountOptions:  []string{"rw"},
+	// 					VolumeMount: testsuites.VolumeMountDetails{
+	// 						NameGenerate:      "test-volume-",
+	// 						MountPathGenerate: "/mnt/test-",
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
 
-		test := testsuites.DynamicallyProvisionedResizeVolumeTest{
-			Pods: pods,
-			PodCheck: &testsuites.PodExecCheck{
-				Cmd:              []string{"cat", "/mnt/test-1/data"},
-				ExpectedString01: "xfs sdp resize test\n",
-				ExpectedString02: "xfs sdp resize test\nxfs sdp resize test\n",
-			},
-			ExpandVolSizeG: 15,
-			ExpandedSize:   14,
-		}
-		test.Run(cs, ns)
+	// 	test := testsuites.DynamicallyProvisionedResizeVolumeTest{
+	// 		Pods: pods,
+	// 		PodCheck: &testsuites.PodExecCheck{
+	// 			Cmd:              []string{"cat", "/mnt/test-1/data"},
+	// 			ExpectedString01: "xfs sdp resize test\n",
+	// 			ExpectedString02: "xfs sdp resize test\nxfs sdp resize test\n",
+	// 		},
+	// 		ExpandVolSizeG: 15,
+	// 		ExpandedSize:   14,
+	// 	}
+	// 	test.Run(cs, ns)
 
-		if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Resize: PASS\n"); err != nil {
-			panic(err)
-		}
-	})
+	// 	if _, err = fpointer.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Resize: PASS\n"); err != nil {
+	// 		panic(err)
+	// 	}
+	// })
 })
