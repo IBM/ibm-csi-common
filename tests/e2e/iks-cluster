@@ -792,7 +792,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 if [[ -z "$IC_API_KEY_PROD" && -z "$IC_API_KEY_STAG"  ]]; then echo -e "Error: E2ETEST_API_KEY not set!!!" >> $E2E_TEST_SETUP; exit 1;  fi
 
 E2ETEST_MZ="$e2e_mz"
-if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" ]]; then
+if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" &&  "$e2e_env" != "stage-us-south" ]]; then
 	echo -e "Error: Invalid option \"-e $e2e_env\"!!!" >> $E2E_TEST_SETUP
 	exit 1
 fi
@@ -819,6 +819,9 @@ if [[ "$e2e_env" = "stage" ]]; then
     E2ETEST_IC_API_EP="https://test.cloud.ibm.com"
     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://containers.test.cloud.ibm.com"
     E2ETEST_IC_RES_GRP="Default"
+elif [[ "$e2e_env" = "stage-us-south" ]]; then
+    E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
+    E2ETEST_IC_RES_GRP="Default"
 else
     E2ETEST_IC_API_EP="https://cloud.ibm.com"
     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://containers.cloud.ibm.com"
@@ -837,7 +840,7 @@ fi
 # Login to IBM Cloud
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
-    if [[ "$e2e_env" = "stage" ]]; then
+    if [[ "$e2e_env" = "stage" || "$e2e_env" = "stage-us-south" ]]; then
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_STAG} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
     else
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_PROD} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
@@ -847,10 +850,15 @@ else
 fi
 if [[ $rc -ne 0 ]]; then echo -e "Error: IBM Cloud Login failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
 
+# target the region
 ibmcloud regions | grep -w "$e2e_ic_region" > /dev/null; rc=$?
 if [[ $rc -ne 0 ]]; then
    echo -e "Error: Invalid option \"-r $e2e_ic_region\"!!!" >> $E2E_TEST_SETUP
    exit 1
+fi
+# assign region if env == stage-us-south
+if [[ "$e2e_env" != "stage-us-south" ]]; then
+    e2e_ic_region="us-south-ngdc-test"
 fi
 IC_REGION="$e2e_ic_region"
 ibmcloud target -r "$IC_REGION"
