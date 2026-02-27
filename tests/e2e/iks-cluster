@@ -857,7 +857,7 @@ if [[ $rc -ne 0 ]]; then
    exit 1
 fi
 # assign region if env == stage-us-south
-if [[ "$e2e_env" != "stage-us-south" ]]; then
+if [[ "$e2e_env" == "stage-us-south" ]]; then
     e2e_ic_region="us-south-ngdc-test"
 fi
 IC_REGION="$e2e_ic_region"
