@@ -836,6 +836,8 @@ fi
 
 # Login to IBM Cloud
 echo "==========LOGGING INTO IBMCLOUD=============="
+IC_REGION="$e2e_ic_region"
+echo "------- REGION $IC_REGION---------"
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
     if [[ "$e2e_env" = "stage" || "$e2e_env" = "stage-us-south" ]]; then
@@ -858,7 +860,7 @@ fi
 if [[ "$e2e_env" == "stage-us-south" ]]; then
     e2e_ic_region="us-south-ngdc-test"
 fi
-IC_REGION="$e2e_ic_region"
+
 ibmcloud target -r "$IC_REGION"
 
 echo "----- ic ks init -----"
