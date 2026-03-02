@@ -815,7 +815,7 @@ fi
 if [[ "$e2e_k8s_platform" == "k8s" ]]; then  K8S_PLATFORM="kubernetes"; else K8S_PLATFORM="openshift"; fi
 
 # Set APIs
-if [[ "$e2e_env" = "stage" || "$e2e_env" = "stage-us-south" ]]; then
+if [[ "$e2e_env" = "stage" ]]; then
     E2ETEST_IC_API_EP="https://test.cloud.ibm.com"
     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://containers.test.cloud.ibm.com"
     E2ETEST_IC_RES_GRP="Default"
@@ -836,11 +836,9 @@ fi
 
 # Login to IBM Cloud
 echo "==========LOGGING INTO IBMCLOUD=============="
-IC_REGION="$e2e_ic_region"
-echo "------- REGION $IC_REGION---------"
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
-    if [[ "$e2e_env" = "stage" || "$e2e_env" = "stage-us-south" ]]; then
+    if [[ "$e2e_env" = "stage" ]]; then
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_STAG} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
     else
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_PROD} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
@@ -856,22 +854,12 @@ if [[ $rc -ne 0 ]]; then
    echo -e "Error: Invalid option \"-r $e2e_ic_region\"!!!" >> $E2E_TEST_SETUP
    exit 1
 fi
-# assign region if env == stage-us-south
-# if [[ "$e2e_env" == "stage-us-south" ]]; then
-#     e2e_ic_region="us-south-ngdc-test"
-# fi
-
+IC_REGION="$e2e_ic_region"
 ibmcloud target -r "$IC_REGION"
 
 echo "----- ic ks init -----"
-if [[ "$e2e_env" = "stage" ]]; then
-    E2ETEST_CS_API_EP="https://test.cloud.ibm.com"
-    E2ETEST_IC_RES_GRP="Default"
-    ibmcloud ks init --host $E2ETEST_CS_API_EP
-# elif [[ "$e2e_env" = "stage-us-south" ]]; then
-#     E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
-#     E2ETEST_IC_RES_GRP="Default"
-#     ibmcloud ks init --host $E2ETEST_CS_API_EP
+if [[ -n "$E2ETEST_CS_API_EP" ]]; then
+   ibmcloud ks init --host $E2ETEST_CS_API_EP
 elif [[ "$IC_REGION" == "ca-mon" ]]; then
    ibmcloud ks init --host https://ca-mon.containers.cloud.ibm.com
    WORKER_NODE_FLAVOR=${E2ETEST_NODE_FLAVOR:-bx3d.4x20}
