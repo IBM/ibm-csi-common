@@ -792,7 +792,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 if [[ -z "$IC_API_KEY_PROD" && -z "$IC_API_KEY_STAG"  ]]; then echo -e "Error: E2ETEST_API_KEY not set!!!" >> $E2E_TEST_SETUP; exit 1;  fi
 
 E2ETEST_MZ="$e2e_mz"
-if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" &&  "$e2e_env" != "stage-us-south" ]]; then
+if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" ]]; then
 	echo -e "Error: Invalid option \"-e $e2e_env\"!!!" >> $E2E_TEST_SETUP
 	exit 1
 fi
@@ -857,9 +857,9 @@ if [[ $rc -ne 0 ]]; then
    exit 1
 fi
 # assign region if env == stage-us-south
-if [[ "$e2e_env" == "stage-us-south" ]]; then
-    e2e_ic_region="us-south-ngdc-test"
-fi
+# if [[ "$e2e_env" == "stage-us-south" ]]; then
+#     e2e_ic_region="us-south-ngdc-test"
+# fi
 
 ibmcloud target -r "$IC_REGION"
 
@@ -868,10 +868,10 @@ if [[ "$e2e_env" = "stage" ]]; then
     E2ETEST_CS_API_EP="https://test.cloud.ibm.com"
     E2ETEST_IC_RES_GRP="Default"
     ibmcloud ks init --host $E2ETEST_CS_API_EP
-elif [[ "$e2e_env" = "stage-us-south" ]]; then
-    E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
-    E2ETEST_IC_RES_GRP="Default"
-    ibmcloud ks init --host $E2ETEST_CS_API_EP
+# elif [[ "$e2e_env" = "stage-us-south" ]]; then
+#     E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
+#     E2ETEST_IC_RES_GRP="Default"
+#     ibmcloud ks init --host $E2ETEST_CS_API_EP
 elif [[ "$IC_REGION" == "ca-mon" ]]; then
    ibmcloud ks init --host https://ca-mon.containers.cloud.ibm.com
    WORKER_NODE_FLAVOR=${E2ETEST_NODE_FLAVOR:-bx3d.4x20}
