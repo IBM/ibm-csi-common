@@ -1053,6 +1053,7 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
     # Create cluster
     random_string=$(date +%s | cksum | base64 | head -c 8 | awk '{print tolower($0)}')
     cluster_name="${CLUSTER_NAME_SUFFIX}-${random_string}"
+    e2e_cluster_name="$cluster_name"
     if [[ -n "$e2e_var_exports" ]]; then
 	echo "CLUSTER_NAME=$cluster_name" >> $e2e_var_exports
 	echo "CLUSTER_KUBE_VER=$kube_vers" >> $e2e_var_exports
