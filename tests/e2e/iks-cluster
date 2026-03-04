@@ -792,7 +792,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 if [[ -z "$IC_API_KEY_PROD" && -z "$IC_API_KEY_STAG"  ]]; then echo -e "Error: E2ETEST_API_KEY not set!!!" >> $E2E_TEST_SETUP; exit 1;  fi
 
 E2ETEST_MZ="$e2e_mz"
-if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" ]]; then
+if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" && "$e2e_env" != "stage-us-south" ]]; then
 	echo -e "Error: Invalid option \"-e $e2e_env\"!!!" >> $E2E_TEST_SETUP
 	exit 1
 fi
