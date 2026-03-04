@@ -858,8 +858,18 @@ if [[ $rc -ne 0 ]]; then
 fi
 #assign region if env == stage-us-south
 if [[ "$e2e_env" == "stage-us-south" ]]; then
-    e2e_ic_region="us-south-ngdc-test"
+    IC_REGION="us-south-ngdc-test"
+    # Set default test flavor only if not explicitly set
+    WORKER_NODE_FLAVOR="bx3d.4x20"
+else
+    IC_REGION="$e2e_ic_region"
 fi
+
+# Validate the final region
+ibmcloud regions | grep -w "$IC_REGION" > /dev/null || {
+   echo -e "Error: Invalid region \"$IC_REGION\"!!!" >> $E2E_TEST_SETUP
+   exit 1
+}
 
 ibmcloud target -r "$IC_REGION"
 
@@ -1053,6 +1063,7 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
     # Create cluster
     random_string=$(date +%s | cksum | base64 | head -c 8 | awk '{print tolower($0)}')
     cluster_name="${CLUSTER_NAME_SUFFIX}-${random_string}"
+    cluster_name=${cluster_name:0:32}
     e2e_cluster_name="$cluster_name"
     if [[ -n "$e2e_var_exports" ]]; then
 	echo "CLUSTER_NAME=$cluster_name" >> $e2e_var_exports
