@@ -856,10 +856,10 @@ if [[ $rc -ne 0 ]]; then
    echo -e "Error: Invalid option \"-r $e2e_ic_region\"!!!" >> $E2E_TEST_SETUP
    exit 1
 fi
-# assign region if env == stage-us-south
-# if [[ "$e2e_env" == "stage-us-south" ]]; then
-#     e2e_ic_region="us-south-ngdc-test"
-# fi
+#assign region if env == stage-us-south
+if [[ "$e2e_env" == "stage-us-south" ]]; then
+    e2e_ic_region="us-south-ngdc-test"
+fi
 
 ibmcloud target -r "$IC_REGION"
 
@@ -868,10 +868,10 @@ if [[ "$e2e_env" = "stage" ]]; then
     E2ETEST_CS_API_EP="https://test.cloud.ibm.com"
     E2ETEST_IC_RES_GRP="Default"
     ibmcloud ks init --host $E2ETEST_CS_API_EP
-# elif [[ "$e2e_env" = "stage-us-south" ]]; then
-#     E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
-#     E2ETEST_IC_RES_GRP="Default"
-#     ibmcloud ks init --host $E2ETEST_CS_API_EP
+elif [[ "$e2e_env" = "stage-us-south" ]]; then
+    E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
+    E2ETEST_IC_RES_GRP="Default"
+    ibmcloud ks init --host $E2ETEST_CS_API_EP
 elif [[ "$IC_REGION" == "ca-mon" ]]; then
    ibmcloud ks init --host https://ca-mon.containers.cloud.ibm.com
    WORKER_NODE_FLAVOR=${E2ETEST_NODE_FLAVOR:-bx3d.4x20}
