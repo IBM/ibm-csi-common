@@ -840,7 +840,9 @@ fi
 
 # Login to IBM Cloud
 echo "==========LOGGING INTO IBMCLOUD=============="
-IC_REGION="$e2e_ic_region"
+#IC_REGION="$e2e_ic_region"
+
+
 echo "------- REGION $IC_REGION---------"
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
@@ -860,6 +862,9 @@ if [[ $rc -ne 0 ]]; then
    echo -e "Error: Invalid option \"-r $e2e_ic_region\"!!!" >> $E2E_TEST_SETUP
    exit 1
 fi
+
+IC_REGION="$e2e_ic_region"
+
 # #assign region if env == stage-us-south
 # if [[ "$e2e_env" == "stage-us-south" ]]; then
 #     IC_REGION="us-south"                 # REAL REGION
