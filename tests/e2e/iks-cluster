@@ -290,7 +290,7 @@ function createSubnet {
 			echo -e "Error: [$subnet_name] Subnet creation failed!!!" >> $E2E_TEST_SETUP
 			return 2
 		fi
-		echo "Info: Created Subner [$subnet_name ($subnet_id)]..."
+		echo "Info: Created Subnet [$subnet_name ($subnet_id)]..."
 	else
 		echo -e "Error: [$subnet_name] Subnet already exist!!!" >> $E2E_TEST_SETUP
 		return 1
@@ -838,9 +838,23 @@ if [[ "$PRIMARY_ZONE_ID" == "$SECOND_ZONE_ID" ]]; then
    exit 1
 fi
 
+# Resolve final region
+if [[ "$e2e_env" == "stage-us-south" ]]; then
+    IC_REGION="us-south-ngdc-test"
+    # Set default test flavor only if not explicitly set
+    WORKER_NODE_FLAVOR="bx3d.4x20"
+else
+    IC_REGION="$e2e_ic_region"
+fi
+
+if [[ -z "$IC_REGION" ]]; then
+    echo "ERROR: Region not set"
+    exit 1
+fi
+
 # Login to IBM Cloud
 echo "==========LOGGING INTO IBMCLOUD=============="
-IC_REGION="$e2e_ic_region"
+#IC_REGION="$e2e_ic_region"
 echo "------- REGION $IC_REGION---------"
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
@@ -868,14 +882,7 @@ if [ -z "$IC_REGION" ]; then
   exit 1
 fi
 
-# Resolve final region
-if [[ "$e2e_env" == "stage-us-south" ]]; then
-    IC_REGION="us-south-ngdc-test"
-    # Set default test flavor only if not explicitly set
-    WORKER_NODE_FLAVOR="bx3d.4x20"
-else
-    IC_REGION="$e2e_ic_region"
-fi
+
 
 # echo "----- ic ks init -----"
 # if [[ "$e2e_env" = "stage" ]]; then
@@ -933,7 +940,7 @@ if [[ "$e2e_cluster_delete" == "true" ]]; then
    fi
    check_cluster_deleted $cluster_name; rc=$?
    if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) check delete status failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
-   e2e_cluster_delete="fasle"
+   e2e_cluster_delete="false"
    exit 0
 fi
 
