@@ -841,8 +841,6 @@ fi
 # Login to IBM Cloud
 echo "==========LOGGING INTO IBMCLOUD=============="
 IC_REGION="$e2e_ic_region"
-
-
 echo "------- REGION $IC_REGION---------"
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
@@ -863,6 +861,7 @@ if [[ $rc -ne 0 ]]; then
    exit 1
 fi
 
+ibmcloud target -r "$IC_REGION"
 
 if [ -z "$IC_REGION" ]; then
   echo "ERROR: IC_REGION is not set"
