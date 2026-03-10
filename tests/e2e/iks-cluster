@@ -840,7 +840,7 @@ fi
 
 # Login to IBM Cloud
 echo "==========LOGGING INTO IBMCLOUD=============="
-#IC_REGION="$e2e_ic_region"
+IC_REGION="$e2e_ic_region"
 
 
 echo "------- REGION $IC_REGION---------"
@@ -863,22 +863,11 @@ if [[ $rc -ne 0 ]]; then
    exit 1
 fi
 
-IC_REGION="$e2e_ic_region"
 
 if [ -z "$IC_REGION" ]; then
   echo "ERROR: IC_REGION is not set"
   exit 1
 fi
-
-# #assign region if env == stage-us-south
-# if [[ "$e2e_env" == "stage-us-south" ]]; then
-#     IC_REGION="us-south"                 # REAL REGION
-#     ZONE_PREFIX="us-south-ngdc-test"     # ZONE PREFIX
-#     WORKER_NODE_FLAVOR="bx3d.4x20"
-# else
-#     IC_REGION="$e2e_ic_region"
-#     ZONE_PREFIX="$IC_REGION"
-# fi
 
 # Resolve final region
 if [[ "$e2e_env" == "stage-us-south" ]]; then
@@ -888,14 +877,6 @@ if [[ "$e2e_env" == "stage-us-south" ]]; then
 else
     IC_REGION="$e2e_ic_region"
 fi
-
-# Validate the final region
-ibmcloud regions | grep -w "$IC_REGION" > /dev/null || {
-   echo -e "Error: Invalid region \"$IC_REGION\"!!!" >> $E2E_TEST_SETUP
-   exit 1
-}
-
-ibmcloud target -r "$IC_REGION"
 
 # echo "----- ic ks init -----"
 # if [[ "$e2e_env" = "stage" ]]; then
@@ -913,14 +894,11 @@ ibmcloud target -r "$IC_REGION"
 #    ibmcloud ks init --host https://containers.cloud.ibm.com
 # fi
 
+# Resolve KS API endpoint
 if [[ -n "$E2ETEST_CS_API_EP" ]]; then
     KS_HOST="$E2ETEST_CS_API_EP"
-elif [[ "$e2e_env" == "stage" ]]; then
+elif [[ "$e2e_env" == "stage" || "$e2e_env" == "stage-us-south" ]]; then
     KS_HOST="https://containers.test.cloud.ibm.com"
-elif [[ "$e2e_env" == "stage-us-south" ]]; then
-    KS_HOST="https://stage-us-south.containers.test.cloud.ibm.com"
-elif [[ "$IC_REGION" == "ca-mon" ]]; then
-    KS_HOST="https://ca-mon.containers.cloud.ibm.com"
 else
     KS_HOST="https://containers.cloud.ibm.com"
 fi
