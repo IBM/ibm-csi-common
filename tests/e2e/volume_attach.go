@@ -902,6 +902,10 @@ func CreateStorageClass(scName, profile, fsType, iops, throughput string, cs cli
 				baseParams["zone"] = zone
 			}
 
+			if _, hasProfile := baseParams["profile"]; !hasProfile && profile != "" {
+				baseParams["profile"] = profile
+			}
+
 			storageClass = &storagev1.StorageClass{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: scName,

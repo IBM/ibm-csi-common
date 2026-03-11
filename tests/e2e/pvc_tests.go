@@ -708,9 +708,11 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 			version = deployment.ObjectMeta.Annotations["version"]
 			fmt.Println("Addon version:", version)
 		}
-		//once 5.1 deprecates we can remove version check
-		//saving x.y version
-		parts := strings.Split(version, ".")
+
+		// once 5.1 deprecates we can remove version check
+		// normalize v-prefixed versions, then save x.y
+		normalizedVersion := strings.TrimPrefix(version, "v")
+		parts := strings.Split(normalizedVersion, ".")
 		if len(parts) >= 2 {
 			majorMinor := fmt.Sprintf("%s.%s", parts[0], parts[1])
 			fmt.Println("Major.Minor:", majorMinor)
