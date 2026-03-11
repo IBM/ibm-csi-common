@@ -530,6 +530,27 @@ func (t *TestPersistentVolumeClaim) WaitForBound() v1.PersistentVolumeClaim {
 
 	By(fmt.Sprintf("waiting for PVC to be in phase %q", v1.ClaimBound))
 	err = k8sDevPV.WaitForPersistentVolumeClaimPhase(context.TODO(), v1.ClaimBound, t.client, t.namespace.Name, t.persistentVolumeClaim.Name, framework.Poll, framework.ClaimProvisionTimeout)
+	if err != nil {
+		framework.Logf("PVC [%s/%s] failed to reach phase %q within %v: %v", t.namespace.Name, t.persistentVolumeClaim.Name, v1.ClaimBound, framework.ClaimProvisionTimeout, err)
+		pvc, pvcErr := t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Get(context.Background(), t.persistentVolumeClaim.Name, metav1.GetOptions{})
+		if pvcErr != nil {
+			framework.Logf("unable to fetch PVC [%s/%s] after timeout: %v", t.namespace.Name, t.persistentVolumeClaim.Name, pvcErr)
+		} else {
+			framework.Logf("PVC [%s/%s] current status: phase=%q, volumeName=%q, conditions=%v", t.namespace.Name, t.persistentVolumeClaim.Name, pvc.Status.Phase, pvc.Spec.VolumeName, pvc.Status.Conditions)
+		}
+
+		eventSelector := fmt.Sprintf("involvedObject.kind=PersistentVolumeClaim,involvedObject.name=%s", t.persistentVolumeClaim.Name)
+		events, eventErr := t.client.CoreV1().Events(t.namespace.Name).List(context.Background(), metav1.ListOptions{FieldSelector: eventSelector})
+		if eventErr != nil {
+			framework.Logf("unable to list PVC events for [%s/%s]: %v", t.namespace.Name, t.persistentVolumeClaim.Name, eventErr)
+		} else if len(events.Items) == 0 {
+			framework.Logf("no events found for PVC [%s/%s]", t.namespace.Name, t.persistentVolumeClaim.Name)
+		} else {
+			for _, e := range events.Items {
+				framework.Logf("PVC event [%s/%s]: type=%s reason=%s message=%q count=%d lastTimestamp=%s", t.namespace.Name, t.persistentVolumeClaim.Name, e.Type, e.Reason, e.Message, e.Count, e.LastTimestamp.String())
+			}
+		}
+	}
 	framework.ExpectNoError(err)
 
 	By("checking the PVC")
