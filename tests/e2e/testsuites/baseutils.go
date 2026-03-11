@@ -544,7 +544,7 @@ func (t *TestPersistentVolumeClaim) WaitForPending() v1.PersistentVolumeClaim {
 	var err error
 
 	By(fmt.Sprintf("waiting for PVC to be in phase %q", v1.ClaimPending))
-	time.Sleep(5 * time.Minute)
+	time.Sleep(10 * time.Minute)
 	err = k8sDevPV.WaitForPersistentVolumeClaimPhase(context.TODO(), v1.ClaimPending, t.client, t.namespace.Name, t.persistentVolumeClaim.Name, framework.Poll, framework.ClaimProvisionTimeout)
 	framework.ExpectNoError(err)
 
