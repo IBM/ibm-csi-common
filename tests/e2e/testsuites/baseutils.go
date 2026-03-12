@@ -98,16 +98,36 @@ func NewHeadlessService(c clientset.Interface, name, namespace, labelSelctors st
 	}
 }
 
-func podSecurityContext() *v1.PodSecurityContext {
-	return &v1.PodSecurityContext{
+func isOpenShiftCluster(c clientset.Interface) bool {
+	platform := strings.ToLower(strings.TrimSpace(os.Getenv("PLATFORM")))
+	if platform == "ocp" {
+		return true
+	}
+
+	if c == nil {
+		return false
+	}
+
+	_, err := c.CoreV1().Namespaces().Get(context.Background(), "openshift-config", metav1.GetOptions{})
+	return err == nil
+}
+
+func podSecurityContext(c clientset.Interface) *v1.PodSecurityContext {
+	securityContext := &v1.PodSecurityContext{
 		RunAsNonRoot: ptr.To(true),
-		RunAsUser:    ptr.To(int64(1000)),
-		RunAsGroup:   ptr.To(int64(1000)),
-		FSGroup:      ptr.To(int64(1000)),
 		SeccompProfile: &v1.SeccompProfile{
 			Type: v1.SeccompProfileTypeRuntimeDefault,
 		},
 	}
+
+	// let OpenShift SCC assign UID/GID/FSGroup for OCP platform
+	if !isOpenShiftCluster(c) {
+		securityContext.RunAsUser = ptr.To(int64(1000))
+		securityContext.RunAsGroup = ptr.To(int64(1000))
+		securityContext.FSGroup = ptr.To(int64(1000))
+	}
+
+	return securityContext
 }
 
 func containerSecurityContext() *v1.SecurityContext {
@@ -148,7 +168,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 						Labels: labels,
 					},
 					Spec: v1.PodSpec{
-						SecurityContext: podSecurityContext(),
+						SecurityContext: podSecurityContext(c),
 						Containers: []v1.Container{
 							{
 								Name:    "statefulset",
@@ -175,7 +195,6 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 			},
 		},
 	}
-
 }
 
 func (h *TestHeadlessService) Create() v1.Service {
@@ -683,7 +702,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 						Labels: map[string]string{"app": selectorValue},
 					},
 					Spec: v1.PodSpec{
-						SecurityContext: podSecurityContext(),
+						SecurityContext: podSecurityContext(c),
 						Containers: []v1.Container{
 							{
 								Name:    "ics-e2e-tester",
@@ -881,7 +900,7 @@ func NewTestPodWithName(c clientset.Interface, ns *v1.Namespace, name, command s
 				},
 				RestartPolicy:   v1.RestartPolicyNever,
 				Volumes:         make([]v1.Volume, 0),
-				SecurityContext: podSecurityContext(),
+				SecurityContext: podSecurityContext(c),
 			},
 		},
 	}
@@ -911,7 +930,7 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 				},
 				RestartPolicy:   v1.RestartPolicyNever,
 				Volumes:         make([]v1.Volume, 0),
-				SecurityContext: podSecurityContext(),
+				SecurityContext: podSecurityContext(c),
 			},
 		},
 	}
