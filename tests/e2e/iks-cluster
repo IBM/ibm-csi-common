@@ -1160,7 +1160,15 @@ exportKubeConfig $cluster_name; rc=$?
 # From Jenkins there is option to mention addon version. 
 # So if value is not "default", disable and enable user specified version
 if [[ $e2e_addon_version != "default"  ]]; then
-        echo "Info: Installing addon $ADDON_VERSION"
+        # For 5.1.x, ensure correct platform suffix (_iks for kubernetes, _ocp for openshift)
+        if [[ "$e2e_addon_version" == *"_iks"* || "$e2e_addon_version" == *"_ocp"* ]]; then
+            if [[ "$K8S_PLATFORM" == "openshift" ]]; then
+                e2e_addon_version=$(echo "$e2e_addon_version" | sed 's/_iks$/_ocp/')
+            else
+                e2e_addon_version=$(echo "$e2e_addon_version" | sed 's/_ocp$/_iks/')
+            fi
+        fi
+        echo "Info: Installing addon $e2e_addon_version"
         ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
         sleep 900
         ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $e2e_addon_version
