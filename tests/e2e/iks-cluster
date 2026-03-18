@@ -106,6 +106,34 @@ function updateCertPathInKubeConfig {
     echo "Info: Updated cert paths in KUBECONFIG..."
 }
 
+function normalize_addon_version_for_platform {
+    local requested_version="$1"
+    local version_no_prefix
+    local version_core
+    local major_minor
+
+    if [[ -z "$requested_version" || "$requested_version" == "default" ]]; then
+        echo "$requested_version"
+        return 0
+    fi
+
+    version_no_prefix=$(echo "$requested_version" | sed -E 's/^v//')
+    version_core=$(echo "$version_no_prefix" | sed -E 's/(_iks|_ocp)$//')
+    major_minor=$(echo "$version_core" | awk -F'.' '{print $1"."$2}')
+
+    # 5.1 uses platform-specific addon suffixes, while 5.2 and later do not.
+    if [[ "$major_minor" == "5.1" ]]; then
+        if [[ "$K8S_PLATFORM" == "openshift" ]]; then
+            echo "${version_core}_ocp"
+        else
+            echo "${version_core}_iks"
+        fi
+        return 0
+    fi
+
+    echo "$version_core"
+}
+
 function create_vlan_cls {
 	local e2e_env="$1"
 	local prim_zone="$2"
@@ -1160,21 +1188,15 @@ exportKubeConfig $cluster_name; rc=$?
 # From Jenkins there is option to mention addon version. 
 # So if value is not "default", disable and enable user specified version
 if [[ $e2e_addon_version != "default"  ]]; then
-        # For 5.1.x, ensure correct platform suffix (_iks for kubernetes, _ocp for openshift)
-        if [[ "$e2e_addon_version" == *"_iks"* || "$e2e_addon_version" == *"_ocp"* ]]; then
-            if [[ "$K8S_PLATFORM" == "openshift" ]]; then
-                e2e_addon_version=$(echo "$e2e_addon_version" | sed 's/_iks$/_ocp/')
-            else
-                e2e_addon_version=$(echo "$e2e_addon_version" | sed 's/_ocp$/_iks/')
-            fi
-        fi
-        echo "Info: Installing addon $e2e_addon_version"
-        ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
-        sleep 900
-        ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $e2e_addon_version
-        sleep 180
+    e2e_addon_version=$(normalize_addon_version_for_platform "$e2e_addon_version")
+    echo "Info: Installing addon $e2e_addon_version"
+    ibmcloud ks cluster addon disable vpc-block-csi-driver -f --cluster $cluster_name
+    sleep 900
+    ibmcloud ks cluster addon enable vpc-block-csi-driver --cluster $cluster_name --version $e2e_addon_version
+    sleep 180
 	check_addon_pod_status ibm-vpc-block-csi-controller
 fi
+
 set -x 
 if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) export kube config failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
 if [[ -n "$e2e_var_exports" ]]; then
