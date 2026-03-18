@@ -106,6 +106,37 @@ function updateCertPathInKubeConfig {
     echo "Info: Updated cert paths in KUBECONFIG..."
 }
 
+function check_kube_nodes_ready {
+    if [[ $# -ne 1 ]]; then
+        echo "${FUNCNAME[0]}: Invalid parameter. Provide cluster name"
+        return 1
+    fi
+
+    local cluster_name=$1
+    local timeout=${KUBE_NODE_STATE_TIMEOUT:-20}
+    local node_count=0
+    local ready_count=0
+
+    echo "Info: [$cluster_name] Checking Kubernetes node registration..."
+
+    for ((i=1; i<=timeout; i++)); do
+        node_count=$(kubectl get nodes --no-headers 2>/dev/null | wc -l | xargs)
+        ready_count=$(kubectl get nodes --no-headers 2>/dev/null | awk '$2 ~ /^Ready/ {count++} END {print count+0}')
+
+        if [[ $node_count -gt 0 && $ready_count -eq $node_count ]]; then
+            echo "Info: [$cluster_name] Kubernetes nodes are Ready [$ready_count/$node_count]"
+            return 0
+        fi
+
+        echo "Info: [$cluster_name] Kubernetes nodes Ready => [$ready_count/$node_count]...[$i/$timeout]"
+        sleep $SLEEP_TIME
+    done
+
+    echo "Error: [$cluster_name] Kubernetes nodes did not become Ready in $timeout minutes."
+    kubectl get nodes -o wide || true
+    return 2
+}
+
 function normalize_addon_version_for_platform {
     local requested_version="$1"
     local version_no_prefix
@@ -511,7 +542,6 @@ function check_worker_state {
         return 1
     fi
 
-    workers_in_desiredstat=0
     cluster_name=$1
 
     TIMEOUT=${WORKER_STATE_TIMEOUT:-90}
@@ -523,6 +553,7 @@ function check_worker_state {
 
     # Try for up to 90 minutes(default) for the workers to reach deployed state
     for ((i=1; i<=TIMEOUT; i++)); do
+        workers_in_desiredstat=0
         oldifs="$IFS"
         IFS=$'\n'
         if [[ $E2ETEST_MZ == "true" ]]; then
@@ -532,6 +563,13 @@ function check_worker_state {
         fi
         IFS="$oldifs"
         worker_cnt=${#workers[@]}
+
+        if [[ $worker_cnt -eq 0 ]]; then
+            echo "Info: [$cluster_name] no workers found yet...[$i/$TIMEOUT]"
+            ibmcloud ks worker ls --cluster $cluster_name || true
+            sleep $SLEEP_TIME
+            continue
+        fi
 
         # Inspect the state of each worker
         for worker in "${workers[@]}"; do
@@ -568,12 +606,15 @@ function check_worker_state {
             status_msg="Info: [$workers_in_desiredstat / $worker_cnt] $cluster_name workers are in deployed state"
             echo "$status_msg"
             sleep $SLEEP_TIME
-            workers_in_desiredstat=0
         fi
     done
 
     # Ignore failures on this command call
     ibmcloud ks worker ls --cluster $cluster_name || true
+    if [[ $worker_cnt -eq 0 ]]; then
+        echo "Error: No workers found for [$cluster_name] within $TIMEOUT minutes."
+        return 2
+    fi
     if [[ $worker_cnt -ne $workers_in_desiredstat ]]; then
         echo "Error: Not all [$cluster_name] workers reached deployed state in $TIMEOUT  minutes."
         return 2
@@ -1184,6 +1225,10 @@ else
 fi
 
 exportKubeConfig $cluster_name; rc=$?
+if [[ $rc -eq 0 ]]; then
+    check_kube_nodes_ready $cluster_name; rc=$?
+fi
+if [[ $rc -ne 0 ]]; then echo -e "Error: Cluster ($cluster_name) Kubernetes node check failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
 
 # From Jenkins there is option to mention addon version. 
 # So if value is not "default", disable and enable user specified version
