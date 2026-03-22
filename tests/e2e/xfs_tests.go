@@ -78,6 +78,12 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 		} else {
 			fmt.Println("Version format is invalid")
 		}
+
+		// SDP profile test skip in ngdc-test regions
+		zone := os.Getenv("E2E_ZONE")
+		if strings.Contains(zone, "ngdc-test") {
+			condition = false
+		}
 	})
 
 	// Test 1: XFS with Tier Profile - Pod
@@ -180,7 +186,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 	// Test 3: XFS with SDP Profile - Pod
 	It("[xfs-sdp-pod] with XFS SDP profile: should create pvc & pv, pod resources", func() {
 		if condition == false {
-			Skip("Skipping XFS SDP test - addon version is 5.1 and SDP profile is not supported")
+			Skip("Skipping XFS SDP test - SDP profile is not supported (addon 5.1 or ngdc-test region)")
 		}
 
 		CreateStorageClass("xfs-sdp-test-sc", "sdp", "xfs", "3000", "1000", cs)
@@ -248,7 +254,7 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 	// Test 4: XFS with SDP Profile - Resize
 	It("[xfs-sdp-resize] with XFS SDP profile: should resize volume", func() {
 		if condition == false {
-			Skip("Skipping XFS SDP resize test - addon version is 5.1 and SDP profile is not supported")
+			Skip("Skipping XFS SDP resize test - SDP profile is not supported (addon 5.1 or ngdc-test region)")
 		}
 
 		CreateStorageClass("xfs-sdp-resize-sc", "sdp", "xfs", "3000", "1000", cs)
