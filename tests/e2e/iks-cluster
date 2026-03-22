@@ -139,8 +139,7 @@ function check_kube_nodes_ready {
 
 function normalize_addon_version_for_platform {
     local requested_version="$1"
-    local version_no_prefix
-    local version_core
+    local version_clean
     local major_minor
 
     if [[ -z "$requested_version" || "$requested_version" == "default" ]]; then
@@ -148,21 +147,78 @@ function normalize_addon_version_for_platform {
         return 0
     fi
 
-    version_no_prefix=$(echo "$requested_version" | sed -E 's/^v//')
-    version_core=$(echo "$version_no_prefix" | sed -E 's/(_iks|_ocp)$//')
-    major_minor=$(echo "$version_core" | awk -F'.' '{print $1"."$2}')
+    # The enable API accepts channel versions like 5.1/5.2. Running controller
+    # annotations may still include build/platform suffixes like v5.1.47_ocp.
+    version_clean=$(echo "$requested_version" | sed -E 's/^v//; s/(_iks|_ocp)$//')
+    major_minor=$(echo "$version_clean" | awk -F'.' '{print $1"."$2}')
 
-    # 5.1 uses platform-specific addon suffixes, while 5.2 and later do not.
-    if [[ "$major_minor" == "5.1" ]]; then
-        if [[ "$K8S_PLATFORM" == "openshift" ]]; then
-            echo "${version_core}_ocp"
-        else
-            echo "${version_core}_iks"
-        fi
+    if [[ "$major_minor" =~ ^[0-9]+\.[0-9]+$ ]]; then
+        echo "$major_minor"
         return 0
     fi
 
-    echo "$version_core"
+    echo "$version_clean"
+}
+
+function flavor_available_in_zone {
+    if [[ $# -ne 2 ]]; then
+        echo "${FUNCNAME[0]}: Invalid parameters. Provide zone and flavor"
+        return 1
+    fi
+
+    local zone_name="$1"
+    local requested_flavor="$2"
+
+    ibmcloud ks flavors --zone "$zone_name" 2>/dev/null | \
+        awk '$1 ~ /^[a-z0-9.-]+$/ && $1 ~ /[0-9]/ {print $1}' | \
+        grep -Fx "$requested_flavor" >/dev/null
+}
+
+function resolve_worker_node_flavor {
+    if [[ $# -lt 2 ]]; then
+        echo "${FUNCNAME[0]}: Invalid parameters. Provide preferred flavor and at least one zone"
+        return 1
+    fi
+
+    local preferred_flavor="$1"
+    shift
+
+    local candidate=""
+    local zone_name=""
+    local supported="false"
+    local candidates=("$preferred_flavor")
+
+    if [[ "$K8S_PLATFORM" == "openshift" ]]; then
+        candidates+=("bx3d.4x20" "bx2.4x16" "bx2d.4x16")
+    else
+        candidates+=("bx2.4x16" "bx3d.4x20" "bx2d.4x16")
+    fi
+
+    for candidate in "${candidates[@]}"; do
+        [[ -z "$candidate" ]] && continue
+
+        supported="true"
+        for zone_name in "$@"; do
+            [[ -z "$zone_name" ]] && continue
+            if ! flavor_available_in_zone "$zone_name" "$candidate"; then
+                supported="false"
+                break
+            fi
+        done
+
+        if [[ "$supported" == "true" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+
+    echo "Error: No supported worker flavor found for zones [$*]." >> $E2E_TEST_SETUP
+    for zone_name in "$@"; do
+        [[ -z "$zone_name" ]] && continue
+        echo "Info: Available flavors for zone [$zone_name]..." >> $E2E_TEST_SETUP
+        ibmcloud ks flavors --zone "$zone_name" >> $E2E_TEST_SETUP 2>&1 || true
+    done
+    return 2
 }
 
 function create_vlan_cls {
@@ -938,13 +994,11 @@ fi
 if [[ $rc -ne 0 ]]; then echo -e "Error: IBM Cloud Login failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
 
 # target the region
-ibmcloud regions | grep -w "$e2e_ic_region" > /dev/null; rc=$?
+ibmcloud target -r "$IC_REGION"; rc=$?
 if [[ $rc -ne 0 ]]; then
-   echo -e "Error: Invalid option \"-r $e2e_ic_region\"!!!" >> $E2E_TEST_SETUP
+   echo -e "Error: Unable to target region [$IC_REGION]." >> $E2E_TEST_SETUP
    exit 1
 fi
-
-ibmcloud target -r "$IC_REGION"
 
 if [ -z "$IC_REGION" ]; then
   echo "ERROR: IC_REGION is not set"
@@ -982,10 +1036,18 @@ if [[ -z "$KS_HOST" ]]; then
 fi
 
 echo "KS endpoint : $KS_HOST"
-ibmcloud ks init --host "$KS_HOST"
+ibmcloud ks init --host "$KS_HOST"; rc=$?
+if [[ $rc -ne 0 ]]; then
+   echo -e "Error: Failed to initialize Container Service host [$KS_HOST]." >> $E2E_TEST_SETUP
+   exit 1
+fi
 
 if [[ $IC_PROVIDER == "vpc-gen2" ]] ; then
-   ibmcloud is target --gen 2
+   ibmcloud is target --gen 2; rc=$?
+   if [[ $rc -ne 0 ]]; then
+      echo -e "Error: VPC infrastructure plugin could not target region [$IC_REGION]. Verify the Jenkins IBM Cloud CLI / VPC plugin supports this region." >> $E2E_TEST_SETUP
+      exit 1
+   fi
 fi
 
 
@@ -1084,6 +1146,20 @@ if [[ "$e2e_create_new_cluster" == "true" ]]; then
     var_secd="ZONE_${IC_PROVIDER//-/_}_${SECOND_ZONE_ID}"
     PRIMARY_ZONE=${!var_prim}
     SECOND_ZONE=${!var_secd}
+
+    if [[ "$E2ETEST_MZ" == "true" ]]; then
+        resolved_flavor=$(resolve_worker_node_flavor "$WORKER_NODE_FLAVOR" "$PRIMARY_ZONE" "$SECOND_ZONE"); rc=$?
+    else
+        resolved_flavor=$(resolve_worker_node_flavor "$WORKER_NODE_FLAVOR" "$PRIMARY_ZONE"); rc=$?
+    fi
+    if [[ $rc -ne 0 ]]; then
+        echo -e "Error: Unable to resolve worker flavor for [$PRIMARY_ZONE${SECOND_ZONE:+,$SECOND_ZONE}]!!!" >> $E2E_TEST_SETUP
+        exit 1
+    fi
+    if [[ "$resolved_flavor" != "$WORKER_NODE_FLAVOR" ]]; then
+        echo "Info: Using worker flavor [$resolved_flavor] instead of [$WORKER_NODE_FLAVOR]"
+    fi
+    WORKER_NODE_FLAVOR="$resolved_flavor"
 
     PRIMARY_PUB_VLAN=""
     PRIMARY_PRIV_VLAN=""
