@@ -18,7 +18,10 @@ package e2e
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo/v2"
@@ -37,12 +40,50 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 		err      error
 	)
 
+	condition := true // addon version >= 5.2 check for SDP tests
 	testResultFile := os.Getenv("E2E_TEST_RESULT")
 	fw = framework.NewDefaultFramework("ics-e2e-xfs")
 
 	BeforeEach(func() {
 		cs = fw.ClientSet
 		ns = fw.Namespace
+
+		// Check addon version for SDP test gating
+		version := ""
+		deployment, err := cs.AppsV1().Deployments("kube-system").Get(context.TODO(), "ibm-vpc-block-csi-controller", metav1.GetOptions{})
+		if err != nil {
+			log.Printf("Error getting Deployment: %v", err)
+			sts, err := cs.AppsV1().StatefulSets("kube-system").Get(context.TODO(), "ibm-vpc-block-csi-controller", metav1.GetOptions{})
+			if err != nil {
+				log.Fatalln("Error getting Sts and Deployment")
+			}
+			log.Println("STS Found")
+			version = sts.ObjectMeta.Annotations["version"]
+			fmt.Println("Addon version:", version)
+		} else {
+			log.Println("Deployment Found")
+			version = deployment.ObjectMeta.Annotations["version"]
+			fmt.Println("Addon version:", version)
+		}
+
+		// once 5.1 deprecates we can remove version check
+		normalizedVersion := strings.TrimPrefix(version, "v")
+		parts := strings.Split(normalizedVersion, ".")
+		if len(parts) >= 2 {
+			majorMinor := fmt.Sprintf("%s.%s", parts[0], parts[1])
+			fmt.Println("Major.Minor:", majorMinor)
+			if majorMinor == "5.1" {
+				condition = false
+			}
+		} else {
+			fmt.Println("Version format is invalid")
+		}
+
+		// SDP profile test skip in ngdc-test regions
+		zone := os.Getenv("E2E_ZONE")
+		if strings.Contains(zone, "ngdc-test") {
+			condition = false
+		}
 	})
 
 	// Test 1: XFS with Tier Profile - Pod
@@ -144,12 +185,21 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 3: XFS with SDP Profile - Pod
 	It("[xfs-sdp-pod] with XFS SDP profile: should create pvc & pv, pod resources", func() {
+		if condition == false {
+			Skip("Skipping XFS SDP test - SDP profile is not supported (addon 5.1 or ngdc-test region)")
+		}
+
 		CreateStorageClass("xfs-sdp-test-sc", "sdp", "xfs", "3000", "1000", cs)
 		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-test-sc", metav1.DeleteOptions{})
 
 		// Create secret for SDP
 		secretKey := os.Getenv("IC_API_KEY_STAG")
 		if secretKey == "" {
+			fp, fperr := os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if fperr == nil {
+				fp.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Test: SKIP\n")
+				fp.Close()
+			}
 			Skip("Skipping SDP test - IC_API_KEY_STAG not set")
 		}
 
@@ -203,12 +253,21 @@ var _ = Describe("[ics-e2e] [xfs] [sc] Dynamic Provisioning for XFS Filesystem",
 
 	// Test 4: XFS with SDP Profile - Resize
 	It("[xfs-sdp-resize] with XFS SDP profile: should resize volume", func() {
+		if condition == false {
+			Skip("Skipping XFS SDP resize test - SDP profile is not supported (addon 5.1 or ngdc-test region)")
+		}
+
 		CreateStorageClass("xfs-sdp-resize-sc", "sdp", "xfs", "3000", "1000", cs)
 		defer cs.StorageV1().StorageClasses().Delete(context.Background(), "xfs-sdp-resize-sc", metav1.DeleteOptions{})
 
 		// Create secret for SDP
 		secretKey := os.Getenv("IC_API_KEY_STAG")
 		if secretKey == "" {
+			fp, fperr := os.OpenFile(testResultFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if fperr == nil {
+				fp.WriteString("VPC-BLK-CSI-TEST: XFS SDP Profile Resize: SKIP\n")
+				fp.Close()
+			}
 			Skip("Skipping SDP resize test - IC_API_KEY_STAG not set")
 		}
 

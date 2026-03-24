@@ -98,6 +98,52 @@ func NewHeadlessService(c clientset.Interface, name, namespace, labelSelctors st
 	}
 }
 
+func isOpenShiftCluster(c clientset.Interface) bool {
+	platform := strings.ToLower(strings.TrimSpace(os.Getenv("PLATFORM")))
+	if platform == "ocp" {
+		return true
+	}
+
+	if c == nil {
+		return false
+	}
+
+	_, err := c.CoreV1().Namespaces().Get(context.Background(), "openshift-config", metav1.GetOptions{})
+	return err == nil
+}
+
+func podSecurityContext(c clientset.Interface) *v1.PodSecurityContext {
+	securityContext := &v1.PodSecurityContext{
+		RunAsNonRoot: ptr.To(true),
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
+
+	// let OpenShift SCC assign UID/GID/FSGroup for OCP platform
+	if !isOpenShiftCluster(c) {
+		securityContext.RunAsUser = ptr.To(int64(1000))
+		securityContext.RunAsGroup = ptr.To(int64(1000))
+		securityContext.FSGroup = ptr.To(int64(1000))
+	}
+
+	return securityContext
+}
+
+func containerSecurityContext() *v1.SecurityContext {
+	return &v1.SecurityContext{
+		RunAsNonRoot:             ptr.To(true),
+		ReadOnlyRootFilesystem:   ptr.To(false),
+		AllowPrivilegeEscalation: ptr.To(false),
+		Capabilities: &v1.Capabilities{
+			Drop: []v1.Capability{"ALL"},
+		},
+		SeccompProfile: &v1.SeccompProfile{
+			Type: v1.SeccompProfileTypeRuntimeDefault,
+		},
+	}
+}
+
 func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns *v1.Namespace, servicename, command, storageClassName, volumeName, mountPath string, labels map[string]string, replicaCount int32) *TestStatefulsets {
 	pvcTemplate := generatePVC(volumeName, t.namespace.Name, storageClassName, t.claimSize, t.accessMode, t.volumeMode, t.dataSource)
 	generateName := "ics-e2e-tester-"
@@ -122,6 +168,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 						Labels: labels,
 					},
 					Spec: v1.PodSpec{
+						SecurityContext: podSecurityContext(c),
 						Containers: []v1.Container{
 							{
 								Name:    "statefulset",
@@ -140,6 +187,7 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 										MountPath: mountPath,
 									},
 								},
+								SecurityContext: containerSecurityContext(),
 							},
 						},
 					},
@@ -147,7 +195,6 @@ func (t *TestPersistentVolumeClaim) NewTestStatefulset(c clientset.Interface, ns
 			},
 		},
 	}
-
 }
 
 func (h *TestHeadlessService) Create() v1.Service {
@@ -502,6 +549,27 @@ func (t *TestPersistentVolumeClaim) WaitForBound() v1.PersistentVolumeClaim {
 
 	By(fmt.Sprintf("waiting for PVC to be in phase %q", v1.ClaimBound))
 	err = k8sDevPV.WaitForPersistentVolumeClaimPhase(context.TODO(), v1.ClaimBound, t.client, t.namespace.Name, t.persistentVolumeClaim.Name, framework.Poll, framework.ClaimProvisionTimeout)
+	if err != nil {
+		framework.Logf("PVC [%s/%s] failed to reach phase %q within %v: %v", t.namespace.Name, t.persistentVolumeClaim.Name, v1.ClaimBound, framework.ClaimProvisionTimeout, err)
+		pvc, pvcErr := t.client.CoreV1().PersistentVolumeClaims(t.namespace.Name).Get(context.Background(), t.persistentVolumeClaim.Name, metav1.GetOptions{})
+		if pvcErr != nil {
+			framework.Logf("unable to fetch PVC [%s/%s] after timeout: %v", t.namespace.Name, t.persistentVolumeClaim.Name, pvcErr)
+		} else {
+			framework.Logf("PVC [%s/%s] current status: phase=%q, volumeName=%q, conditions=%v", t.namespace.Name, t.persistentVolumeClaim.Name, pvc.Status.Phase, pvc.Spec.VolumeName, pvc.Status.Conditions)
+		}
+
+		eventSelector := fmt.Sprintf("involvedObject.kind=PersistentVolumeClaim,involvedObject.name=%s", t.persistentVolumeClaim.Name)
+		events, eventErr := t.client.CoreV1().Events(t.namespace.Name).List(context.Background(), metav1.ListOptions{FieldSelector: eventSelector})
+		if eventErr != nil {
+			framework.Logf("unable to list PVC events for [%s/%s]: %v", t.namespace.Name, t.persistentVolumeClaim.Name, eventErr)
+		} else if len(events.Items) == 0 {
+			framework.Logf("no events found for PVC [%s/%s]", t.namespace.Name, t.persistentVolumeClaim.Name)
+		} else {
+			for _, e := range events.Items {
+				framework.Logf("PVC event [%s/%s]: type=%s reason=%s message=%q count=%d lastTimestamp=%s", t.namespace.Name, t.persistentVolumeClaim.Name, e.Type, e.Reason, e.Message, e.Count, e.LastTimestamp.String())
+			}
+		}
+	}
 	framework.ExpectNoError(err)
 
 	By("checking the PVC")
@@ -516,7 +584,7 @@ func (t *TestPersistentVolumeClaim) WaitForPending() v1.PersistentVolumeClaim {
 	var err error
 
 	By(fmt.Sprintf("waiting for PVC to be in phase %q", v1.ClaimPending))
-	time.Sleep(5 * time.Minute)
+	time.Sleep(10 * time.Minute)
 	err = k8sDevPV.WaitForPersistentVolumeClaimPhase(context.TODO(), v1.ClaimPending, t.client, t.namespace.Name, t.persistentVolumeClaim.Name, framework.Poll, framework.ClaimProvisionTimeout)
 	framework.ExpectNoError(err)
 
@@ -634,6 +702,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 						Labels: map[string]string{"app": selectorValue},
 					},
 					Spec: v1.PodSpec{
+						SecurityContext: podSecurityContext(c),
 						Containers: []v1.Container{
 							{
 								Name:    "ics-e2e-tester",
@@ -647,12 +716,7 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 										ReadOnly:  readOnly,
 									},
 								},
-								SecurityContext: &v1.SecurityContext{
-									RunAsUser:                ptr.To(int64(0)),
-									RunAsGroup:               ptr.To(int64(0)),
-									ReadOnlyRootFilesystem:   ptr.To(false),
-									AllowPrivilegeEscalation: ptr.To(false),
-								},
+								SecurityContext: containerSecurityContext(),
 							},
 						},
 						RestartPolicy: v1.RestartPolicyAlways,
@@ -826,15 +890,17 @@ func NewTestPodWithName(c clientset.Interface, ns *v1.Namespace, name, command s
 			Spec: v1.PodSpec{
 				Containers: []v1.Container{
 					{
-						Name:         "ics-e2e-tester",
-						Image:        icrImage,
-						Command:      []string{"/bin/sh"},
-						Args:         []string{"-c", command},
-						VolumeMounts: make([]v1.VolumeMount, 0),
+						Name:            "ics-e2e-tester",
+						Image:           icrImage,
+						Command:         []string{"/bin/sh"},
+						Args:            []string{"-c", command},
+						VolumeMounts:    make([]v1.VolumeMount, 0),
+						SecurityContext: containerSecurityContext(),
 					},
 				},
-				RestartPolicy: v1.RestartPolicyNever,
-				Volumes:       make([]v1.Volume, 0),
+				RestartPolicy:   v1.RestartPolicyNever,
+				Volumes:         make([]v1.Volume, 0),
+				SecurityContext: podSecurityContext(c),
 			},
 		},
 	}
@@ -854,19 +920,17 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 			Spec: v1.PodSpec{
 				Containers: []v1.Container{
 					{
-						Name:         "ics-e2e-tester",
-						Image:        icrImage,
-						Command:      []string{"/bin/sh"},
-						Args:         []string{"-c", command},
-						VolumeMounts: make([]v1.VolumeMount, 0),
-						SecurityContext: &v1.SecurityContext{
-							RunAsUser:  ptr.To(int64(0)),
-							RunAsGroup: ptr.To(int64(0)),
-						},
+						Name:            "ics-e2e-tester",
+						Image:           icrImage,
+						Command:         []string{"/bin/sh"},
+						Args:            []string{"-c", command},
+						VolumeMounts:    make([]v1.VolumeMount, 0),
+						SecurityContext: containerSecurityContext(),
 					},
 				},
-				RestartPolicy: v1.RestartPolicyNever,
-				Volumes:       make([]v1.Volume, 0),
+				RestartPolicy:   v1.RestartPolicyNever,
+				Volumes:         make([]v1.Volume, 0),
+				SecurityContext: podSecurityContext(c),
 			},
 		},
 	}
