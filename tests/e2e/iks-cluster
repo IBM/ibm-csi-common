@@ -1024,7 +1024,9 @@ fi
 # Resolve KS API endpoint
 if [[ -n "$E2ETEST_CS_API_EP" ]]; then
     KS_HOST="$E2ETEST_CS_API_EP"
-elif [[ "$e2e_env" == "stage" || "$e2e_env" == "stage-us-south" ]]; then
+elif [[ "$e2e_env" == "stage-us-south" ]]; then
+    KS_HOST="https://stage-us-south.containers.test.cloud.ibm.com"
+elif [[ "$e2e_env" == "stage" ]]; then
     KS_HOST="https://containers.test.cloud.ibm.com"
 else
     KS_HOST="https://containers.cloud.ibm.com"
