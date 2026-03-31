@@ -16,15 +16,18 @@
 package snapshote2e
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/IBM/ibm-csi-common/tests/e2e/testsuites"
 	. "github.com/onsi/ginkgo/v2"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/types"
 	clientset "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	restclientset "k8s.io/client-go/rest"
@@ -63,6 +66,11 @@ var _ = Describe("[ics-e2e] [snapshot] Dynamic Provisioning and Snapshot", func(
 	})
 
 	It("should create a pod, write and read to it, take a volume snapshot, and create another pod from the snapshot", func() {
+		payload := `{"metadata": {"labels": {"security.openshift.io/scc.podSecurityLabelSync": "false","pod-security.kubernetes.io/enforce": "privileged"}}}`
+		_, labelerr := cs.CoreV1().Namespaces().Patch(context.TODO(), ns.Name, types.StrategicMergePatchType, []byte(payload), metav1.PatchOptions{})
+		if labelerr != nil {
+			panic(labelerr)
+		}
 		reclaimPolicy := v1.PersistentVolumeReclaimDelete
 		fpointer, err = os.OpenFile(testResultFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
