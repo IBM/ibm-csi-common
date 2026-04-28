@@ -3,7 +3,7 @@ module github.com/IBM/ibm-csi-common
 go 1.25.9
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.20-0.20260423100535-6f9d3271ceef
+	github.com/IBM/ibmcloud-volume-interface v1.2.20-0.20260428135321-44c2e3f5a391
 	github.com/container-storage-interface/spec v1.12.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/glog v1.2.1
@@ -16,9 +16,9 @@ require (
 	golang.org/x/net v0.47.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.36.8
-	k8s.io/api v0.35.2
-	k8s.io/apimachinery v0.35.2
-	k8s.io/client-go v0.35.2
+	k8s.io/api v0.35.4
+	k8s.io/apimachinery v0.35.4
+	k8s.io/client-go v0.35.4
 	k8s.io/kubernetes v1.32.8
 	k8s.io/mount-utils v0.32.8
 	k8s.io/pod-security-admission v0.32.8
@@ -28,7 +28,7 @@ require (
 require (
 	cel.dev/expr v0.18.0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
-	github.com/IBM/secret-utils-lib v1.1.16-0.20260423081242-a2036fd07eb7 // indirect
+	github.com/IBM/secret-utils-lib v1.1.16-0.20260428134227-f2f888ea0a61 // indirect
 	github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
@@ -82,7 +82,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
-	github.com/moby/spdystream v0.5.0 // indirect
+	github.com/moby/spdystream v0.5.1 // indirect
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
