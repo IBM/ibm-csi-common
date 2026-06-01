@@ -28,10 +28,10 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/toml v1.0.0 h1:dtDWrepsVPfW9H/4y7dDgFc2MBUSeJhlaDtK13CxFlU=
 github.com/BurntSushi/toml v1.0.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/IBM/ibmcloud-volume-interface v1.2.20-0.20260428135321-44c2e3f5a391 h1:Ip02PRYrTiiV9+s/wg2oG5iiFDEWotSyvC03NVKn1tk=
-github.com/IBM/ibmcloud-volume-interface v1.2.20-0.20260428135321-44c2e3f5a391/go.mod h1:COmznIzLK9KPuwGeEzRv+xB2MpQZdEEAOzI6Awxg5Ho=
-github.com/IBM/secret-utils-lib v1.1.16-0.20260428134227-f2f888ea0a61 h1:Z6LKRrJYU6+3/98dQhf9NCBqHxgGx0f4fUHHpKlSH7c=
-github.com/IBM/secret-utils-lib v1.1.16-0.20260428134227-f2f888ea0a61/go.mod h1:lKmp4uLZ89CgQavH0DwfBpie38fj3SRKV+yEMsacZd8=
+github.com/IBM/ibmcloud-volume-interface v1.2.20 h1:VZlP9fhFLX3evH9QlcXulYX4v4GNeTtbW7nl4Chg+ls=
+github.com/IBM/ibmcloud-volume-interface v1.2.20/go.mod h1:PMe4wOp+EEkVNwlo/iJahh+6/aIvjWo+nAdHB1oGBFE=
+github.com/IBM/secret-utils-lib v1.1.16 h1:RIainy11ICJVWjgi9FWSvBsl8xOwhzLvTKBI8AWq7wI=
+github.com/IBM/secret-utils-lib v1.1.16/go.mod h1:lSoMdjyGd3MVWCsPRrr25KrVz4jsxBNtfkS9xvQYhoM=
 github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab h1:UKkYhof1njT1/xq4SEg5z+VpTgjmNeHwPGRQl7takDI=
 github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab/go.mod h1:3VYc5hodBMJ5+l/7J4xAyMeuM2PNuepvHlGs8yilUCA=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
@@ -166,6 +166,7 @@ github.com/gofrs/uuid v4.4.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRx
 github.com/gogo/protobuf v1.3.1/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXPKa29o=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
+github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
 github.com/golang-jwt/jwt/v4 v4.1.0/go.mod h1:/xlHOz8bRuivTWchD4jCa+NbatV+wEUSzwAxVc6locg=
 github.com/golang-jwt/jwt/v4 v4.5.2 h1:YtQM7lnr8iZ+j5q71MGKkNw9Mn7AjHM68uc9g5fXeUI=
 github.com/golang-jwt/jwt/v4 v4.5.2/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=

@@ -1,9 +1,9 @@
 module github.com/IBM/ibm-csi-common
 
-go 1.25.9
+go 1.25.10
 
 require (
-	github.com/IBM/ibmcloud-volume-interface v1.2.20-0.20260428135321-44c2e3f5a391
+	github.com/IBM/ibmcloud-volume-interface v1.2.20
 	github.com/container-storage-interface/spec v1.12.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/glog v1.2.1
@@ -28,7 +28,7 @@ require (
 require (
 	cel.dev/expr v0.18.0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
-	github.com/IBM/secret-utils-lib v1.1.16-0.20260428134227-f2f888ea0a61 // indirect
+	github.com/IBM/secret-utils-lib v1.1.16 // indirect
 	github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
