@@ -12,7 +12,7 @@ ARCH=$(shell docker version -f {{.Client.Arch}})
 GO111MODULE_FLAG?=on
 export GO111MODULE=$(GO111MODULE_FLAG)
 
-export LINT_VERSION="1.60.1"
+export LINT_VERSION="2.12.2"
 
 COLOR_YELLOW=\033[0;33m
 COLOR_RESET=\033[0m
@@ -35,8 +35,7 @@ deps:
 
 	@if ! command -v $(LINT_BIN) >/dev/null || ! golangci-lint --version 2>/dev/null | grep -q "$(LINT_VERSION)"; then \
 		echo "Installing golangci-lint $(LINT_VERSION) ..."; \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-			| sh -s -- -b $(shell go env GOBIN 2>/dev/null || echo $$(go env GOPATH)/bin) v$(LINT_VERSION); \
+		GOBIN=$(shell go env GOPATH)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v$(LINT_VERSION); \
 	fi
 
 .PHONY: fmt
