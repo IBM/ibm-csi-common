@@ -835,6 +835,7 @@ if [[ "$PRIMARY_ZONE_ID" == "$SECOND_ZONE_ID" ]]; then
 fi
 
 # Login to IBM Cloud
+echo "==========LOGGING INTO IBMCLOUD=============="
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
     if [[ "$e2e_env" = "stage" ]]; then
@@ -847,6 +848,7 @@ else
 fi
 if [[ $rc -ne 0 ]]; then echo -e "Error: IBM Cloud Login failed!!!" >> $E2E_TEST_SETUP; exit 1; fi
 
+# target the region
 ibmcloud regions | grep -w "$e2e_ic_region" > /dev/null; rc=$?
 if [[ $rc -ne 0 ]]; then
    echo -e "Error: Invalid option \"-r $e2e_ic_region\"!!!" >> $E2E_TEST_SETUP
@@ -855,6 +857,7 @@ fi
 IC_REGION="$e2e_ic_region"
 ibmcloud target -r "$IC_REGION"
 
+echo "----- ic ks init -----"
 if [[ -n "$E2ETEST_CS_API_EP" ]]; then
    ibmcloud ks init --host $E2ETEST_CS_API_EP
 elif [[ "$IC_REGION" == "ca-mon" ]]; then
