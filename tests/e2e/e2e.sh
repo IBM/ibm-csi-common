@@ -28,6 +28,7 @@ rm -f $E2E_TEST_SETUP
 
 IC_LOGIN="false"
 PVCCOUNT="single"
+e2e_vgs_test_case="false"
 
 UNKOWNPARAM=()
 while [[ $# -gt 0 ]]; do
@@ -56,6 +57,12 @@ while [[ $# -gt 0 ]]; do
 
 		--run-acadia)
 		e2e_acadia_profile_test_case="$2"
+		shift
+		shift
+		;;
+
+		--run-vgs)
+		e2e_vgs_test_case="$2"
 		shift
 		shift
 		;;
@@ -254,7 +261,22 @@ else
     echo -e "VPC-BLOCK-CSI-TEST-ACADIA: VPC-BLOCK-ACADIA-PROFILE-TESTS: SKIP" >> "$E2E_TEST_RESULT"
 fi
 
-if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 && $rc7 -eq 0 ]]; then
+# Volume Group Snapshot tests are supported only by VPC Block CSI Driver 5.2.
+rc8=${rc8:-0}
+if [[ "$e2e_vgs_test_case" == "true" && "$CLUSTER_ADDON_MAJOR" == "$VA_ADDON_VERSION" ]]; then
+	ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[vgs\]" ./tests/e2e -- -e2e-verify-service-account=false
+	rc8=$?
+	echo "Exit status for volume group snapshot test: $rc8"
+else
+	if [[ "$e2e_vgs_test_case" == "true" ]]; then
+		echo "Skipping volume group snapshot tests: VGS is supported only by VPC Block CSI Driver 5.2 (found $CLUSTER_ADDON_MAJOR)"
+	else
+		echo "Skipping volume group snapshot tests: --run-vgs was not enabled"
+	fi
+	echo -e "VPC-BLK-CSI-TEST-VGS: VOLUME GROUP SNAPSHOT TESTS: SKIP" >> "$E2E_TEST_RESULT"
+fi
+
+if [[ $rc1 -eq 0 && $rc2 -eq 0 && $rc3 -eq 0 && $rc4 -eq 0 && $rc5 -eq 0 && $rc6 -eq 0 && $rc7 -eq 0 && $rc8 -eq 0 ]]; then
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: PASS" >> $E2E_TEST_RESULT
 else
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT

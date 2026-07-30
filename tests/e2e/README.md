@@ -60,3 +60,18 @@
    ```
    ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[with-sdp-profile\]"  ./tests/e2e
    ```
+14. Test volume group snapshot creation, restore, data integrity, and deletion.
+    This test requires an existing cluster with VolumeGroupSnapshot support and
+    IBM VPC Block CSI Driver version 5.2.
+   ```
+   ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[vgs\]" ./tests/e2e -- -e2e-verify-service-account=false
+   ```
+
+   In Jenkins automation, enable the optional suite by passing the checkbox value
+   to the E2E runner:
+   ```
+   ./tests/e2e/e2e.sh --login --env <stage|prod> --region <region> --run-vgs true
+   ```
+
+   The E2E runner executes this suite only when the normalized VPC Block CSI
+   add-on version is exactly `5.2`.
