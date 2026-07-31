@@ -229,11 +229,11 @@ func (pvw *PVWatcher) getVolume(pv *v1.PersistentVolume, ctxLogger *zap.Logger) 
 
 func (pvw *PVWatcher) filter(obj interface{}) bool {
 	pvw.logger.Debug("Entry filter()", zap.Reflect("obj", obj))
-	pv, _ := obj.(*v1.PersistentVolume)
-	var provisoinerMatch = false
-	if pv != nil && pv.Spec.CSI != nil {
-		provisoinerMatch = pv.Spec.CSI.Driver == pvw.provisionerName
+	pv, ok := obj.(*v1.PersistentVolume)
+	if !ok || pv == nil {
+		return false
 	}
-	pvw.logger.Debug("Exit filter()", zap.Bool("provisoinerMatch", provisoinerMatch))
-	return provisoinerMatch
+	provisionerMatch := pv.Spec.CSI != nil && pv.Spec.CSI.Driver == pvw.provisionerName
+	pvw.logger.Debug("Exit filter()", zap.Bool("provisionerMatch", provisionerMatch))
+	return provisionerMatch
 }

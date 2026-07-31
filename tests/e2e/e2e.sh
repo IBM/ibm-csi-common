@@ -27,10 +27,9 @@ rm -f $E2E_TEST_RESULT
 rm -f $E2E_TEST_SETUP
 
 IC_LOGIN="false"
-PVCCOUNT="single"
 e2e_vgs_test_case="false"
 
-UNKOWNPARAM=()
+UNKNOWN_PARAMS=()
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case $key in
@@ -67,11 +66,16 @@ while [[ $# -gt 0 ]]; do
 		shift
 		;;
     		*)
-    		UNKOWNPARAM+=("$1")
+    		UNKNOWN_PARAMS+=("$1")
     		shift
     		;;
-	esac
+ esac
 done
+
+if [[ ${#UNKNOWN_PARAMS[@]} -gt 0 ]]; then
+ echo "Error: Unknown parameters: ${UNKNOWN_PARAMS[*]}"
+ exit 1
+fi
 
 export E2E_ZONE=$REGION-1
 
@@ -89,12 +93,12 @@ echo "**********VPC-Block-Volume-Tests**********" > $E2E_TEST_RESULT
 echo "********** E2E Test Details **********" > $E2E_TEST_SETUP
 echo -e "StartTime   : $(date "+%F-%T")" >> $E2E_TEST_SETUP
 
-CLUSTER_DETAIL=$(kubectl get cm cluster-info -n kube-system -o jsonpath='{.data.cluster-config\.json}' |\
-		 grep -v -e 'crn' -e 'master_public_url' -e 'master_url'); rc=$?
+CLUSTER_DETAIL=$(kubectl get cm cluster-info -n kube-system -o jsonpath='{.data.cluster-config\.json}'); rc=$?
+CLUSTER_DETAIL=$(echo "$CLUSTER_DETAIL" | grep -v -e 'crn' -e 'master_public_url' -e 'master_url')
 if [[ $rc -ne 0 ]]; then
 	echo -e "Error       : Setup failed" >> $E2E_TEST_SETUP
 	echo -e "Error       : Unable to connect to the cluster" >> $E2E_TEST_SETUP
-	echo -e "Error       : Unbale to execute e2e test!"
+	echo -e "Error       : Unable to execute e2e test!"
 	echo -e "VPC-BLK-CSI-TEST: VPC-Block-Volume-Tests: FAILED" >> $E2E_TEST_RESULT
 	exit 1
 fi
@@ -134,7 +138,7 @@ function check_trusted_profile_status {
         secret_json=$(kubectl get secret ibm-cloud-credentials -n kube-system -o json)
         encoded=$(jq -r '.data["ibm-credentials.env"]' <<< "$secret_json")
         decoded=$(base64 --decode <<< "$encoded")
-        profileID=$(echo $decoded | grep IBMCLOUD_PROFILEID | cut -d'=' -f3-)
+        profileID=$(echo "$decoded" | grep IBMCLOUD_PROFILEID | cut -d'=' -f3-)
         if [[ "$profileID" == "$expected_profile_id" ]]; then
             echo -e "VPC-BLOCK-CSI-TEST: USING TRUSTED_PROFILE: TRUE" >> $E2E_TEST_SETUP
 			echo "***************************************************" >> $E2E_TEST_SETUP
@@ -202,8 +206,9 @@ echo "                  Path: `pwd`"
 # E2E Execution
 go clean -modcache
 export GO111MODULE=on
-# Install supported ginkgo version as of July 2024. Update it if necessary
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.21.0
+# Install ginkgo matching the version declared in go.mod
+GINKGO_VERSION=$(grep 'github.com/onsi/ginkgo/v2 ' go.mod | awk '{print $2}')
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@"${GINKGO_VERSION}"
 set +e
 ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[sc\]" ./tests/e2e -- -e2e-verify-service-account=false
 rc1=$?
@@ -232,8 +237,8 @@ version_ge() {
     [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
 }
 
-rc5=${rc5:-0}
-rc6=${rc6:-0}
+rc5=0
+rc6=0
 if version_ge "$CLUSTER_ADDON_MAJOR" "$VA_ADDON_VERSION"; then
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
 	rc5=$?
