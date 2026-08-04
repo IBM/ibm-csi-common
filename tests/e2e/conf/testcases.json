@@ -11,7 +11,9 @@
     "VPC-BLK-CSI-TEST: Custom SC POD Test",
     "VPC-BLK-CSI-TEST: 5iops SC POD Resize Volume",
     "VPC-BLK-CSI-TEST: XFS Tier Profile Test",
-    "VPC-BLK-CSI-TEST: XFS Tier Profile Resize",
+    "VPC-BLK-CSI-TEST: XFS Tier Profile Resize"
+  ],
+  "sdp": [
     "VPC-BLK-CSI-TEST: XFS SDP Profile Test",
     "VPC-BLK-CSI-TEST: XFS SDP Profile Resize"
   ],
@@ -20,5 +22,8 @@
   ],
   "statefulset": [
     "VPC-BLK-CSI-TEST: With Statefulsets"
+  ],
+  "vgs": [
+    "VPC-BLK-CSI-TEST: VOLUME GROUP SNAPSHOT CREATE | RESTORE | DELETE"
   ]
 }

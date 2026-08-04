@@ -46,6 +46,12 @@ import (
 	"k8s.io/utils/ptr"
 )
 
+const (
+	snapshotReadyTimeout  = 10 * time.Minute
+	snapshotDeleteTimeout = 15 * time.Minute
+	snapshotPollInterval  = 15 * time.Second
+)
+
 var (
 	icrImage = os.Getenv("icrImage")
 )
@@ -1129,18 +1135,17 @@ func (t *TestVolumeSnapshotClass) CreateSnapshot(pvc *v1.PersistentVolumeClaim) 
 
 func (t *TestVolumeSnapshotClass) ReadyToUse(snapshot *volumesnapshotv1.VolumeSnapshot, snapFail bool) {
 	By("waiting for VolumeSnapshot to be ready to use - " + snapshot.Name)
-	err := wait.Poll(15*time.Second, 5*time.Minute, func() (bool, error) {
-		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(context.TODO(), snapshot.Name, metav1.GetOptions{})
+	err := wait.PollUntilContextTimeout(context.Background(), snapshotPollInterval, snapshotReadyTimeout, true, func(ctx context.Context) (bool, error) {
+		vs, err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Get(ctx, snapshot.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, fmt.Errorf("did not see ReadyToUse: %v", err)
 		}
-
 		if vs.Status == nil || vs.Status.ReadyToUse == nil {
 			return false, nil
 		}
 		return *vs.Status.ReadyToUse, nil
 	})
-	if snapFail == true {
+	if snapFail {
 		Expect(err).To(HaveOccurred())
 	} else {
 		framework.ExpectNoError(err)
@@ -1152,7 +1157,7 @@ func (t *TestVolumeSnapshotClass) DeleteSnapshot(vs *volumesnapshotv1.VolumeSnap
 	err := snapshotclientset.New(t.client).SnapshotV1().VolumeSnapshots(t.namespace.Name).Delete(context.TODO(), vs.Name, metav1.DeleteOptions{})
 	framework.ExpectNoError(err)
 
-	err = t.waitForSnapshotDeleted(t.namespace.Name, vs.Name, 2*time.Second, 15*time.Minute)
+	err = t.waitForSnapshotDeleted(t.namespace.Name, vs.Name, 2*time.Second, snapshotDeleteTimeout)
 	framework.ExpectNoError(err)
 }
 
