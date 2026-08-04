@@ -1,6 +1,6 @@
 module github.com/IBM/ibm-csi-common
 
-go 1.25.10
+go 1.26.5
 
 require (
 	github.com/IBM/ibmcloud-volume-interface v1.2.21
