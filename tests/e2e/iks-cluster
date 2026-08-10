@@ -779,9 +779,9 @@ flavor_type="amd64"
 
 cmd_name="$0"
 usage_str="$cmd_name: Options:-
-        -e <prod|stage> -d <cluster name> or
-        -e <prod|stage> -c <exiting cluster name> or
-        -e <prod|stage> --fresh [-n <name tag> ] -k default|latest|base -p classic|vpc-gen2 -t k8s|ocp -r <region> [--mz] [--retain]"
+        -e <prod|stage|stage-us-south|stage4-south> -d <cluster name> or
+        -e <prod|stage|stage-us-south|stage4-south> -c <exiting cluster name> or
+        -e <prod|stage|stage-us-south|stage4-south> --fresh [-n <name tag> ] -k default|latest|base -p classic|vpc-gen2 -t k8s|ocp -r <region> [--mz] [--retain]"
 
 if [[ $# -lt 1 ]]; then
 	echo "$usage_str"
@@ -917,7 +917,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 if [[ -z "$IC_API_KEY_PROD" && -z "$IC_API_KEY_STAG"  ]]; then echo -e "Error: E2ETEST_API_KEY not set!!!" >> $E2E_TEST_SETUP; exit 1;  fi
 
 E2ETEST_MZ="$e2e_mz"
-if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" && "$e2e_env" != "stage-us-south" ]]; then
+if [[ "$e2e_env" != "prod" && "$e2e_env" != "stage" && "$e2e_env" != "stage-us-south" && "$e2e_env" != "stage4-south" ]]; then
 	echo -e "Error: Invalid option \"-e $e2e_env\"!!!" >> $E2E_TEST_SETUP
 	exit 1
 fi
@@ -947,6 +947,10 @@ if [[ "$e2e_env" = "stage" ]]; then
 elif [[ "$e2e_env" = "stage-us-south" ]]; then
     E2ETEST_IC_API_EP="https://test.cloud.ibm.com"
     [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://stage-us-south.containers.test.cloud.ibm.com"
+    E2ETEST_IC_RES_GRP="Default"
+elif [[ "$e2e_env" = "stage4-south" ]]; then
+    E2ETEST_IC_API_EP="https://test.cloud.ibm.com"
+    [[ -z "$E2ETEST_CS_API_EP" ]] && E2ETEST_CS_API_EP="https://stage4-south.containers.test.cloud.ibm.com"
     E2ETEST_IC_RES_GRP="Default"
 else
     E2ETEST_IC_API_EP="https://cloud.ibm.com"
@@ -983,7 +987,7 @@ echo "==========LOGGING INTO IBMCLOUD=============="
 echo "------- REGION $IC_REGION---------"
 set +x
 if [[ -z "$E2ETEST_API_KEY" ]]; then
-    if [[ "$e2e_env" = "stage" || "$e2e_env" = "stage-us-south" ]]; then
+    if [[ "$e2e_env" = "stage" || "$e2e_env" = "stage-us-south" || "$e2e_env" = "stage4-south" ]]; then
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_STAG} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
     else
         ibmcloud login -a $E2ETEST_IC_API_EP --apikey ${IC_API_KEY_PROD} -r $IC_REGION -g $E2ETEST_IC_RES_GRP; rc=$?
@@ -1026,6 +1030,8 @@ if [[ -n "$E2ETEST_CS_API_EP" ]]; then
     KS_HOST="$E2ETEST_CS_API_EP"
 elif [[ "$e2e_env" == "stage-us-south" ]]; then
     KS_HOST="https://stage-us-south.containers.test.cloud.ibm.com"
+elif [[ "$e2e_env" == "stage4-south" ]]; then
+    KS_HOST="https://stage4-south.containers.test.cloud.ibm.com"
 elif [[ "$e2e_env" == "stage" ]]; then
     KS_HOST="https://containers.test.cloud.ibm.com"
 else
