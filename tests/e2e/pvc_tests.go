@@ -708,9 +708,11 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 			version = deployment.ObjectMeta.Annotations["version"]
 			fmt.Println("Addon version:", version)
 		}
-		//once 5.1 deprecates we can remove version check
-		//saving x.y version
-		parts := strings.Split(version, ".")
+
+		// once 5.1 deprecates we can remove version check
+		// normalize v-prefixed versions, then save x.y
+		normalizedVersion := strings.TrimPrefix(version, "v")
+		parts := strings.Split(normalizedVersion, ".")
 		if len(parts) >= 2 {
 			majorMinor := fmt.Sprintf("%s.%s", parts[0], parts[1])
 			fmt.Println("Major.Minor:", majorMinor)
@@ -719,6 +721,12 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 			}
 		} else {
 			fmt.Println("Version format is invalid")
+		}
+
+		// SDP profile test skip in ngdc-test regions
+		zone := os.Getenv("E2E_ZONE")
+		if strings.Contains(zone, "ngdc-test") {
+			condition = false
 		}
 
 		snapshotrcs, err = restClient(testsuites.SnapshotAPIGroup, testsuites.APIVersionv1)
@@ -730,7 +738,7 @@ var _ = Describe("[ics-e2e] [with-sdp-profile] Provisioning PVC with SDP profile
 	// sc and pvc are according to doc, positive scenerio,  pvc creation will be successful
 	It("with custom sc(iops=3000, throughput=1000, pvc size=1Gi): should create a pvc & pv, pod resources, write and read to volume", func() {
 		if condition == false {
-			Skip("Skipping because addon version is 5.1 and acadia profile is not supported for this version")
+			Skip("Skipping SDP test - SDP profile is not supported (addon 5.1 or ngdc-test region)")
 		}
 
 		// Create SDP profile of ext4 fsType sc

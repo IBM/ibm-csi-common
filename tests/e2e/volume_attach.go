@@ -830,6 +830,27 @@ func CreatePVC(pvcName string, namespace string, cs clientset.Interface) {
 	}
 }
 
+func cloneStringMap(values map[string]string) map[string]string {
+	cloned := make(map[string]string, len(values))
+	for key, value := range values {
+		cloned[key] = value
+	}
+	return cloned
+}
+
+func tierBaseStorageClassName(profile string) string {
+	switch profile {
+	case "5iops-tier":
+		return "ibmc-vpc-block-5iops-tier"
+	case "general-purpose":
+		return "ibmc-vpc-block-general-purpose"
+	case "10iops-tier":
+		return "ibmc-vpc-block-10iops-tier"
+	default:
+		return ""
+	}
+}
+
 // CreateStorageClass creates a storage class with the specified parameters
 // Parameters:
 //   - scName: Name of the storage class
@@ -839,7 +860,7 @@ func CreatePVC(pvcName string, namespace string, cs clientset.Interface) {
 //   - throughput: Throughput in MB/s (only used for "sdp" profile, empty string otherwise)
 //   - cs: Kubernetes clientset
 func CreateStorageClass(scName, profile, fsType, iops, throughput string, cs clientset.Interface) {
-	var zone = os.Getenv("E2E_ZONE")
+	zone := strings.TrimSpace(os.Getenv("E2E_ZONE"))
 	flag := true
 
 	params := map[string]string{
@@ -866,6 +887,41 @@ func CreateStorageClass(scName, profile, fsType, iops, throughput string, cs cli
 		Provisioner:          "vpc.block.csi.ibm.io",
 		Parameters:           params,
 		AllowVolumeExpansion: &flag,
+	}
+
+	// For tier profiles, use the cluster-installed StorageClass to preserve version-specific parameters needed by the addon, then only override fsType/zone.
+	baseSCName := tierBaseStorageClassName(profile)
+	if baseSCName != "" {
+		baseSC, baseErr := cs.StorageV1().StorageClasses().Get(context.Background(), baseSCName, metav1.GetOptions{})
+		if baseErr != nil {
+			log.Printf("Failed to fetch base StorageClass %q for profile %q. Falling back to static params: %v", baseSCName, profile, baseErr)
+		} else {
+			baseParams := cloneStringMap(baseSC.Parameters)
+			baseParams["csi.storage.k8s.io/fstype"] = fsType
+			if zone != "" {
+				baseParams["zone"] = zone
+			}
+
+			if _, hasProfile := baseParams["profile"]; !hasProfile && profile != "" {
+				baseParams["profile"] = profile
+			}
+
+			storageClass = &storagev1.StorageClass{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: scName,
+				},
+				Provisioner:          baseSC.Provisioner,
+				Parameters:           baseParams,
+				ReclaimPolicy:        baseSC.ReclaimPolicy,
+				MountOptions:         append([]string(nil), baseSC.MountOptions...),
+				AllowVolumeExpansion: baseSC.AllowVolumeExpansion,
+				VolumeBindingMode:    baseSC.VolumeBindingMode,
+				AllowedTopologies:    append([]corev1.TopologySelectorTerm(nil), baseSC.AllowedTopologies...),
+			}
+			if storageClass.AllowVolumeExpansion == nil {
+				storageClass.AllowVolumeExpansion = &flag
+			}
+		}
 	}
 
 	_, err := cs.StorageV1().StorageClasses().Create(context.Background(), storageClass, metav1.CreateOptions{})
