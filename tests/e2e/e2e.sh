@@ -217,10 +217,17 @@ echo "Exit status for xfs storage class resize volume test: $rc4"
 
 set -x
 VA_ADDON_VERSION=5.2
-CLUSTER_ADDON_MAJOR=$(echo "$CLUSTER_ADDON_VER" | awk -F'.' '{print $1"."$2}')
-compare=`echo | awk "{ print ($CLUSTER_ADDON_MAJOR >= $VA_ADDON_VERSION)?1 : 0 }"`
-echo $compare
-if [[ $compare -eq 1 ]]; then
+CLUSTER_ADDON_MAJOR=$(echo "$CLUSTER_ADDON_VER" | sed -E 's/^v//' | awk -F'.' '{print $1"."$2}')
+echo "Normalized add-on major.minor version: $CLUSTER_ADDON_MAJOR"
+
+# version check
+version_ge() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+}
+
+rc5=${rc5:-0}
+rc6=${rc6:-0}
+if version_ge "$CLUSTER_ADDON_MAJOR" "$VA_ADDON_VERSION"; then
 	ginkgo -v --focus="\[ics-e2e\] \[volume-attachment-limit\] \[default\]" ./tests/e2e
 	rc5=$?
 	echo "Exit status for default attach-volume test: $rc5"
@@ -229,11 +236,6 @@ if [[ $compare -eq 1 ]]; then
 	rc6=$?
 	echo "Exit status for configmap related attach-volume test: $rc6"
 fi
-
-#version check
-version_ge() {
-    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
-}
 
 # Acadia Profile based tests
 rc7=${rc7:-0}
