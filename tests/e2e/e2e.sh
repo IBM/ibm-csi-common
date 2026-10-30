@@ -61,6 +61,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 
 		--run-vgs)
+		if [[ $# -lt 2 || ( "$2" != "true" && "$2" != "false" ) ]]; then
+			echo "Error: --run-vgs requires true or false"
+			exit 1
+		fi
 		e2e_vgs_test_case="$2"
 		shift
 		shift

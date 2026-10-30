@@ -61,8 +61,13 @@
    ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[with-sdp-profile\]"  ./tests/e2e
    ```
 14. Test volume group snapshot creation, restore, data integrity, and deletion.
-    This test requires an existing cluster with VolumeGroupSnapshot support and
-    IBM VPC Block CSI Driver version 5.2.
+    These tests require an existing cluster serving `groupsnapshot.storage.k8s.io/v1`
+    and `snapshot.storage.k8s.io/v1`, working VGS controllers/sidecars, and
+    IBM VPC Block CSI Driver version **5.2 only**. The runner does not install
+    CRDs or enable VGS. The E2E account needs access to group snapshots, classes,
+    contents, member snapshots/contents, pods, PVCs, PVs, events, and volume attachments.
+    The `ibmc-vpc-block-5iops-tier` storage class must use Immediate binding and
+    Delete reclaim policy. Supply a writable shell-capable pod image via `icrImage`.
    ```
    ginkgo -v -nodes=1 --focus="\[ics-e2e\] \[vgs\]" ./tests/e2e -- -e2e-verify-service-account=false
    ```
@@ -75,3 +80,19 @@
 
    The E2E runner executes this suite only when the normalized VPC Block CSI
    add-on version is exactly `5.2`.
+
+   The nine independent scenarios cover the basic lifecycle, exclusion of an
+   unlabeled third PVC, point-in-time data, recovery after source pod/PVC/PV
+   deletion, deletion during creation, repeated Kubernetes deletion, and negative
+   cases for no matching PVCs, unattached source volumes, and a missing class.
+   The repeated-delete case checks Kubernetes API behavior, not CSI RPC idempotency.
+   Negative cases must report the expected cause; an unrelated error or timeout
+   does not count as success. Delete-during-creation is skipped if creation finishes
+   before the test can observe bound, unready content; rerun that case to exercise it.
+
+   Each scenario records PASS only after cleanup. Failures include VGS status and
+   namespace events. Cleanup checks group/member snapshots and their contents,
+   including resources created during partial setup. Unit tests can run without a cluster:
+   ```
+   go test ./tests/e2e/testsuites
+   ```
