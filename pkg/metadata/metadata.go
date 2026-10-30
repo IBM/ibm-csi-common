@@ -67,13 +67,22 @@ var _ NodeMetadata = &nodeMetadataManager{}
 
 // NewNodeMetadata ...
 func (nodeManager *NodeInfoManager) NewNodeMetadata(logger *zap.Logger) (NodeMetadata, error) {
-	config, err := rest.InClusterConfig()
+	// rest.InClusterConfig reads the pod's service-account token and CA bundle
+	// from /var/run/secrets/kubernetes.io/serviceaccount/ — a well-known,
+	// read-only mount injected by the Kubernetes kubelet. No credential files
+	// outside that path are accessed.
+	inClusterConfig, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
 	}
+	// Require a non-empty API server host to prevent accidentally using a
+	// config that was populated from an untrusted or empty source.
+	if inClusterConfig.Host == "" {
+		return nil, fmt.Errorf("in-cluster config returned empty API server host")
+	}
 
 	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(inClusterConfig)
 	if err != nil {
 		return nil, err
 	}
