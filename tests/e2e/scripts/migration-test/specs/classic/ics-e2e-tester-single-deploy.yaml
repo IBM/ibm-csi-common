@@ -5,7 +5,6 @@ metadata:
   labels:
     run: ics-e2e-tester
   name: ics-e2e-tester-deploy
-  namespace: e2e-test
 spec:
   replicas: 1
   selector:
@@ -23,7 +22,7 @@ spec:
         run: ics-e2e-tester
     spec:
       containers:
-      - image: alpine:3.21
+      - image: alpine:latest
         imagePullPolicy: IfNotPresent
         name: ics-e2e-tester
         command: ["/bin/sh"]
@@ -31,28 +30,10 @@ spec:
         volumeMounts:
         - mountPath: /mnt/vol01
           name: vol01
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 10001
-          runAsGroup: 10001
-          capabilities:
-            drop:
-            - ALL
+        resources: {}
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext:
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
+      securityContext: {}
       volumes:
       - name: vol01
         persistentVolumeClaim:

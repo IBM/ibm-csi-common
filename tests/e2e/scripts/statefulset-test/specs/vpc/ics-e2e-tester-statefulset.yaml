@@ -2,12 +2,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx-vpc-block
-  namespace: e2e-test
   labels:
     app: nginx-vpc-block
 spec:
   ports:
-  - port: 8080
+  - port: 80
     name: web
   clusterIP: None
   selector:
@@ -17,7 +16,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: web-vpc-block
-  namespace: e2e-test
   labels:
     app: nginx-vpc-block
 spec:
@@ -33,37 +31,17 @@ spec:
         app: nginx-vpc-block # has to match .spec.selector.matchLabels
     spec:
       terminationGracePeriodSeconds: 10
-      securityContext:
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - name: nginx
         image: k8s.gcr.io/nginx-slim:0.8
         ports:
-        - containerPort: 8080
+        - containerPort: 80
           name: web
         volumeMounts:
         - name: pvc-www-0
           mountPath: /usr/share/nginx0/html
         - name: pvc-www-1
           mountPath: /usr/share/nginx1/html
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          runAsNonRoot: true
-          runAsUser: 10001
-          runAsGroup: 10001
-          capabilities:
-            drop:
-            - ALL
   volumeClaimTemplates:
   - metadata:
       labels:

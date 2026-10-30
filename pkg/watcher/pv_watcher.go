@@ -19,9 +19,7 @@ package watcher
 
 import (
 	"flag"
-	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -99,29 +97,6 @@ var kubeconfig = flag.String(
 	"Absolute path to the kubeconfig file. Either this or master needs to be set if the provisioner is being run out of cluster.",
 )
 
-// validateKubeconfigPath checks that the supplied kubeconfig path is a clean,
-// absolute path to an existing regular file. This prevents an attacker who can
-// influence process flags from redirecting the credential read to an arbitrary
-// location (e.g. a symlink to a sensitive file).
-func validateKubeconfigPath(p string) error {
-	if p == "" {
-		// Empty means in-cluster config will be used; nothing to validate.
-		return nil
-	}
-	cleaned := filepath.Clean(p)
-	if !filepath.IsAbs(cleaned) {
-		return fmt.Errorf("kubeconfig path must be absolute, got %q", p)
-	}
-	info, err := os.Stat(cleaned)
-	if err != nil {
-		return fmt.Errorf("kubeconfig path %q is not accessible: %w", cleaned, err)
-	}
-	if !info.Mode().IsRegular() {
-		return fmt.Errorf("kubeconfig path %q must be a regular file", cleaned)
-	}
-	return nil
-}
-
 // New creates the Watcher instance
 func New(logger *zap.Logger, provisionerName string, volumeType string, cloudProvider cloudprovider.CloudProviderInterface) *PVWatcher {
 	var restConfig *rest.Config
@@ -129,16 +104,6 @@ func New(logger *zap.Logger, provisionerName string, volumeType string, cloudPro
 	// Register provider
 	VolumeTypeMap[provisionerName] = volumeType
 
-	// Validate the kubeconfig path before use to prevent path-traversal or
-	// symlink-based credential theft if the flag value is attacker-influenced.
-	if err = validateKubeconfigPath(*kubeconfig); err != nil {
-		logger.Fatal("Invalid kubeconfig path:", zap.Error(err))
-	}
-
-	// BuildConfigFromFlags falls back to in-cluster config when both master
-	// and kubeconfig are empty — this is the standard production path.
-	// When kubeconfig is set (out-of-cluster / test usage) the path has been
-	// validated above.
 	restConfig, err = clientcmd.BuildConfigFromFlags(*master, *kubeconfig)
 	if err != nil {
 		logger.Fatal("Failed to create config:", zap.Error(err))

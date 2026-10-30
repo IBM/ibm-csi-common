@@ -195,7 +195,7 @@ func (volume *VolumeDetails) SetupDynamicPersistentVolumeClaim(client clientset.
 			APIGroup: &SnapshotAPIGroup,
 		}
 		tpvc = NewTestPersistentVolumeClaimWithDataSource(client, volume.PVCName, namespace, volume.ClaimSize, volume.VolumeMode, &storageClass, dataSource)
-		By(fmt.Sprintf("%q", volume.PVCName))
+		By(fmt.Sprintf("%q", tpvc))
 	} else {
 		tpvc = NewTestPersistentVolumeClaim(client, volume.PVCName, namespace, volume.ClaimSize, volume.AccessMode, volume.VolumeMode, &storageClass)
 	}
