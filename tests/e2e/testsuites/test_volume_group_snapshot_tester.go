@@ -619,7 +619,7 @@ func waitForVGSReady(ctx context.Context, dc dynamic.Interface, ns, name string,
 }
 
 var (
-	vgsNoPVCError          = regexp.MustCompile(`(?i)\b(no|zero|0)\s+(matching\s+)?(pvcs?|persistent[ -]?volume[ -]?claims?|volumes?)\b|\b(pvcs?|persistent[ -]?volume[ -]?claims?|volumes?)\s+(list\s+)?(is\s+)?empty\b|\bfind any\s+(pvcs?|volumes?)\b`)
+	vgsNoPVCError          = regexp.MustCompile(`(?i)\b(no|zero|0)\s+(matching\s+)?(pvcs?|persistent[ -]?volume[ -]?claims?|volumes?)\b|\b(pvcs?|persistent[ -]?volume[ -]?claims?|volumes?)\s+(list\s+)?(is\s+)?empty\b|\bfind any\s+(pvcs?|volumes?)\b|\bnot applied to any\s+(pvcs?|persistent[ -]?volume[ -]?claims?)`)
 	vgsUnattachedError     = regexp.MustCompile(`(?i)\bunattached\b|not attached|must be attached|\bdetached\b|attachment.*(missing|not found)|volume.*(\bavailable\b|\bin[_ -]use\b)`)
 	vgsMissingClassError   = regexp.MustCompile(`(?i)not found|does not exist|missing`)
 	vgsInfrastructureError = regexp.MustCompile(`(?i)unauthorized|unauthenticated|forbidden|permission denied|credentials|connection refused|deadline exceeded|unimplemented|unsupported|not supported|service unavailable|timed out`)
