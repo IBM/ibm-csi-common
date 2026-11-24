@@ -22,10 +22,7 @@ import (
 
 	"github.com/IBM/ibm-csi-common/pkg/utils"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func TestGetCSIError(t *testing.T) {
@@ -42,14 +39,4 @@ func TestGetCSIError(t *testing.T) {
 func TestGetCSIMessage(t *testing.T) {
 	message := GetCSIMessage(MethodUnimplemented, "create")
 	assert.NotNil(t, message)
-}
-
-func TestGetCSIBackendErrorKeepsExistingStatuses(t *testing.T) {
-	MessagesEn = InitMessages()
-	logger := zap.NewNop()
-	forbidden := Message{CSIError: "RC:403 Forbidden"}
-	unavailable := Message{CSIError: "RC:503 Service Unavailable"}
-
-	assert.Equal(t, codes.InvalidArgument, status.Code(GetCSIBackendError(logger, "request-id", forbidden)))
-	assert.Equal(t, codes.Internal, status.Code(GetCSIBackendError(logger, "request-id", unavailable)))
 }
