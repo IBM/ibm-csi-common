@@ -17,10 +17,10 @@
 package messages
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 
 	providerError "github.com/IBM/ibmcloud-volume-interface/lib/utils"
 	"go.uber.org/zap"
@@ -52,93 +52,104 @@ func GetCSIGroupSnapshotBackendError(logger *zap.Logger, requestID string, opera
 	return status.Error(msg.Type, msg.Info())
 }
 
+// A VPC failure reaches us as text inside the provider error, for example:
+//
+//	Trace Code:<id>, Code:snapshots_source_volume_busy, Description:<text>, RC:409 Conflict
+//
+// These patterns read the VPC error code and the HTTP status from that text.
 var (
-	// The provider turns a VPC error into text such as "Trace Code:<id>, Code:<vpc_code>, Description:<text>, RC:404 Not Found".
-	// These patterns pull out only the VPC "Code:" and "RC:" values
-	vpcCodeRe = regexp.MustCompile(`\bcode:([a-z0-9_]+)`)
-	vpcRCRe   = regexp.MustCompile(`\brc:(\d{3})`)
+	vpcCodeRe   = regexp.MustCompile(`(?:^|, )Code:([a-z0-9_]+)`)
+	vpcStatusRe = regexp.MustCompile(`, RC:(\d{3})`)
 )
 
-// vpcCodeToCSICode maps a specific VPC error code to the CSI status code returned to the snapshotter.
+// vpcCodeToCSICode maps a VPC error code to the CSI status returned to the snapshotter.
 var vpcCodeToCSICode = map[string]codes.Code{
 	"snapshot_consistency_groups_resource_group_invalid": codes.InvalidArgument,
-	"snapshots_source_volume_not_found":                  codes.NotFound,           // A source volume in the request doesn't exist in VPC, so the request can't succeed as written.
-	"snapshot_consistency_groups_not_found":              codes.NotFound,           // The snapshot consistency group doesn't exist in VPC (for example, it was already deleted).
-	"snapshots_not_found":                                codes.NotFound,           // A member snapshot of the group doesn't exist in VPC.
-	"snapshots_source_volume_not_attached":               codes.FailedPrecondition, // A source volume isn't attached to an instance.
-	"snapshots_source_volume_busy":                       codes.Aborted,            // A source volume is busy right now. Keep Create pending and let the snapshotter retry.
-	"snapshots_service_unavailable":                      codes.Unavailable,        // The VPC snapshot service is temporarily down.
+	"snapshots_source_volume_not_found":                  codes.NotFound,
+	"snapshot_consistency_groups_not_found":              codes.NotFound,
+	"snapshots_not_found":                                codes.NotFound,
+	"snapshots_source_volume_not_attached":               codes.FailedPrecondition,
+	"snapshots_source_volume_busy":                       codes.Aborted,
+	"snapshots_service_unavailable":                      codes.Unavailable,
 }
 
-// groupSnapshotBackendCode picks the CSI status code for a VGS backend error.
-// It checks, in order: the provider's own error code, the VPC error code, the HTTP status (RC), and finally the provider's error category.
+// httpStatusToCSICode maps an HTTP status to a CSI status. Any 5xx is handled separately.
+var httpStatusToCSICode = map[int]codes.Code{
+	400: codes.InvalidArgument,
+	401: codes.Unauthenticated,
+	403: codes.PermissionDenied,
+	404: codes.NotFound,
+	409: codes.FailedPrecondition, // A 409 doesn't always mean a duplicate name.
+	429: codes.ResourceExhausted,
+}
+
+// providerTypeToCSICode maps the provider's error category to a CSI status.
+var providerTypeToCSICode = map[string]codes.Code{
+	providerError.EntityNotFound:    codes.NotFound,
+	providerError.InvalidRequest:    codes.InvalidArgument,
+	providerError.PermissionDenied:  codes.PermissionDenied,
+	providerError.Unauthenticated:   codes.Unauthenticated,
+	providerError.FailedAccessToken: codes.Unauthenticated,
+}
+
+// groupSnapshotBackendCode picks the CSI status for a VGS backend error.
 func groupSnapshotBackendCode(operation GroupSnapshotOperation, err error) codes.Code {
-	providerMsg, _ := err.(providerError.Message)
-	switch providerMsg.Code {
-	case "GroupSnapshotMemberDetailsUnavailable":
-		// Aborted keeps Create pending while member details are missing.
+	var providerMsg providerError.Message
+	errors.As(err, &providerMsg)
+	vpcCode, httpStatus := readVPCError(providerMsg)
+
+	// 1. The group may already exist in VPC. Aborted keeps the request pending,
+	//    and the retry finds the group by name instead of creating another one.
+	if groupMayExist(operation, providerMsg.Code, vpcCode) {
 		return codes.Aborted
+	}
+	// 2. A VPC error code we know.
+	if code, ok := vpcCodeToCSICode[vpcCode]; ok {
+		return code
+	}
+	// 3. The HTTP status. A 5xx may still be running in VPC, so report it as temporary.
+	if code, ok := httpStatusToCSICode[httpStatus]; ok {
+		return code
+	}
+	if httpStatus >= 500 {
+		return codes.Unavailable
+	}
+	// 4. The provider's own error category.
+	if code, ok := providerTypeToCSICode[providerMsg.Type]; ok {
+		return code
+	}
+	return codes.Internal
+}
+
+// readVPCError returns the VPC error code and HTTP status carried by a provider error.
+// When VPC sent no status (for example a network timeout), the provider's own status is used.
+func readVPCError(providerMsg providerError.Message) (vpcCode string, httpStatus int) {
+	if m := vpcCodeRe.FindStringSubmatch(providerMsg.BackendError); m != nil {
+		vpcCode = m[1]
+	}
+	httpStatus = providerMsg.RC
+	if m := vpcStatusRe.FindStringSubmatch(providerMsg.BackendError); m != nil {
+		httpStatus, _ = strconv.Atoi(m[1])
+	}
+	return vpcCode, httpStatus
+}
+
+// groupMayExist reports whether VPC may already hold the group even though the call failed.
+func groupMayExist(operation GroupSnapshotOperation, providerCode, vpcCode string) bool {
+	// VPC returned the group, but its member details are not complete yet.
+	if providerCode == "GroupSnapshotMemberDetailsUnavailable" {
+		return true
+	}
+	if operation != GroupSnapshotCreate {
+		return false
+	}
+
+	switch providerCode {
 	case "GroupSnapshotMemberLookupFailed", "InvalidGroupSnapshotResponse":
-		if operation == GroupSnapshotCreate {
-			// The group may already exist, but the driver can't return its ID yet.
-			// Aborted tells the snapshotter to keep Create pending.
-			return codes.Aborted
-		}
+		// The group was created, but the driver can't describe it yet.
+		return true
 	}
 
-	// The provider passes the VPC code and HTTP status along as text.
-	// Lowercase it and drop spaces so the patterns above match reliably.
-	errorText := strings.ToLower(strings.ReplaceAll(err.Error(), " ", ""))
-
-	// The text can hold more than one "Code:" (the trace code, then the VPC code), extract VPC code.
-	for _, m := range vpcCodeRe.FindAllStringSubmatch(errorText, -1) {
-		vpcCode := m[1]
-		if operation == GroupSnapshotCreate && vpcCode == "snapshot_consistency_groups_name_duplicate" {
-			// A group with this name already exists. It may have been created by an earlier
-			// attempt whose response was lost. Aborted keeps Create pending, and on the retry
-			// the driver looks the group up by name instead of creating another one.
-			return codes.Aborted
-		}
-		if code, ok := vpcCodeToCSICode[vpcCode]; ok {
-			return code
-		}
-	}
-
-	// No known VPC code matched, so fall back to the HTTP status VPC returned.
-	if m := vpcRCRe.FindStringSubmatch(errorText); m != nil {
-		rc, _ := strconv.Atoi(m[1])
-		switch {
-		case rc == 400:
-			return codes.InvalidArgument // VPC rejected the request as malformed.
-		case rc == 401:
-			return codes.Unauthenticated
-		case rc == 403:
-			return codes.PermissionDenied
-		case rc == 404:
-			return codes.NotFound
-		case rc == 409:
-			// VPC refused the request because of the current state of a resource. A 409 doesn't always mean a duplicate name.
-			return codes.FailedPrecondition
-		case rc == 429:
-			// VPC is rate limiting us. Back off and retry later.
-			return codes.ResourceExhausted
-		case rc >= 500:
-			// VPC had a server-side error. The request may still be running, so report it as temporary and let the snapshotter retry.
-			return codes.Unavailable
-		}
-	}
-
-	// Neither a VPC code nor an HTTP status matched, so use the provider's own error category.
-	switch providerMsg.Type {
-	case providerError.EntityNotFound:
-		return codes.NotFound // The provider couldn't find the requested data.
-	case providerError.InvalidRequest:
-		return codes.InvalidArgument // The provider rejected the input. The request has to be fixed first.
-	case providerError.PermissionDenied:
-		return codes.PermissionDenied
-	case providerError.Unauthenticated, providerError.FailedAccessToken:
-		return codes.Unauthenticated
-	default:
-		return codes.Internal // Anything we don't recognize is treated as an internal error.
-	}
+	// An earlier attempt may have created the group and lost the response.
+	return vpcCode == "snapshot_consistency_groups_name_duplicate"
 }
